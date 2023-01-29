@@ -151,3 +151,4 @@ cython_debug/
 .idea/*.xml
 .idea/inspectionProfiles/
 *.iml
+var/.seed
