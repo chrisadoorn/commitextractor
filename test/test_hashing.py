@@ -4,8 +4,8 @@ from unittest import TestCase
 
 
 class Test(TestCase):
+    # test of de juiste combinatie van hash methode en seed gebruikt wordt
     def test_make_hash(self):
-        verwacht = 'c5d1859a5cfbf15bdc3d976a2a67537a84250ed801f74deb24d5de00bec41390'
+        verwacht = '50fc4dda8b91cda4664edc536b472f225c7731b35f4af7a47b11d7fa2e7ec208'
         resultaat = hashing.make_hash(plaintext='test dit')
-        print(resultaat)
         unittest.TestCase.assertEqual(self, verwacht, resultaat, 'hashes matchen niet!')
