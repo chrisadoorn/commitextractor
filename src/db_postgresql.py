@@ -1,12 +1,14 @@
 import psycopg2
 from configparser import ConfigParser
 
+from src import utils
 
-def get_connection():
+
+def get_connection(filename='var/database.ini'):
     # read connection parameters
-    params = config()
+    params = config(filename=filename)
     conn = psycopg2.connect(**params)
-
+    # evalueert naar
     # conn = psycopg2.connect(host="localhost",
     #                         database="multicore",
     #                         user="appl",
@@ -15,11 +17,26 @@ def get_connection():
     return conn
 
 
+def check_connection(logfile, filename):
+    utils.log(logfile, 'reading database file at ' + filename)
+    conn = False
+    try:
+        conn = get_connection(filename)
+    except Exception:
+        utils.log(logfile, 'Error connecting to database')
+    finally:
+        if conn:
+            conn.close()
+            conn = True
+    return conn
+
+
 def config(filename='../var/database.ini', section='postgresql'):
     # create a parser
     parser = ConfigParser()
     # read config file
     parser.read(filename)
+    file = open(filename, 'r')
 
     # get section, default to postgresql
     db = {}
