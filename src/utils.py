@@ -8,9 +8,9 @@ def log(line):
     logfile.write(prefix + line + '\n')
 
 
-def open_logfile():
+def open_logfile(identifier):
     global logfile
-    logfile = open('../log/app.log', 'a')
+    logfile = open('../log/app.' + identifier +'.log', 'a')
 
 
 def close_logfile():

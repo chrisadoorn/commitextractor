@@ -79,3 +79,7 @@ def insert_project(values):
 
 def get_next_project(param):
     return None
+
+
+def get_conn():
+    return db_conn

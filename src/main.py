@@ -1,8 +1,10 @@
 from src import utils, sanitychecker, db_postgresql, hashing, commitextractor
+import uuid
 
 # initialiseer logging
-utils.open_logfile()
-utils.log('Starting application commitextractor')
+instance_uuid = str(uuid.uuid4())
+utils.open_logfile(instance_uuid)
+utils.log('Starting application commitextractor with procesid ' + instance_uuid)
 
 
 #####################################
@@ -16,11 +18,12 @@ def start_processing():
     try:
         # connect to database
         db_postgresql.open_connection()
-        commitextractor.test_werking()
+        # commitextractor.test_werking()
         # projectname = db_postgresql.get_next_project('')
         # while projectname:
-        #    commitextractor.extract_repository(projectname)
-        #    projectname = db_postgresql.get_next_project(projectname)
+        projectname = '/git/java/nifi'
+        commitextractor.extract_repository(projectname)
+        # projectname = db_postgresql.get_next_project(projectname)
 
         #
     finally:
