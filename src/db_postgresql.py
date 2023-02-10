@@ -77,7 +77,8 @@ def insert_project(values):
     return resultaattuple[0]
 
 
-def get_next_project(param):
+def get_next_project(projectnaam, verwerking_status):
+    utils.log('Project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
     return None
 
 

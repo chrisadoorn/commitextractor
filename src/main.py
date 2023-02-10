@@ -19,24 +19,28 @@ def start_processing():
         # connect to database
         db_postgresql.open_connection()
         # commitextractor.test_werking()
-        # projectname = db_postgresql.get_next_project('')
+        verwerking_status = ''
+        projectname = db_postgresql.get_next_project('', verwerking_status)
         # while projectname:
-        #                      'https: // github.com / apache / nifi.git'
         projectname = 'https://github.com/apache/nifi'
         # projectname = '/git/java/nifi'
 
+        # we gebruiken een inner try voor het verwerken van een enkel project.
+        # Als dit foutgaat, dan kan dit aan het project liggen.
+        # We stoppen dan met dit project, en starten een volgend project
         try:
+            verwerking_status = 'mislukt'
             commitextractor.extract_repository(projectname)
-            # projectname = db_postgresql.get_next_project(projectname)
-
-            #
+            verwerking_status = 'verwerkt'
+        # continue processing next project
         except Exception as e_inner:
-            # continue processing next project
-            utils.log('fatale fout tijdens verwerking project. Zie details hieronder')
+            utils.log('Er zijn fouten geconstateerd tijdens de verwerking project. Zie details hieronder')
             utils.log_exception(e_inner)
+
+        projectname = db_postgresql.get_next_project(projectname, verwerking_status)
     except Exception as e_outer:
         # stop processing
-        utils.log('fatale fout tijdens initialisatie. Zie details hieronder')
+        utils.log('Er zijn fouten geconstateerd tijdens de initialisatie. Het programma wordt afgebroken. Zie details hieronder')
         utils.log_exception(e_outer)
 
     finally:
@@ -55,8 +59,8 @@ def start_with_checks():
         # check if environment is configured properly
         sane = sanitychecker.check_dependencies()
         if not sane:
-            utils.log('Er zijn fouten geconstateerd tijdens de initialisatie. Het programma wordt afgebroken.')
-            raise Exception('Er zijn fouten geconstateerd tijdens de initialisatie. Het programma wordt afgebroken.')
+            utils.log('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
+            raise Exception('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
 
         start_processing()
 
