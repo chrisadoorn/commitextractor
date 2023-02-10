@@ -88,8 +88,9 @@ def extract_repository(projectname):
 
         for file in commit.modified_files:
             # print(file.filename, ' has changed')
-            if not (file.filename.endswith('.zip') or file.filename.endswith('.eot') or file.filename.endswith(
-                    '.woff') or file.filename.endswith('interface.saveScore.loadScore.txt')):
+            #if not (file.filename.endswith('.zip') or file.filename.endswith('.eot') or file.filename.endswith(
+            #       '.woff') or file.filename.endswith('interface.saveScore.loadScore.txt')):
+            if file.filename.endswith('.java') or (file.filename == 'pom.xml' and file.new_path == '' and file.old_path == '') :
                 # sla op in database
                 filecursor = connectie.cursor()
 
