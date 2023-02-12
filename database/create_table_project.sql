@@ -1,0 +1,21 @@
+-- Table: test.project
+
+-- DROP TABLE IF EXISTS test.project;
+
+CREATE TABLE IF NOT EXISTS test.project
+(
+    "IDPROJECT" bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
+    "NAAM" "char" NOT NULL,
+    "DATUM_EXTRACTIE" date NOT NULL DEFAULT '(now())::date',
+    "MAIN_LANGUAGE" "char",
+    CONSTRAINT project_pkey PRIMARY KEY ("IDPROJECT")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS test.project
+    OWNER to postgres;
+
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE test.project TO appl;
+
+GRANT ALL ON TABLE test.project TO postgres;

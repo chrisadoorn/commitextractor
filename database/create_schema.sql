@@ -1,0 +1,8 @@
+-- SCHEMA: test
+
+-- DROP SCHEMA IF EXISTS test ;
+
+CREATE SCHEMA IF NOT EXISTS test
+    AUTHORIZATION appl;
+
+GRANT ALL ON SCHEMA test TO appl;
