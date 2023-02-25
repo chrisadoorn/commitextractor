@@ -1,6 +1,7 @@
 import logging
 
 import psycopg2
+
 from src import configurator
 
 global db_conn
@@ -37,11 +38,13 @@ def check_connection():
     return conn
 
 
-def open_connection():
+def open_connection() :
     # open_connection()
     # create a connection and cache this connection
     global db_conn
     db_conn = get_connection()
+    return db_conn
+
 
 def insert_project(values):
     # insert_project(values)
@@ -61,6 +64,6 @@ def get_next_project(projectnaam, verwerking_status):
     return None
 
 
-def get_conn():
-    open_connection()
-    return db_conn
+def close_connection():
+    if db_conn:
+        db_conn.close()
