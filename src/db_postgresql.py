@@ -11,7 +11,13 @@ DATABASE_INI = '../var/commitextractor.ini'
 
 def get_connection():
     params = configurator.get_database_configuration()
-    conn = psycopg2.connect(**params)
+    v_host = params.get('host')
+    conn = psycopg2.connect(host=params.get('host'),
+                            port=params.get('port'),
+                            user=params.get('user'),
+                            password=params.get('password'),
+                            database=params.get('database'),
+                            options="-c search_path=" + params.get('schema'))
     # evalueert naar
     # conn = psycopg2.connect(host="localhost",
     #                         database="multicore",
@@ -38,7 +44,7 @@ def check_connection():
     return conn
 
 
-def open_connection() :
+def open_connection():
     # open_connection()
     # create a connection and cache this connection
     global db_conn
