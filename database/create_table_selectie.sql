@@ -1,8 +1,10 @@
--- Table: test.selectie
+set schema 'test';
 
--- DROP TABLE IF EXISTS test.selectie;
+-- Table: selectie
 
-CREATE TABLE IF NOT EXISTS test.selectie
+DROP TABLE IF EXISTS selectie;
+
+CREATE TABLE IF NOT EXISTS selectie
 (
     id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
     selectionmoment date NOT NULL,
@@ -21,12 +23,12 @@ CREATE TABLE IF NOT EXISTS test.selectie
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS test.selectie
+ALTER TABLE IF EXISTS selectie
     OWNER to postgres;
 
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE test.selectie TO appl;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE selectie TO appl;
 
-GRANT ALL ON TABLE test.selectie TO postgres;
+GRANT ALL ON TABLE selectie TO postgres;
 
-COMMENT ON TABLE test.selectie
+COMMENT ON TABLE selectie
     IS 'Wanneer de projecten selectie is uitgevoerd, en met welke criteria';

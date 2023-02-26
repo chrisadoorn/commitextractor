@@ -1,8 +1,10 @@
--- Table: test.bestandswijziging
+set schema 'test';
 
--- DROP TABLE IF EXISTS test.bestandswijziging;
+-- Table: bestandswijziging
 
-CREATE TABLE IF NOT EXISTS test.bestandswijziging
+-- DROP TABLE IF EXISTS bestandswijziging;
+
+CREATE TABLE IF NOT EXISTS bestandswijziging
 (
     idbestandswijziging bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
     idcommit bigint NOT NULL,
@@ -17,9 +19,9 @@ CREATE TABLE IF NOT EXISTS test.bestandswijziging
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS test.bestandswijziging
+ALTER TABLE IF EXISTS bestandswijziging
     OWNER to postgres;
 
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE test.bestandswijziging TO appl;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE bestandswijziging TO appl;
 
-GRANT ALL ON TABLE test.bestandswijziging TO postgres;
+GRANT ALL ON TABLE bestandswijziging TO postgres;

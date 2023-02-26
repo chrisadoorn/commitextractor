@@ -12,4 +12,9 @@ class Test(unittest.TestCase):
                             level=logging.INFO, encoding='utf-8')
         logging.info('starting test')
         configurator.set_inifile('var/test.ini')
+        # vraag max id op van selectie en project
         load_ghsearch.load()
+        # vraag max id op van selectie en project
+        #   dit moet bij beide 1 hoger zijn
+        #   vraag record selectie op. controleer de inhoud
+        #   vraag record project op.  controleer de inhoud

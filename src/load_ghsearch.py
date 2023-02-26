@@ -39,12 +39,12 @@ def import_projects(jsondata, conn, selectie_id):
         v_no_languages = len(project['languages'])
         v_languages = project['languages']
 
-        sql_select = "INSERT INTO project (naam, selectie_id, main_language, is_fork, license, forks," \
+        sql_fields = "INSERT INTO project (naam, selectie_id, main_language, is_fork, license, forks," \
                      " contributors, project_size, create_date, last_commit, number_of_languages, languages"
         sql_values = ") values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
         sql_return = " returning id"
         cursor = conn.cursor()
-        sql = sql_select + sql_values + sql_return
+        sql = sql_fields + sql_values + sql_return
         logging.debug('sql = ' + sql)
         value_tuple = (v_name, selectie_id, v_mainlanguage, v_is_fork, v_license, v_forks, v_contributors, v_size
                        , v_created_at, v_lastcommit, v_no_languages, str(v_languages))
@@ -52,7 +52,17 @@ def import_projects(jsondata, conn, selectie_id):
         conn.commit()
         new_id = cursor.fetchone()[0]
         logging.info('project id = ' + str(new_id))
+        cursor.close()
 
+        # insert project_verwerk
+        sql_fields = "INSERT INTO verwerk_project (id, naam"
+        sql_values = ") values (%s, %s) "
+        cursor = conn.cursor()
+        sql = sql_fields + sql_values
+        logging.debug('sql = ' + sql)
+        value_tuple = (new_id, v_mainlanguage)
+        cursor.execute(sql, value_tuple)
+        conn.commit()
         cursor.close()
 
 

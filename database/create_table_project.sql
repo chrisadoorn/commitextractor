@@ -1,8 +1,10 @@
--- Table: test.project
+set schema 'test';
 
--- DROP TABLE IF EXISTS test.project;
+-- Table: project
 
-CREATE TABLE IF NOT EXISTS test.project
+-- DROP TABLE IF EXISTS project;
+
+CREATE TABLE IF NOT EXISTS project
 (
     id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
     naam character varying COLLATE pg_catalog."default" NOT NULL,
@@ -26,17 +28,17 @@ CREATE TABLE IF NOT EXISTS test.project
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS test.project
+ALTER TABLE IF EXISTS project
     OWNER to postgres;
 
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE test.project TO appl;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE project TO appl;
 
-GRANT ALL ON TABLE test.project TO postgres;
+GRANT ALL ON TABLE project TO postgres;
 -- Index: fki_selectie_fkey
 
 -- DROP INDEX IF EXISTS test.fki_selectie_fkey;
 
 CREATE INDEX IF NOT EXISTS fki_selectie_fkey
-    ON test.project USING btree
+    ON project USING btree
     (selectie_id ASC NULLS LAST)
     TABLESPACE pg_default;
