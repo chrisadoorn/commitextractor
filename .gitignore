@@ -152,3 +152,4 @@ cython_debug/
 .idea/inspectionProfiles/
 *.iml
 *.seed
+/data/*.json

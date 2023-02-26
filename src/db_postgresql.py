@@ -1,6 +1,7 @@
 import logging
 
 import psycopg2
+
 from src import configurator
 
 global db_conn
@@ -10,7 +11,13 @@ DATABASE_INI = '../var/commitextractor.ini'
 
 def get_connection():
     params = configurator.get_database_configuration()
-    conn = psycopg2.connect(**params)
+    v_host = params.get('host')
+    conn = psycopg2.connect(host=params.get('host'),
+                            port=params.get('port'),
+                            user=params.get('user'),
+                            password=params.get('password'),
+                            database=params.get('database'),
+                            options="-c search_path=" + params.get('schema'))
     # evalueert naar
     # conn = psycopg2.connect(host="localhost",
     #                         database="multicore",
@@ -42,6 +49,8 @@ def open_connection():
     # create a connection and cache this connection
     global db_conn
     db_conn = get_connection()
+    return db_conn
+
 
 def insert_project(values):
     # insert_project(values)
@@ -61,6 +70,6 @@ def get_next_project(projectnaam, verwerking_status):
     return None
 
 
-def get_conn():
-    open_connection()
-    return db_conn
+def close_connection():
+    if db_conn:
+        db_conn.close()

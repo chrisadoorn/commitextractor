@@ -1,21 +1,44 @@
--- Table: test.project
+set schema 'test';
 
--- DROP TABLE IF EXISTS test.project;
+-- Table: project
 
-CREATE TABLE IF NOT EXISTS test.project
+-- DROP TABLE IF EXISTS project;
+
+CREATE TABLE IF NOT EXISTS project
 (
-    "IDPROJECT" bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
-    "NAAM" "char" NOT NULL,
-    "DATUM_EXTRACTIE" date NOT NULL DEFAULT '(now())::date',
-    "MAIN_LANGUAGE" "char",
-    CONSTRAINT project_pkey PRIMARY KEY ("IDPROJECT")
+    id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
+    naam character varying COLLATE pg_catalog."default" NOT NULL,
+    selectie_id bigint NOT NULL,
+    main_language character varying COLLATE pg_catalog."default",
+    is_fork boolean,
+    license character varying COLLATE pg_catalog."default",
+    forks integer,
+    contributors integer,
+    project_size bigint,
+    create_date date,
+    last_commit date,
+    number_of_languages integer,
+    languages text COLLATE pg_catalog."default",
+    CONSTRAINT project_pkey PRIMARY KEY (id),
+    CONSTRAINT selectie_fkey FOREIGN KEY (selectie_id)
+        REFERENCES test.selectie (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS test.project
+ALTER TABLE IF EXISTS project
     OWNER to postgres;
 
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE test.project TO appl;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE project TO appl;
 
-GRANT ALL ON TABLE test.project TO postgres;
+GRANT ALL ON TABLE project TO postgres;
+-- Index: fki_selectie_fkey
+
+-- DROP INDEX IF EXISTS test.fki_selectie_fkey;
+
+CREATE INDEX IF NOT EXISTS fki_selectie_fkey
+    ON project USING btree
+    (selectie_id ASC NULLS LAST)
+    TABLESPACE pg_default;

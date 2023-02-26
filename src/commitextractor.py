@@ -60,9 +60,11 @@ def extract_repository(projectname):
 
                 # sql = "INSERT INTO test.bestandswijziging (tekstvooraf, tekstachteraf, difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s, %s, %s)"
                 # val = (file.content_before, file.content, file.diff, file.filename, file.new_path, commitId)
-                sql = "INSERT INTO test.bestandswijziging ( tekstachteraf, difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s, %s)"
-                val = (file.content, file.diff, file.filename, file.new_path, commitId)
+                #sql = "INSERT INTO test.bestandswijziging ( tekstachteraf, difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s, %s)"
+                #val = (file.content, file.diff, file.filename, file.new_path, commitId)
 
+                sql = "INSERT INTO test.bestandswijziging ( difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s)"
+                val = ( file.diff, file.filename, file.new_path, commitId)
                 filecursor.execute(sql, val)
                 rowId = filecursor.lastrowid
                 db_connectie.commit()
@@ -83,7 +85,7 @@ def extract_repository(projectname):
 # extract repositories while there are repositories to be processed
 def extract_repositories(process_identifier):
     global db_connectie
-    db_connectie = db_postgresql.get_conn()
+    db_connectie = db_postgresql.open_connection()
 
     # projectname = db_postgresql.get_next_project('', verwerking_status)
     # while projectname:
@@ -106,6 +108,6 @@ def extract_repositories(process_identifier):
     # projectname = db_postgresql.get_next_project(projectname, verwerking_status)
 
     logging.info('Starting extracting in new process with id: ' + process_identifier)
-    extract_repository('https://github.com/ishepard/pydriller')
-    # extract_repository('/git/java/nifi', logfile)
+    # extract_repository('https://github.com/ishepard/pydriller')
+    extract_repository('/git/java/nifi')
 

@@ -1,9 +1,7 @@
 import unittest
 from src import hashing
-from unittest import TestCase
 
-
-class Test(TestCase):
+class Test(unittest.TestCase):
     # tests of de juiste combinatie van hash methode en seed gebruikt wordt
     def test_make_hash(self):
         hashing.set_seed()
