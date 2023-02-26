@@ -86,6 +86,7 @@ def extract_repository(projectname):
 def extract_repositories(process_identifier):
     global db_connectie
     db_connectie = db_postgresql.open_connection()
+    db_postgresql.registreer_processor(process_identifier)
 
     # projectname = db_postgresql.get_next_project('', verwerking_status)
     # while projectname:
@@ -109,5 +110,6 @@ def extract_repositories(process_identifier):
 
     logging.info('Starting extracting in new process with id: ' + process_identifier)
     # extract_repository('https://github.com/ishepard/pydriller')
-    extract_repository('/git/java/nifi')
+    # extract_repository('/git/java/nifi')
+    db_postgresql.deregistreer_processor(process_identifier)
 

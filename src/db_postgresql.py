@@ -9,7 +9,7 @@ global db_conn
 DATABASE_INI = '../var/commitextractor.ini'
 
 
-def get_connection():
+def _get_connection():
     params = configurator.get_database_configuration()
     v_host = params.get('host')
     conn = psycopg2.connect(host=params.get('host'),
@@ -32,7 +32,7 @@ def check_connection():
     # helper function for sanity check
     conn = False
     try:
-        conn = get_connection()
+        conn = _get_connection()
     except:
         logging.error('Error connecting to database')
     finally:
@@ -48,7 +48,7 @@ def open_connection():
     # open_connection()
     # create a connection and cache this connection
     global db_conn
-    db_conn = get_connection()
+    db_conn = _get_connection()
     return db_conn
 
 
@@ -68,6 +68,28 @@ def insert_project(values):
 def get_next_project(projectnaam, verwerking_status):
     logging.info('Project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
     return None
+
+
+def registreer_processor(identifier):
+    new_id = 0
+    values = (identifier, new_id)
+    sql = 'CALL registreer_processor(%s, %s)'
+    projectcursor = db_conn.cursor()
+    projectcursor.execute(sql, values)
+    new_id = projectcursor.fetchone()[0]
+    db_conn.commit()
+    projectcursor.close()
+    return new_id
+
+
+def deregistreer_processor(identifier):
+    new_id = 0
+    values = (identifier)
+    sql = 'CALL deregistreer_processor(%s)'
+    projectcursor = db_conn.cursor()
+    projectcursor.execute(sql, [identifier])
+    db_conn.commit()
+    projectcursor.close()
 
 
 def close_connection():
