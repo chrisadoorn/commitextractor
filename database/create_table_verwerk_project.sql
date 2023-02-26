@@ -30,4 +30,4 @@ GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE verwerk_project TO appl;
 GRANT ALL ON TABLE verwerk_project TO postgres;
 
 COMMENT ON TABLE verwerk_project
-    IS 'Tabel om de status bij te houden van de verwerking. Status mag zijn: nieuw, gereed, bezig, geblokt. resultaat mag zijn <leeg>, goed, fout';
+    IS 'Tabel om de status bij te houden van de verwerking. Status mag zijn: nieuw, gereed, bezig, geblokt. resultaat mag zijn <leeg>, gelukt, mislukt';
