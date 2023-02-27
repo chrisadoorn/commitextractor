@@ -7,12 +7,12 @@ from src import commitextractor, configurator
 
 # start_extraction starts in a new process.
 # Therefore, it needs a new logging file.
-def start_extraction(nummer=0):
+def _start_extraction(nummer=0):
     process_identifier = str(uuid.uuid4())
     logging.basicConfig(filename='../log/process.' + process_identifier + '.log',
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
-    logging.info('start process ' + str(nummer) + '  with id: ' + str(process_identifier))
+    logging.info('start process ' + str(nummer) + '  with id: ' + process_identifier)
     commitextractor.extract_repositories(process_identifier)
 
 
@@ -25,5 +25,5 @@ def start_processen():
 
     mp.Pool()
     pool = mp.Pool(number_of_processes)
-    pool.map(start_extraction, range(number_of_processes))
+    pool.map(_start_extraction, range(number_of_processes))
     pool.close()

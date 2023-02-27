@@ -1,9 +1,9 @@
-The commitextractor.ini contains all configuration items for the commitextractorr module.
+The commitextractor.ini contains all configuration items for the commitextractor module.
 
 The following sections and options are available:
 
 #### Section postgresql
-This section contains the connection parameters to connect to a postgresql database.   
+This section contains the connection parameters to connect to a postgresql database. All options are required.   
  **Options**  
 * **host** The hostname or ip-adress where the database server is reachable
 * **port** The port to connect to.
@@ -16,7 +16,7 @@ This section contains the connection parameters to connect to a postgresql datab
 This section contain paramateres to control the functioning of the commitextractor
 
  **Options**  
-**run_parallel** A number to indicate how many parallel processes will be started. 
+* **run_parallel** Required. A number to indicate how many parallel processes will be started. With this it is possible to speed up the process if multiple project will be extracted. 
 
 
 #### Section ghsearch
