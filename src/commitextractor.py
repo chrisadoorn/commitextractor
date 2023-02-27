@@ -5,6 +5,7 @@ from src import db_postgresql
 
 global db_connectie
 
+
 # pip install package pydriller
 # pip install package mysql-connector-python
 def test_werking():
@@ -60,11 +61,11 @@ def extract_repository(projectname):
 
                 # sql = "INSERT INTO test.bestandswijziging (tekstvooraf, tekstachteraf, difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s, %s, %s)"
                 # val = (file.content_before, file.content, file.diff, file.filename, file.new_path, commitId)
-                #sql = "INSERT INTO test.bestandswijziging ( tekstachteraf, difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s, %s)"
-                #val = (file.content, file.diff, file.filename, file.new_path, commitId)
+                # sql = "INSERT INTO test.bestandswijziging ( tekstachteraf, difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s, %s)"
+                # val = (file.content, file.diff, file.filename, file.new_path, commitId)
 
                 sql = "INSERT INTO test.bestandswijziging ( difftext, filename, locatie, idcommit) VALUES (%s, %s, %s, %s)"
-                val = ( file.diff, file.filename, file.new_path, commitId)
+                val = (file.diff, file.filename, file.new_path, commitId)
                 filecursor.execute(sql, val)
                 rowId = filecursor.lastrowid
                 db_connectie.commit()
@@ -88,7 +89,7 @@ def extract_repositories(process_identifier):
     db_connectie = db_postgresql.open_connection()
     db_postgresql.registreer_processor(process_identifier)
 
-    # projectname = db_postgresql.get_next_project('', verwerking_status)
+    projectname = db_postgresql.get_next_project('', process_identifier, verwerking_status)
     # while projectname:
     # projectname = 'https://github.com/apache/nifi'
     # projectname = '/git/java/nifi'
@@ -105,11 +106,9 @@ def extract_repositories(process_identifier):
         logging.error('Er zijn fouten geconstateerd tijdens de verwerking project. Zie details hieronder')
         logging.exception(e_inner)
 
-
     # projectname = db_postgresql.get_next_project(projectname, verwerking_status)
 
     logging.info('Starting extracting in new process with id: ' + process_identifier)
     # extract_repository('https://github.com/ishepard/pydriller')
     # extract_repository('/git/java/nifi')
     db_postgresql.deregistreer_processor(process_identifier)
-

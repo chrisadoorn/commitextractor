@@ -65,9 +65,26 @@ def insert_project(values):
     return resultaattuple[0]
 
 
-def get_next_project(projectnaam, verwerking_status):
-    logging.info('Project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
-    return None
+def get_next_project(projectnaam, processor, verwerking_status):
+    logging.info(processor + ' heeft project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
+    new_id = 0
+
+    if verwerking_status and len(verwerking_status) > 0:
+        values = (processor, projectnaam, verwerking_status)
+        sql = 'CALL registreer_verwerking(%s, %s, %s)'
+        verwerkingcursor = db_conn.cursor()
+        verwerkingcursor.execute(sql, values)
+        db_conn.commit()
+        verwerkingcursor.close()
+
+    values = (processor, projectnaam)
+    sql = 'CALL vraag_volgend_project(%s, %s)'
+    projectcursor = db_conn.cursor()
+    projectcursor.execute(sql, values)
+    new_id = projectcursor.fetchone()[0]
+    db_conn.commit()
+    projectcursor.close()
+    return new_id
 
 
 def registreer_processor(identifier):
