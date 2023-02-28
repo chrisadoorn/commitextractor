@@ -15,7 +15,6 @@ def start_processing():
     try:
         # connect to database
         db_postgresql.open_connection()
-        # commitextractor.test_werking()
         parallelizer.start_processen()
     except Exception as e:
         # stop processing

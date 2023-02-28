@@ -7,22 +7,7 @@ global db_connectie
 
 # pip install package pydriller
 # pip install package mysql-connector-python
-def test_werking():
-    # global reponaam, commit_teller, start, connectie, val, projectId
-    reponaam = 'https://github.com/chrisadoorn/OUwebclient'
-    start = datetime.now()
-    logging.info(str(start))
-    new_id = 0
-    val = (reponaam, 'Java', new_id)
-    projectId = db_postgresql.insert_project(val)
-    logging.info("project " + reponaam + " inserted with id: " + str(projectId))
 
-
-# reponaam = 'https://github.com/ishepard/pydriller'
-# reponaam = '/git/android/ou-mini-bieb'
-# reponaam = '/git/java/nifi'
-# test_werking()
-# exit(7)
 
 def extract_repository(projectname):
     start = datetime.now()
@@ -109,5 +94,5 @@ def extract_repositories(process_identifier):
 
     logging.info('Starting extracting in new process with id: ' + process_identifier)
     # extract_repository('https://github.com/ishepard/pydriller')
-    extract_repository('/git/java/nifi')
+    # extract_repository('/git/java/nifi')
 
