@@ -33,8 +33,9 @@ def check_connection():
     conn = False
     try:
         conn = get_connection()
-    except:
+    except Exception as e:
         logging.error('Error connecting to database')
+        logging.exception(e)
     finally:
         if conn:
             conn.close()

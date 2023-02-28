@@ -38,8 +38,6 @@ def start_with_checks():
     # if all is well start processing
     try:
 
-        # cache seed value
-        hashing.set_seed()
         # check if environment is configured properly
         sane = sanitychecker.check_dependencies()
         if not sane:

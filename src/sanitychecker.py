@@ -22,7 +22,11 @@ def _check_seed() -> bool:
 # return true if it is a positive number 1 or bigger, false otherwise.
 def _check_parallelization() -> bool:
     # check if number for parallelization is configured
-    number_of_processes = configurator.get_number_of_processes()
+    try:
+        number_of_processes = configurator.get_number_of_processes()
+    except Exception as e:
+        logging.exception(e)
+        number_of_processes = 0
     return number_of_processes > 0
 
 
