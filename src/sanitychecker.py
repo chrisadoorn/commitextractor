@@ -13,8 +13,14 @@ def _check_connection() -> bool:
 # return true if hashing a known string returns the expected result, false otherwise.
 def _check_seed() -> bool:
     verwacht = '50fc4dda8b91cda4664edc536b472f225c7731b35f4af7a47b11d7fa2e7ec208'
-    resultaat = hashing.make_hash(plaintext='test dit')
-    check_result = (verwacht == resultaat)
+
+    try:
+        resultaat = hashing.make_hash(plaintext='test dit')
+        check_result = (verwacht == resultaat)
+    except Exception as e:
+        logging.exception(e)
+        check_result = False
+
     return check_result
 
 

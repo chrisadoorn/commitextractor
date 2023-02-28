@@ -1,10 +1,9 @@
 import logging
 import uuid
 
-from datetime import datetime
 from multiprocessing import freeze_support
 
-from src import sanitychecker, db_postgresql, hashing, parallelizer
+from src import sanitychecker, db_postgresql, parallelizer
 
 
 #####################################
