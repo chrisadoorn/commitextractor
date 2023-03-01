@@ -3,10 +3,12 @@ from configparser import ConfigParser
 GHSEARCH = 'ghsearch'
 IMPORT = 'import'
 IMPORTFILE = 'importfile'
-INI_FILE = '../var/commitextractor.ini'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
+
+# INI_FILE contains the default location of the configuration
+INI_FILE = '../var/commitextractor.ini'
 
 global inifile
 inifile = INI_FILE

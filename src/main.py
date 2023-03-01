@@ -1,10 +1,9 @@
 import logging
 import uuid
 
-from datetime import datetime
 from multiprocessing import freeze_support
 
-from src import sanitychecker, db_postgresql, hashing, parallelizer
+from src import sanitychecker, db_postgresql, parallelizer
 
 
 #####################################
@@ -16,7 +15,6 @@ def start_processing():
     try:
         # connect to database
         db_postgresql.open_connection()
-        # commitextractor.test_werking()
         parallelizer.start_processen()
     except Exception as e:
         # stop processing
@@ -38,8 +36,6 @@ def start_with_checks():
     # if all is well start processing
     try:
 
-        # cache seed value
-        hashing.set_seed()
         # check if environment is configured properly
         sane = sanitychecker.check_dependencies()
         if not sane:

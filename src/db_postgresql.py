@@ -18,30 +18,31 @@ def _get_connection():
                             password=params.get('password'),
                             database=params.get('database'),
                             options="-c search_path=" + params.get('schema'))
-    # evalueert naar
-    # conn = psycopg2.connect(host="localhost",
-    #                         database="multicore",
-    #                         user="appl",
-    #                         password="***")
     logging.info('opened a database connection')
     return conn
 
 
+# known error: if all other connection parameters are correct but the password is incorrect, there is no error detected.
 def check_connection():
     # check_connection()
     # helper function for sanity check
     conn = False
+    failure = False
     try:
         conn = _get_connection()
-    except:
+        cursor = conn.cursor()
+        cursor.execute('select * from selectie where id = 1')
+        cursor.close()
+    except Exception as e:
         logging.error('Error connecting to database')
+        logging.exception(e)
+        failure = True
     finally:
         if conn:
             conn.close()
-            conn = True
 
     logging.info('Created connection to database')
-    return conn
+    return conn and not failure
 
 
 def open_connection():
