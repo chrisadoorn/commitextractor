@@ -13,6 +13,7 @@ def initialiseer_testset():
     db_postgresql.clean_testset()
     db_postgresql.registreer_processor(identifier)
     load_ghsearch.load()
+    initialiseer_connectie()  # load ghsearch stopt de connectie.
     return identifier
 
 
@@ -23,7 +24,6 @@ def initialiseer_connectie():
 class Test(unittest.TestCase):
     def test_set_van_drie(self):
         identifier = initialiseer_testset()
-        initialiseer_connectie()
 
         # eerste record
         resultaat = db_postgresql.volgend_project(processor=identifier)

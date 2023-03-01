@@ -1,11 +1,9 @@
-set schema 'test';
+-- PROCEDURE: test.registreer_processor(character, bigint)
 
--- PROCEDURE: registreer_processor( char(36), bigint)
+-- DROP PROCEDURE IF EXISTS test.registreer_processor(character, bigint);
 
---DROP PROCEDURE IF EXISTS registreer_processor( char(36), bigint);
-
-CREATE OR REPLACE PROCEDURE registreer_processor(
-	IN p_identifier char(36),
+CREATE OR REPLACE PROCEDURE test.registreer_processor(
+	IN p_identifier character,
 	INOUT p_new_id bigint)
 LANGUAGE 'plpgsql'
 AS $BODY$
@@ -20,5 +18,5 @@ return;
 
 END;
 $BODY$;
-ALTER PROCEDURE registreer_processor( char(36), bigint)
+ALTER PROCEDURE test.registreer_processor(character, bigint)
     OWNER TO appl;

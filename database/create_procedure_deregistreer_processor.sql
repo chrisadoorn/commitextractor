@@ -1,11 +1,9 @@
-set schema 'test';
+-- PROCEDURE: test.deregistreer_processor(character)
 
--- PROCEDURE: deregistreer_processor( char(36), bigint)
+-- DROP PROCEDURE IF EXISTS test.deregistreer_processor(character);
 
---DROP PROCEDURE IF EXISTS deregistreer_processor( char(36));
-
-CREATE OR REPLACE PROCEDURE deregistreer_processor(
-	IN p_identifier char(36))
+CREATE OR REPLACE PROCEDURE test.deregistreer_processor(
+	IN p_identifier character)
 LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
@@ -13,11 +11,11 @@ BEGIN
 set schema 'test';
 update processor
 set status = 'gestopt'
-   ,einde_processing = now();
-where identifier = p_identifier
+   ,einde_processing = now()
+where identifier = p_identifier;
 return;
 
 END;
 $BODY$;
-ALTER PROCEDURE deregistreer_processor( char(36))
+ALTER PROCEDURE test.deregistreer_processor(character)
     OWNER TO appl;

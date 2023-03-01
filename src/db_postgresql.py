@@ -76,15 +76,16 @@ def volgend_project(processor):
     projectcursor = db_conn.cursor()
     projectcursor.execute(sql, values)
     resultaat = projectcursor.fetchone()
+    logging.info(processor + ' heeft project opgevraagd met als resultaat: ' + str(resultaat))
     db_conn.commit()
     projectcursor.close()
     return resultaat
 
 
-def registreer_verwerking(projectnaam, processor, verwerking_status):
+def registreer_verwerking(projectnaam, processor, verwerking_status, projectid):
     logging.info(processor + ' heeft project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
-    values = (processor, projectnaam, verwerking_status)
-    sql = 'CALL registreer_verwerking(%s, %s, %s)'
+    values = (projectid, verwerking_status)
+    sql = 'CALL registreer_verwerking(%s, %s)'
     verwerkingcursor = db_conn.cursor()
     verwerkingcursor.execute(sql, values)
     db_conn.commit()
