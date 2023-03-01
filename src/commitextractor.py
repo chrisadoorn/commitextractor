@@ -74,7 +74,7 @@ def extract_repositories(process_identifier):
     db_connectie = db_postgresql.open_connection()
     db_postgresql.registreer_processor(process_identifier)
 
-    projectname = db_postgresql.get_next_project('', process_identifier, verwerking_status)
+    projectname = db_postgresql.volgend_project('', process_identifier, verwerking_status)
     # while projectname:
     # projectname = 'https://github.com/apache/nifi'
     # projectname = '/git/java/nifi'

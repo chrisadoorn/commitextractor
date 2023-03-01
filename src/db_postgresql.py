@@ -66,26 +66,29 @@ def insert_project(values):
     return resultaattuple[0]
 
 
-def get_next_project(projectnaam, processor, verwerking_status):
-    logging.info(processor + ' heeft project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
+def volgend_project(processor):
     new_id = 0
+    rowcount = 0
+    projectnaam = ''
 
-    if verwerking_status and len(verwerking_status) > 0:
-        values = (processor, projectnaam, verwerking_status)
-        sql = 'CALL registreer_verwerking(%s, %s, %s)'
-        verwerkingcursor = db_conn.cursor()
-        verwerkingcursor.execute(sql, values)
-        db_conn.commit()
-        verwerkingcursor.close()
-
-    values = (processor, projectnaam)
-    sql = 'CALL vraag_volgend_project(%s, %s)'
+    values = (processor, new_id, projectnaam, rowcount)
+    sql = 'CALL verwerk_volgend_project(%s, %s, %s, %s)'
     projectcursor = db_conn.cursor()
     projectcursor.execute(sql, values)
-    new_id = projectcursor.fetchone()[0]
+    resultaat = projectcursor.fetchone()
     db_conn.commit()
     projectcursor.close()
-    return new_id
+    return resultaat
+
+
+def registreer_verwerking(projectnaam, processor, verwerking_status):
+    logging.info(processor + ' heeft project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
+    values = (processor, projectnaam, verwerking_status)
+    sql = 'CALL registreer_verwerking(%s, %s, %s)'
+    verwerkingcursor = db_conn.cursor()
+    verwerkingcursor.execute(sql, values)
+    db_conn.commit()
+    verwerkingcursor.close()
 
 
 def registreer_processor(identifier):
@@ -101,8 +104,6 @@ def registreer_processor(identifier):
 
 
 def deregistreer_processor(identifier):
-    new_id = 0
-    values = (identifier)
     sql = 'CALL deregistreer_processor(%s)'
     projectcursor = db_conn.cursor()
     projectcursor.execute(sql, [identifier])
@@ -113,3 +114,16 @@ def deregistreer_processor(identifier):
 def close_connection():
     if db_conn:
         db_conn.close()
+
+
+def clean_testset():
+    cursor = db_conn.cursor()
+    sql = 'delete from test.verwerk_project;' \
+          'delete from test.processor;' \
+          'delete from test.bestandswijziging;' \
+          'delete from test.commit;' \
+          'delete from test.project;' \
+          'delete from test.selectie;'
+    cursor.execute(sql, [])
+    db_conn.commit()
+    cursor.close()
