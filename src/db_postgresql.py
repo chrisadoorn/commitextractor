@@ -9,7 +9,7 @@ global db_conn
 DATABASE_INI = '../var/commitextractor.ini'
 
 
-def get_connection():
+def _get_connection():
     params = configurator.get_database_configuration()
     v_host = params.get('host')
     conn = psycopg2.connect(host=params.get('host'),
@@ -29,7 +29,7 @@ def check_connection():
     conn = False
     failure = False
     try:
-        conn = get_connection()
+        conn = _get_connection()
         cursor = conn.cursor()
         cursor.execute('select * from selectie where id = 1')
         cursor.close()
@@ -49,7 +49,7 @@ def open_connection():
     # open_connection()
     # create a connection and cache this connection
     global db_conn
-    db_conn = get_connection()
+    db_conn = _get_connection()
     return db_conn
 
 
@@ -66,11 +66,65 @@ def insert_project(values):
     return resultaattuple[0]
 
 
-def get_next_project(projectnaam, verwerking_status):
-    logging.info('Project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
-    return None
+def volgend_project(processor):
+    new_id = 0
+    rowcount = 0
+    projectnaam = ''
+
+    values = (processor, new_id, projectnaam, rowcount)
+    sql = 'CALL verwerk_volgend_project(%s, %s, %s, %s)'
+    projectcursor = db_conn.cursor()
+    projectcursor.execute(sql, values)
+    resultaat = projectcursor.fetchone()
+    logging.info(processor + ' heeft project opgevraagd met als resultaat: ' + str(resultaat))
+    db_conn.commit()
+    projectcursor.close()
+    return resultaat
+
+
+def registreer_verwerking(projectnaam, processor, verwerking_status, projectid):
+    logging.info(processor + ' heeft project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
+    values = (projectid, verwerking_status)
+    sql = 'CALL registreer_verwerking(%s, %s)'
+    verwerkingcursor = db_conn.cursor()
+    verwerkingcursor.execute(sql, values)
+    db_conn.commit()
+    verwerkingcursor.close()
+
+
+def registreer_processor(identifier):
+    new_id = 0
+    values = (identifier, new_id)
+    sql = 'CALL registreer_processor(%s, %s)'
+    projectcursor = db_conn.cursor()
+    projectcursor.execute(sql, values)
+    new_id = projectcursor.fetchone()[0]
+    db_conn.commit()
+    projectcursor.close()
+    return new_id
+
+
+def deregistreer_processor(identifier):
+    sql = 'CALL deregistreer_processor(%s)'
+    projectcursor = db_conn.cursor()
+    projectcursor.execute(sql, [identifier])
+    db_conn.commit()
+    projectcursor.close()
 
 
 def close_connection():
     if db_conn:
         db_conn.close()
+
+
+def clean_testset():
+    cursor = db_conn.cursor()
+    sql = 'delete from test.verwerk_project;' \
+          'delete from test.processor;' \
+          'delete from test.bestandswijziging;' \
+          'delete from test.commit;' \
+          'delete from test.project;' \
+          'delete from test.selectie;'
+    cursor.execute(sql, [])
+    db_conn.commit()
+    cursor.close()

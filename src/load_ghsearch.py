@@ -60,7 +60,7 @@ def import_projects(jsondata, conn, selectie_id):
         cursor = conn.cursor()
         sql = sql_fields + sql_values
         logging.debug('sql = ' + sql)
-        value_tuple = (new_id, v_mainlanguage)
+        value_tuple = (new_id, v_name)
         cursor.execute(sql, value_tuple)
         conn.commit()
         cursor.close()

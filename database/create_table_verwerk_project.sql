@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS verwerk_project
     naam character varying COLLATE pg_catalog."default" NOT NULL,
     start_extractie timestamp without time zone,
     einde_extractie timestamp without time zone,
-    processor character varying COLLATE pg_catalog."default",
+    processor character(36) COLLATE pg_catalog."default",
     status character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'nieuw'::character varying,
     resultaat character varying COLLATE pg_catalog."default",
     CONSTRAINT verwerk_project_pkey PRIMARY KEY (id),
@@ -30,4 +30,4 @@ GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE verwerk_project TO appl;
 GRANT ALL ON TABLE verwerk_project TO postgres;
 
 COMMENT ON TABLE verwerk_project
-    IS 'Tabel om de status bij te houden van de verwerking. Status mag zijn: nieuw, gereed, bezig, geblokt. resultaat mag zijn <leeg>, goed, fout';
+    IS 'Tabel om de status bij te houden van de verwerking. Status mag zijn: nieuw, gereed, bezig, geblokt. resultaat mag zijn <leeg>, gelukt, mislukt';
