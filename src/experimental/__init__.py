@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 
 from src import configurator
+from src.experimental import commitextractor
 from src.experimental.models import GhSearchSelection
 
 
@@ -15,7 +16,7 @@ def initialize():
 
 def execute():
     ghs = GhSearchSelection.get(GhSearchSelection.id == 1)
-    print(ghs.name)
+    commitextractor.extract_repository(ghs.name, ghs.id)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
-    IntegerField, IPField, DateTimeField, SQL, PostgresqlDatabase
+    IntegerField, IPField, DateTimeField, SQL, PostgresqlDatabase, TextField
 
 from src import configurator
 
@@ -18,7 +18,7 @@ class BaseModel(Model):
 
 
 class GhSearchSelection(BaseModel):
-    id = AutoField()
+    id = AutoField(primary_key=True)
     name = CharField(null=True)
     is_fork = BooleanField(null=True)
     commits = IntegerField(null=True)
@@ -48,5 +48,15 @@ class GhSearchSelection(BaseModel):
     sub_study = CharField(null=True)
 
 
-pg_db.connect()
-pg_db.create_tables([GhSearchSelection])
+class CommitInformation(BaseModel):
+    id = AutoField(primary_key=True)
+    id_project = IPField()
+    commit_date_time = DateTimeField()
+    hash_value = CharField(max_length=40)
+    username = CharField()
+    email_address = CharField()
+    remark = TextField()
+
+
+# pg_db.connect()
+# pg_db.create_tables([CommitInformation])
