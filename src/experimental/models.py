@@ -1,16 +1,15 @@
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
-    IntegerField, IPField, DateTimeField, SQL, PostgresqlDatabase, TextField
+    IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField
 
 from src import configurator
 
 configurator.inifile = '../../var/commitextractor.ini'
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
-                           host='localhost', port=5432)
+                           host='localhost', port=params.get('port'))
 
 
 class BaseModel(Model):
-    """A base model that will use our Postgresql database"""
 
     class Meta:
         database = pg_db
@@ -30,7 +29,7 @@ class GhSearchSelection(BaseModel):
     watchers = IntegerField(null=True)
     stargazers = IntegerField(null=True)
     forks = IntegerField(null=True)
-    size = IPField(null=True)
+    size = BigIntegerField(null=True)
     created_at = DateTimeField(null=True)
     pushed_at = DateTimeField(null=True)
     updated_at = DateTimeField(null=True)
@@ -50,13 +49,25 @@ class GhSearchSelection(BaseModel):
 
 class CommitInformation(BaseModel):
     id = AutoField(primary_key=True)
-    id_project = IPField()
-    commit_date_time = DateTimeField()
+    id_project = BigIntegerField(null=True)
+    commit_date_time = DateTimeField(null=True)
     hash_value = CharField(max_length=40)
-    username = CharField()
-    email_address = CharField()
-    remark = TextField()
+    username = CharField(null=True)
+    email_address = CharField(null=True)
+    remark = TextField(null=True)
 
 
-# pg_db.connect()
-# pg_db.create_tables([CommitInformation])
+class FileChanges(BaseModel):
+    id = AutoField(primary_key=True)
+    id_project = IntegerField(null=True)
+    id_commit = BigIntegerField(null=True)
+    filename = CharField(null=True, max_length=1024)
+    location = CharField(null=True, max_length=1024)
+    extension = CharField(null=True, max_length=64)
+    diff_text = TextField(null=True)
+    text_before = TextField(null=True)
+    text_after = TextField(null=True)
+
+
+pg_db.connect()
+pg_db.create_tables([GhSearchSelection, CommitInformation, FileChanges])

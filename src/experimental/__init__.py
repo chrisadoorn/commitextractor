@@ -8,7 +8,7 @@ from src.experimental.models import GhSearchSelection
 
 def initialize():
     dt = datetime.now()
-    logging.basicConfig(filename='../log/main.' + str(dt) + '.log',
+    logging.basicConfig(filename='../../log/main.' + str(dt) + '.log',
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
     configurator.inifile = '../../var/commitextractor.ini'
