@@ -96,6 +96,7 @@ def registreer_verwerking(projectnaam, processor, verwerking_status, projectid):
     verwerkingcursor.close()
 
 
+
 def registreer_processor(identifier):
     new_id = 0
     values = (identifier, new_id)
