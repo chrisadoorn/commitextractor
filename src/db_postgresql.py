@@ -79,6 +79,10 @@ def volgend_project(processor):
     logging.info(processor + ' heeft project opgevraagd met als resultaat: ' + str(resultaat))
     db_conn.commit()
     projectcursor.close()
+    if resultaat[2] == 0 and resultaat[0] is not None and resultaat[0] > 0:
+        # bug racecondition: probeer opnieuw
+        return volgend_project(processor)
+
     return resultaat
 
 
