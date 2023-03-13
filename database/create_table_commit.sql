@@ -1,10 +1,10 @@
 set schema 'test';
 
--- Table: commit
+-- Table: commitinfo
 
--- DROP TABLE IF EXISTS commit;
+-- DROP TABLE IF EXISTS commitinfo;
 
-CREATE TABLE IF NOT EXISTS commit
+CREATE TABLE IF NOT EXISTS commitinfo
 (
     idcommit bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
     idproject bigint NOT NULL,
@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS commit
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS commit
+ALTER TABLE IF EXISTS commitinfo
     OWNER to postgres;
 
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE commit TO appl;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE commitinfo TO appl;
 
-GRANT ALL ON TABLE commit TO postgres;
+GRANT ALL ON TABLE commitinfo TO postgres;
