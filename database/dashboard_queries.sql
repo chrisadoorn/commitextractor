@@ -1,5 +1,6 @@
-SELECT naam, einde_extractie - start_extractie as tijdsduur, start_extractie, einde_extractie, processor, status, resultaat
-	FROM test.verwerk_project
+SELECT v.naam, v.einde_extractie - v.start_extractie as tijdsduur, p.project_size, v.status, v.resultaat, v.start_extractie, v.einde_extractie, v.processor
+	FROM test.verwerk_project v
+	join test.project p on v.id = p.id
 	order by tijdsduur DESC, start_extractie DESC;
 	
 select status, resultaat, count(status) as c_status, count(resultaat) as c_resultaat
