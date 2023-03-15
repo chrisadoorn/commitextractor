@@ -20,6 +20,9 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS bestandswijziging
     OWNER to postgres;
+   
+ALTER TABLE bestandswijziging ADD CONSTRAINT bestandswijziging_fk FOREIGN KEY (idcommit) REFERENCES commitinfo(idcommit) ON DELETE CASCADE;
+
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE bestandswijziging TO appl;
 

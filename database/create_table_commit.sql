@@ -20,6 +20,9 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS commitinfo
     OWNER to postgres;
+   
+ALTER TABLE commitinfo ADD CONSTRAINT commitinfo_fk FOREIGN KEY (idproject) REFERENCES test.project(id) ON DELETE CASCADE;
+
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE commitinfo TO appl;
 
