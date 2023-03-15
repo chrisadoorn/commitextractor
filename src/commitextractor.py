@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
 from pydriller import Repository
-from src import db_postgresql
+from src import db_postgresql, hashing
+from src.extracted_data_models import BestandsWijziging, CommitInfo
 
 global db_connectie
 
@@ -15,45 +16,24 @@ def extract_repository(projectname, project_id):
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
 
     full_repository = Repository('https://github.com/' + projectname)
-    commit_teller = 0
     for commit in full_repository.traverse_commits():
-        commit_teller = commit_teller + 1
 
-        commitcursor = db_connectie.cursor()
-        commit_datetime = commit.committer_date
-        commit_my_sql_format = commit_datetime.strftime("%Y-%m-%d")
-        commit_remark = commit.msg  # to limit the comment commit.msg[:200]
-        sql = "INSERT INTO test.commit(commitdatumtijd, hashvalue, username, emailaddress, remark, idproject)" \
-              " VALUES (%s, %s, %s, %s, %s, %s);"
-        val_commit = (
-            commit_my_sql_format, commit.hash, commit.author.name, commit.author.email, commit_remark, project_id)
-        commitcursor.execute(sql, val_commit)
-        commit_id = commitcursor.lastrowid
-        print('commit: ' + str(commit_teller))
+        commit_info = CommitInfo()
+        commit_info.idproject = project_id
+        commit_info.commitdatumtijd = commit.committer_date
+        commit_info.hashvalue = commit.hash
+        commit_info.username = hashing.make_hash(commit.author.name)
+        commit_info.emailaddress = hashing.make_hash(commit.author.email)
+        commit_info.remark = commit.msg
 
-        for file in commit.modified_files:
-            # print(file.filename, ' has changed')
-            # if not (file.filename.endswith('.zip') or file.filename.endswith('.eot') or file.filename.endswith(
-            #       '.woff') or file.filename.endswith('interface.saveScore.loadScore.txt')):
-            if file.filename.endswith('.java') or (
-                    file.filename == 'pom.xml' and file.new_path == '' and file.old_path == ''):
-                # sla op in database
-                filecursor = db_connectie.cursor()
-
-                # sql = "INSERT INTO test.bestandswijziging (tekstvooraf, tekstachteraf, difftext, filename, locatie,
-                # idcommit) VALUES (%s, %s, %s, %s, %s, %s)"
-                # val = (file.content_before, file.content, file.diff, file.filename, file.new_path, commit_id)
-                # sql = "INSERT INTO test.bestandswijziging ( tekstachteraf, difftext, filename, locatie, idcommit)
-                # VALUES (%s, %s, %s, %s, %s)"
-                # val = (file.content, file.diff, file.filename, file.new_path, commit_id)
-
-                sql = "INSERT INTO test.bestandswijziging ( difftext, filename, locatie, idcommit) " \
-                      "VALUES (%s, %s, %s, %s)"
-                val = (file.diff, file.filename, file.new_path, commit_id)
-                filecursor.execute(sql, val)
-                db_connectie.commit()
-
-    print("aantal commits : " + str(commit_teller))
+        try:
+            commit_info.save()
+            for file in commit.modified_files:
+                save_bestandswijziging(file, commit_info.idcommit)
+        except UnicodeDecodeError as e_inner:
+            logging.exception(e_inner)
+        except ValueError as e_inner:
+            logging.exception(e_inner)
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectname + str(eind))
@@ -61,6 +41,24 @@ def extract_repository(projectname, project_id):
     duur = eind - start
     logging.info('verwerking ' + projectname + ' duurde ' + str(duur))
     print(duur)
+
+
+def save_bestandswijziging(file, commit_id):
+    if file.filename.endswith('.java') or (
+            file.filename == 'pom.xml' and file.new_path == '' and file.old_path == ''):
+        # sla op in database
+        file_changes = BestandsWijziging()
+        file_changes.filename = file.filename
+        file_changes.difftext = file.diff
+        file_changes.tekstachteraf = file.content
+        file_changes.idcommit = commit_id
+        file_changes.locatie = file.new_path
+        try:
+            file_changes.save()
+        except UnicodeDecodeError as e_inner:
+            logging.exception(e_inner)
+        except ValueError as e_inner:
+            logging.exception(e_inner)
 
 
 # extract_repositories is the starting point for this functionality

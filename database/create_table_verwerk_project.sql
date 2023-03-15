@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS verwerk_project
     resultaat character varying COLLATE pg_catalog."default",
     CONSTRAINT verwerk_project_pkey PRIMARY KEY (id),
     CONSTRAINT project_fkey FOREIGN KEY (id)
-        REFERENCES test.project (id) MATCH SIMPLE
+        REFERENCES project (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE CASCADE
 )
@@ -24,6 +24,9 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS verwerk_project
     OWNER to postgres;
+   
+ALTER TABLE verwerk_project ADD CONSTRAINT verwerk_project_fk FOREIGN KEY (processor) REFERENCES test.processor(identifier);
+
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE verwerk_project TO appl;
 

@@ -2,7 +2,7 @@ set schema 'test';
 
 -- Table: bestandswijziging
 
--- DROP TABLE IF EXISTS bestandswijziging;
+DROP TABLE IF EXISTS bestandswijziging;
 
 CREATE TABLE IF NOT EXISTS bestandswijziging
 (
@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS bestandswijziging
     locatie character varying(512) COLLATE pg_catalog."default",
     extensie character varying(20) COLLATE pg_catalog."default",
     difftext text COLLATE pg_catalog."default" NOT NULL,
-    tekstvooraf text COLLATE pg_catalog."default",
     tekstachteraf text COLLATE pg_catalog."default",
     CONSTRAINT bestandswijziging_pkey PRIMARY KEY (idbestandswijziging)
 )
@@ -21,6 +20,9 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS bestandswijziging
     OWNER to postgres;
+   
+ALTER TABLE bestandswijziging ADD CONSTRAINT bestandswijziging_fk FOREIGN KEY (idcommit) REFERENCES commitinfo(idcommit) ON DELETE CASCADE;
+
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE bestandswijziging TO appl;
 
