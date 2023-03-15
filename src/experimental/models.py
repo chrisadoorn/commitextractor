@@ -1,5 +1,6 @@
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
     IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField
+from playhouse.migrate import PostgresqlMigrator
 
 from src import configurator
 
@@ -10,7 +11,6 @@ pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params
 
 
 class BaseModel(Model):
-
     class Meta:
         database = pg_db
         schema = 'test'
@@ -45,6 +45,9 @@ class GhSearchSelection(BaseModel):
     is_archived = BooleanField(null=True)
     import_date = DateField(null=True, constraints=[SQL('DEFAULT CURRENT_DATE')])
     sub_study = CharField(null=True)
+    selected_for_survey = BooleanField(null=True)
+    meta_import_started_at = DateTimeField(null=True)
+    meta_import_ready_at = DateTimeField(null=True)
 
 
 class CommitInformation(BaseModel):
@@ -71,3 +74,15 @@ class FileChanges(BaseModel):
 
 pg_db.connect()
 pg_db.create_tables([GhSearchSelection, CommitInformation, FileChanges])
+
+migrator = PostgresqlMigrator(pg_db)
+selected_for_survey = BooleanField(null=True)
+meta_import_started_at = DateTimeField(null=True)
+meta_import_ready_at = DateTimeField(null=True)
+
+# migrate(
+#   migrator.set_search_path('test'),
+#   migrator.add_column('ghsearchselection', 'selected_for_survey', selected_for_survey),
+#   migrator.add_column('ghsearchselection', 'meta_import_started_at', meta_import_started_at),
+#   migrator.add_column('ghsearchselection', 'meta_import_ready_at', meta_import_ready_at)
+# )
