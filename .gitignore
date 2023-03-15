@@ -153,3 +153,4 @@ cython_debug/
 *.iml
 *.seed
 /data/*.json
+/src/experimental/config.ini

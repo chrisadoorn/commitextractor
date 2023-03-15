@@ -39,6 +39,7 @@ def extract_repository(projectname, project_id):
                             file_changes.text_before = file.content_before
                             file_changes.text_after = file.content
                             file_changes.id_commit = db_commit.id
+                            file_changes.location = file.new_path
                             try:
                                 file_changes.save()
                             except UnicodeDecodeError as e_inner:
