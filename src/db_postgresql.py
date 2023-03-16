@@ -124,7 +124,7 @@ def clean_testset():
     sql = 'delete from test.verwerk_project;' \
           'delete from test.processor;' \
           'delete from test.bestandswijziging;' \
-          'delete from test.commit;' \
+          'delete from test.commitinfo;' \
           'delete from test.project;' \
           'delete from test.selectie;'
     cursor.execute(sql, [])
