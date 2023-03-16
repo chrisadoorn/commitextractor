@@ -6,6 +6,7 @@ import configurator
 
 global db_conn
 
+
 def _get_connection():
     params = configurator.get_database_configuration()
     v_host = params.get('host')
@@ -93,7 +94,6 @@ def registreer_verwerking(projectnaam, processor, verwerking_status, projectid):
     verwerkingcursor.close()
 
 
-
 def registreer_processor(identifier):
     new_id = 0
     values = (identifier, new_id)
@@ -130,3 +130,4 @@ def clean_testset():
     cursor.execute(sql, [])
     db_conn.commit()
     cursor.close()
+

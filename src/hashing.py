@@ -1,7 +1,7 @@
 import hashlib
 
 # locatie van de file die de seed bevat
-SEED_FILE = '../var/commitextractor.seed'
+SEED_FILE = 'var/commitextractor.seed'
 
 global seed_value
 
