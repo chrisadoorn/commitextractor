@@ -23,7 +23,7 @@ def initialiseer_testset():
     db_postgresql.open_connection()
     db_postgresql.clean_testset()
     db_postgresql.registreer_processor(identifier)
-    load_ghsearch.load()
+    load_ghsearch.load_importfile(configurator.get_ghsearch_importfile())
     initialiseer_connectie()  # load ghsearch stopt de connectie.
     return identifier
 

@@ -122,12 +122,11 @@ def import_selectioncriteria(jsondata, conn):
     return new_id
 
 
-def load():
-    logging.info('Starting load')
+def load_importfile(importfile):
+    logging.info('Starting load ' + importfile)
     global connection
     connection = db_postgresql.open_connection()
 
-    importfile = configurator.get_ghsearch_importfile()
     logging.info('start importing ' + importfile)
     data = read_json(importfile)
     if not data:
@@ -140,6 +139,10 @@ def load():
 
     db_postgresql.close_connection()
     configurator.set_ghsearch_import_wanted(False)
+
+
+def load():
+    load_importfile(configurator.get_ghsearch_importfile())
 
 
 #####################################
