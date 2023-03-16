@@ -2,12 +2,9 @@ import logging
 
 import psycopg2
 
-from src import configurator
+import configurator
 
 global db_conn
-
-DATABASE_INI = '../var/commitextractor.ini'
-
 
 def _get_connection():
     params = configurator.get_database_configuration()

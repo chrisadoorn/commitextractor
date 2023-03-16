@@ -1,7 +1,7 @@
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
     IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField
 
-from src import configurator
+import configurator
 
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),

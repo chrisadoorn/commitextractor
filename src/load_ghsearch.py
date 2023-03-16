@@ -1,9 +1,10 @@
+import json
 import logging
 import os
-import json
 from datetime import datetime
 
-from src import db_postgresql, configurator
+import configurator
+import db_postgresql
 
 global connection
 

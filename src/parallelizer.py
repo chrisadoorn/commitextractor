@@ -2,7 +2,8 @@ import logging
 import multiprocessing as mp
 import uuid
 
-from src import commitextractor, configurator
+import commitextractor
+import configurator
 
 
 # start_extraction starts in a new process.
