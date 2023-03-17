@@ -1,9 +1,10 @@
 import logging
 import uuid
-
 from multiprocessing import freeze_support
 
-from src import sanitychecker, db_postgresql, parallelizer
+import db_postgresql
+import parallelizer
+import sanitychecker
 
 
 #####################################
