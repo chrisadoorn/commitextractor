@@ -1,0 +1,10 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h1>{{ selection.name }}</h1>
+<ul>
+    {% for commit in commits %}
+        <li> {{ commit.commit_date_time }} {{ commit.remark }} <a href="/showgithub/{{ commit.id }}/files/">show files</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

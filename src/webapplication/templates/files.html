@@ -1,0 +1,13 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h1>files</h1>
+<div class="container">
+<div>
+    {% for selection in selections %}
+        <div> {{ selection.filename }}</div>
+        <div class="box"><pre>{{ selection.text_after }}</pre></div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
