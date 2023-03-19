@@ -1,10 +1,10 @@
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
     IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField
-#from playhouse.migrate import PostgresqlMigrator, migrate
+# from playhouse.migrate import PostgresqlMigrator, migrate
 
 from src import configurator
 
-configurator.inifile = 'config.ini'
+configurator.inifile = '../webapplication/config.ini' # location is relative from this file
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
                            host='localhost', port=params.get('port'))
@@ -71,19 +71,15 @@ class FileChanges(BaseModel):
     text_before = TextField(null=True)
     text_after = TextField(null=True)
 
-
-pg_db.connect()
-pg_db.create_tables([GhSearchSelection, CommitInformation, FileChanges])
-
-#migrator = PostgresqlMigrator(pg_db)
-#selected_for_survey = BooleanField(null=True)
-#meta_import_started_at = DateTimeField(null=True)
-#meta_import_ready_at = DateTimeField(null=True)
+# migrator = PostgresqlMigrator(pg_db)
+# selected_for_survey = BooleanField(null=True)
+# meta_import_started_at = DateTimeField(null=True)
+# meta_import_ready_at = DateTimeField(null=True)
 #
-#migrate(
+# migrate(
 #   migrator.set_search_path('test'),
 #   migrator.add_column('ghsearchselection', 'selected_for_survey', selected_for_survey),
 #   migrator.add_column('ghsearchselection', 'meta_import_started_at', meta_import_started_at),
 #   migrator.add_column('ghsearchselection', 'meta_import_ready_at', meta_import_ready_at)
-#)
+# )
 #

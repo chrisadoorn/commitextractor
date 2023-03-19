@@ -3,9 +3,12 @@ from datetime import datetime
 
 from peewee import fn
 
-from src import configurator
-from src.experimental import commitextractor
-from src.experimental.models import GhSearchSelection
+from src.extractor_model_based import commitextractor
+from src.models.models import GhSearchSelection, pg_db, CommitInformation, FileChanges
+
+
+def create_tables():
+    pg_db.create_tables([GhSearchSelection, CommitInformation, FileChanges], safe=True)
 
 
 def initialize():
@@ -13,7 +16,6 @@ def initialize():
     logging.basicConfig(filename='log/main.' + str(dt) + '.log',
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
-    configurator.inifile = 'config.ini'
 
 
 def execute(subproject):
@@ -33,4 +35,5 @@ def execute(subproject):
 
 if __name__ == '__main__':
     initialize()
+    create_tables()
     execute('Elixir')

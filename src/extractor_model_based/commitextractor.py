@@ -4,7 +4,7 @@ from datetime import datetime
 
 from git import GitCommandError
 from pydriller import Repository
-from src.experimental.models import CommitInformation, FileChanges
+from src.models.models import CommitInformation, FileChanges
 
 wanted_file_types = ['.go', '.md', '.exs', '.ex', '.java', '.xml']
 
