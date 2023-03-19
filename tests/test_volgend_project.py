@@ -1,6 +1,17 @@
 import unittest
 import uuid
 
+import os
+import sys
+
+# test moet bestanden aanroepen met het relatieve pad ( from src)
+# db_postgresql roept vervolgens configurator aan zonder pad. Omdat de context de testmap is,
+# vindt db_postgresql vervolgens de configurator niet meer.
+# onderstaand statement voegt de src toe als ezt=xtra, eerste locatie toe om in te zoeken.
+# dit statement moet komen voordat de configurator en db_postgresql worden geimporteerd.
+# N.B. Deze constructie is alleen nodig bij een test waarbij module getest wordt die een andere module nodig heeft.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/')))
+
 from src import db_postgresql, configurator, load_ghsearch
 
 TEST_INI_FILE = 'var/test_vraag_volgend_project.ini'
@@ -12,7 +23,7 @@ def initialiseer_testset():
     db_postgresql.open_connection()
     db_postgresql.clean_testset()
     db_postgresql.registreer_processor(identifier)
-    load_ghsearch.load()
+    load_ghsearch.load_importfile(configurator.get_ghsearch_importfile())
     initialiseer_connectie()  # load ghsearch stopt de connectie.
     return identifier
 

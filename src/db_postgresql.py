@@ -2,11 +2,9 @@ import logging
 
 import psycopg2
 
-from src import configurator
+import configurator
 
 global db_conn
-
-DATABASE_INI = '../var/commitextractor.ini'
 
 
 def _get_connection():
@@ -96,7 +94,6 @@ def registreer_verwerking(projectnaam, processor, verwerking_status, projectid):
     verwerkingcursor.close()
 
 
-
 def registreer_processor(identifier):
     new_id = 0
     values = (identifier, new_id)
@@ -127,9 +124,10 @@ def clean_testset():
     sql = 'delete from test.verwerk_project;' \
           'delete from test.processor;' \
           'delete from test.bestandswijziging;' \
-          'delete from test.commit;' \
+          'delete from test.commitinfo;' \
           'delete from test.project;' \
           'delete from test.selectie;'
     cursor.execute(sql, [])
     db_conn.commit()
     cursor.close()
+
