@@ -2,9 +2,38 @@
 
 {% block content %}
 <h1>{{ selection.name }}</h1>
-<ul>
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">show files</th>
+        <th scope="col">commit_date_time</th>
+        <th scope="col">username</th>
+        <th scope="col">email_address</th>
+        <th scope="col">remark</th>
+    </tr>
+    </thead>
+    <tbody>
     {% for commit in commits %}
-        <li> {{ commit.commit_date_time }} {{ commit.remark }} <a href="/showgithub/{{ commit.id }}/files/">show files</a></li>
+    <tr>
+        <th scope="row"><a href="/showgithub/{{ commit.id }}/files/">show files</a></th>
+        <td>{{ commit.commit_date_time }}</td>
+        <td>{{ commit.username }}</td>
+        <td>{{ commit.email_address }}</td>
+        <td>{{ commit.remark }}</td>
+        <td> {% for selection in commit.selections_with_mc %}
+            <div> {{ selection.filename }}</div>
+            <div class="box">
+                <pre>{{ selection.text_after_analysed }}</pre>
+            </div>
+            <div class="box">
+                <pre style="color: orangered">{{ selection.multicore_found }}</pre>
+            </div>
+            {% endfor %}
+        </td>
+    </tr>
     {% endfor %}
-</ul>
+    </tbody>
+</table>
+
+
 {% endblock %}

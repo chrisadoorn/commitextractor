@@ -1,13 +1,25 @@
 {% extends "master.html" %}
-
 {% block content %}
-{% if latest_selection_list %}
-<ul>
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">name</th>
+        <th scope="col">commits</th>
+        <th scope="col">contributors</th>
+        <th scope="col">created_at</th>
+        <th scope="col">last_commit</th>
+    </tr>
+    </thead>
+    <tbody>
     {% for selection in latest_selection_list %}
-    <li><a href="/showgithub/{{ selection.id }}/detail/">{{ selection.name }}</a></li>
+    <tr>
+        <th scope="row"><a href="/showgithub/{{ selection.id }}/detail/">{{ selection.name }}</a></th>
+        <td>{{ selection.commits }}</td>
+        <td>{{ selection.contributors }}</td>
+        <td>{{ selection.created_at }}</td>
+        <td>{{ selection.last_commit }}</td>
+    </tr>
     {% endfor %}
-</ul>
-{% else %}
-<p>No polls are available.</p>
-{% endif %}
+    </tbody>
+</table>
 {% endblock %}

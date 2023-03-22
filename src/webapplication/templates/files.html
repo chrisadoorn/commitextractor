@@ -6,7 +6,8 @@
 <div>
     {% for selection in selections %}
         <div> {{ selection.filename }}</div>
-        <div class="box"><pre>{{ selection.text_after }}</pre></div>
+        <div class="box"><pre>{{ selection.text_after_analysed }}</pre></div>
+        <div class="box"><pre style="color: orangered">{{ selection.multicore_found }}</pre></div>
     {% endfor %}
 </div>
 </div>
