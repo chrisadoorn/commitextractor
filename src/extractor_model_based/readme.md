@@ -39,3 +39,9 @@ start webapp:
 ```
 PYTHONPATH=~/IdeaProjects/commitextractor/ python main.py
 ```
+linux command:
+```
+lsof -i :5000
+pidof python
+kill -9 pid
+```

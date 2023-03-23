@@ -2,6 +2,10 @@
 
 {% block content %}
 <h1>{{ selection.name }}</h1>
+{% if back_from_int >= 0: %}
+<a href="/showgithub/{{ selection.id }}/detail/{{ back_from_int }}/{{ back_to_int }}/"> previous 10 </a><br>
+{% endif %}
+<a href="/showgithub/{{ selection.id }}/detail/{{ from_int }}/{{ to_int }}/">next 10 </a>
 <table class="table">
     <thead>
     <tr>
@@ -20,20 +24,48 @@
         <td>{{ commit.username }}</td>
         <td>{{ commit.email_address }}</td>
         <td>{{ commit.remark }}</td>
-        <td> {% for selection in commit.selections_with_mc %}
-            <div> {{ selection.filename }}</div>
-            <div class="box">
-                <pre>{{ selection.text_after_analysed }}</pre>
+    </tr>
+    <tr>
+        <td></td>
+        <td colspan="5"> {% for selection in commit.selections_with_mc %}
+            <div style="display: flex">
+                <div>
+                    <div><b>{{ selection.filename }} after update</b></div>
+                    <div class="box">
+                        <pre>{{ selection.text_after_analysed }}</pre>
+                    </div>
+                    <div class="box">
+                        {% if selection.multicore_found | length > 0: %}
+                        <pre style="color: green">{{ selection.multicore_found }}</pre>
+                        {% else %}
+                        <pre style="color: red">no primitives found</pre>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div><b>diff</b></div>
+                    <div class="box">
+                        <pre>{{ selection.diff_text_analysed }}</pre>
+                    </div>
+                    <div class="box">
+                        {% if selection.diff_text_multicore_found | length > 0: %}
+                        <pre style="color: green">{{ selection.diff_text_multicore_found }}</pre>
+                        {% else %}
+                        <pre style="color: red">no primitives found</pre>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="box">
-                <pre style="color: orangered">{{ selection.multicore_found }}</pre>
-            </div>
+            <hr>
             {% endfor %}
         </td>
     </tr>
     {% endfor %}
     </tbody>
 </table>
-
+{% if back_from_int >= 0: %}
+<a href="/showgithub/{{ selection.id }}/detail/{{ back_from_int }}/{{ back_to_int }}/"> previous 10 </a> <br>
+{% endif %}
+<a href="/showgithub/{{ selection.id }}/detail/{{ from_int }}/{{ to_int }}/">next 10 </a>
 
 {% endblock %}
