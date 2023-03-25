@@ -4,7 +4,6 @@ set schema 'test';
 DROP PROCEDURE IF EXISTS test.deregistreer_processor(character);
 DROP PROCEDURE IF EXISTS test.registreer_processor(character, bigint);
 DROP PROCEDURE IF EXISTS test.registreer_verwerking(bigint, character varying);
-DROP PROCEDURE IF EXISTS test.deregistreer_processor(character);
 DROP PROCEDURE IF EXISTS test.verwerk_volgend_project(character, bigint, character varying, integer);
 
 -- Tables
