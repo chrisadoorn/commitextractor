@@ -1,7 +1,7 @@
 # Database description
 
 
-![](C:\git\python\commitextractor\png\datamodel_20220325.png)
+![](../png/datamodel_20220325.png)
 
 Our database has two functinal functional and one technical part.
 
