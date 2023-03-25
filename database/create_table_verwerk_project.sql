@@ -25,7 +25,7 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS verwerk_project
     OWNER to postgres;
    
-ALTER TABLE verwerk_project ADD CONSTRAINT verwerk_project_fk FOREIGN KEY (processor) REFERENCES test.processor(identifier);
+ALTER TABLE verwerk_project ADD CONSTRAINT verwerk_project_fk FOREIGN KEY (processor) REFERENCES processor(identifier);
 
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE verwerk_project TO appl;

@@ -32,7 +32,7 @@ def extract_repository(projectname, project_id):
         try:
             commit_info.save()
             for file in commit.modified_files:
-                save_bestandswijziging(file, commit_info.idcommit)
+                save_bestandswijziging(file, commit_info.id)
         except UnicodeDecodeError as e_inner:
             logging.exception(e_inner)
         except ValueError as e_inner:
