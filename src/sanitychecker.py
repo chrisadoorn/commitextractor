@@ -2,7 +2,7 @@ import logging
 
 import configurator
 import db_postgresql
-import hashing
+from src.processes import hashing
 
 
 # check_connection checks if it is possible to connect to the database with the parameters given in the ini file.

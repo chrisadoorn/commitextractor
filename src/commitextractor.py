@@ -1,69 +1,11 @@
 import logging
-from datetime import datetime
-
-from pydriller import Repository
-
 import db_postgresql
-import hashing
-from extracted_data_models import BestandsWijziging, CommitInfo
+from src.processes.commitextractor import extract_repository
 
 global db_connectie
 
-
 # pip install package pydriller
 # pip install package mysql-connector-python
-
-
-def extract_repository(projectname, project_id):
-    start = datetime.now()
-    logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
-
-    full_repository = Repository('https://github.com/' + projectname)
-    for commit in full_repository.traverse_commits():
-
-        commit_info = CommitInfo()
-        commit_info.idproject = project_id
-        commit_info.commitdatumtijd = commit.committer_date
-        commit_info.hashvalue = commit.hash
-        commit_info.username = hashing.make_hash(commit.author.name)
-        commit_info.emailaddress = hashing.make_hash(commit.author.email)
-        commit_info.remark = commit.msg
-
-        try:
-            commit_info.save()
-            for file in commit.modified_files:
-                save_bestandswijziging(file, commit_info.id)
-        except UnicodeDecodeError as e_inner:
-            logging.exception(e_inner)
-        except ValueError as e_inner:
-            logging.exception(e_inner)
-
-    eind = datetime.now()
-    logging.info('einde verwerking ' + projectname + str(eind))
-    print(eind)
-    duur = eind - start
-    logging.info('verwerking ' + projectname + ' duurde ' + str(duur))
-    print(duur)
-
-
-def save_bestandswijziging(file, commit_id):
-    if file.filename.endswith('.java') or (
-            file.filename == 'pom.xml' and file.new_path == '' and file.old_path == ''):
-        # sla op in database
-        file_changes = BestandsWijziging()
-        file_changes.filename = file.filename
-        file_changes.difftext = file.diff
-        file_changes.tekstachteraf = file.content
-        file_changes.idcommit = commit_id
-        file_changes.locatie = file.new_path
-        try:
-            file_changes.save()
-        except UnicodeDecodeError as e_inner:
-            logging.exception(e_inner)
-        except ValueError as e_inner:
-            logging.exception(e_inner)
-
-
 # extract_repositories is the starting point for this functionality
 # extract repositories while there are repositories to be processed
 def extract_repositories(process_identifier):

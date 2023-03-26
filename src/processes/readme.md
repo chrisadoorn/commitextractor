@@ -45,3 +45,11 @@ lsof -i :5000
 pidof python
 kill -9 pid
 ```
+install depencies:
+Als je venv gebruikt dat wordt alles daar geinstalleerd, anders globaal
+```
+pip install Flask
+pip install peewee
+pip install psycopg2-binary
+pip install pydriller
+```
