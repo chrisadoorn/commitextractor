@@ -40,7 +40,7 @@ def import_projects(jsondata, conn, selectie_id):
         v_no_languages = len(project['languages'])
         v_languages = project['languages']
 
-        sql_fields = "INSERT INTO project (naam, selectie_id, main_language, is_fork, license, forks," \
+        sql_fields = "INSERT INTO project (naam, idselectie, main_language, is_fork, license, forks," \
                      " contributors, project_size, create_date, last_commit, number_of_languages, languages"
         sql_values = ") values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
         sql_return = " returning id"

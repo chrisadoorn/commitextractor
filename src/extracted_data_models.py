@@ -15,7 +15,7 @@ class BaseModel(Model):
 
 
 class CommitInfo(BaseModel):
-    idcommit = AutoField(primary_key=True)
+    id = AutoField(primary_key=True)
     idproject = BigIntegerField(null=True)
     commitdatumtijd = DateTimeField(null=True)
     hashvalue = CharField(null=True, max_length=40)
@@ -25,7 +25,7 @@ class CommitInfo(BaseModel):
 
 
 class BestandsWijziging(BaseModel):
-    idbestandswijziging = AutoField(primary_key=True)
+    id = AutoField(primary_key=True)
     idcommit = BigIntegerField(null=False)
     filename = CharField(null=True, max_length=512)
     locatie = CharField(null=True, max_length=512)
