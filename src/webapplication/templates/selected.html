@@ -1,5 +1,6 @@
 {% extends "master.html" %}
 {% block content %}
+{{ latest_selection_list | length }}
 <table class="table">
     <thead>
     <tr>
@@ -13,10 +14,10 @@
     <tbody>
     {% for selection in latest_selection_list %}
     <tr>
-        <th scope="row"><a href="/showgithub/{{ selection.id }}/detail/">{{ selection.name }}</a></th>
-        <td>{{ selection.commits }}</td>
+        <th scope="row"><a href="/showgithub/{{ selection.id }}/detail/">{{ selection.naam }}</a></th>
+        <td></td>
         <td>{{ selection.contributors }}</td>
-        <td>{{ selection.created_at }}</td>
+        <td>{{ selection.create_date }}</td>
         <td>{{ selection.last_commit }}</td>
     </tr>
     {% endfor %}

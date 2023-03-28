@@ -1,5 +1,5 @@
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
-    IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField
+    IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField, ForeignKeyField
 # from playhouse.migrate import PostgresqlMigrator, migrate
 
 from src import configurator
@@ -49,31 +49,41 @@ class GhSearchSelection(BaseModel):
     meta_import_ready_at = DateTimeField(null=True)
 
 
-class CommitInformation(BaseModel):
+class Selectie(BaseModel):
     id = AutoField(primary_key=True)
-    id_project = BigIntegerField(null=True)
-    commit_date_time = DateTimeField(null=True)
-    hash_value = CharField(max_length=40)
-    username = CharField(null=True)
-    email_address = CharField(null=True)
-    remark = TextField(null=True)
+    selectionmoment = DateField(null=False, constraints=[SQL('DEFAULT CURRENT_DATE')])
+    language = CharField(null=True)
+    commitsminimum = IntegerField(null=True)
+    contributorsminimum = IntegerField(null=True)
+    excludeforks = BooleanField(null=True)
+    onlyforks = BooleanField(null=True)
+    hasissues = BooleanField(null=True)
+    haspulls = BooleanField(null=True)
+    haswiki = BooleanField(null=True)
+    haslicense = BooleanField(null=True)
+    committedmin = DateField(null=True)
 
 
-class FileChanges(BaseModel):
+class Project(BaseModel):
     id = AutoField(primary_key=True)
-    id_project = IntegerField(null=True)
-    id_commit = BigIntegerField(null=True)
-    filename = CharField(null=True, max_length=1024)
-    location = CharField(null=True, max_length=1024)
-    extension = CharField(null=True, max_length=64)
-    diff_text = TextField(null=True)
-    text_before = TextField(null=True)
-    text_after = TextField(null=True)
+    naam = CharField(null=True)
+    idselectie = ForeignKeyField(Selectie, backref="projects")
+    main_language = CharField(null=True)
+    is_fork = BooleanField(null=True)
+    license = CharField(null=True)
+    forks = IntegerField(null=True)
+    contributors = IntegerField(null=True)
+    project_size = BigIntegerField(null=True)
+    create_date = DateField(null=True)
+    last_commit = DateField(null=True)
+    number_of_languages = IntegerField(null=True)
+    languages = TextField(null=True)
+    commits = IntegerField(null=False, constraints=[SQL('DEFAULT 0')])
 
 
 class CommitInfo(BaseModel):
     id = AutoField(primary_key=True)
-    idproject = BigIntegerField(null=True)
+    idproject = ForeignKeyField(Project, backref="commits", on_delete="CASCADE")
     commitdatumtijd = DateTimeField(null=True)
     hashvalue = CharField(null=True, max_length=40)
     username = CharField(null=True)
@@ -83,7 +93,7 @@ class CommitInfo(BaseModel):
 
 class BestandsWijziging(BaseModel):
     id = AutoField(primary_key=True)
-    idcommit = BigIntegerField(null=False)
+    idcommit = ForeignKeyField(CommitInfo, backref="bestands_wijzigingen", on_delete="CASCADE")
     filename = CharField(null=True, max_length=512)
     locatie = CharField(null=True, max_length=512)
     extensie = CharField(null=True, max_length=20)

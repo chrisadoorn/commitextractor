@@ -2,7 +2,7 @@ import os
 
 from flask import Flask, render_template
 
-from src.models.models import GhSearchSelection, CommitInformation, FileChanges
+from src.models.models import Project, CommitInfo, BestandsWijziging
 
 POSTGRESQL = 'postgresql'
 CONFIGFILE = 'config.ini'
@@ -14,24 +14,19 @@ app.config.from_object(__name__)
 
 @app.route("/")
 def form_gh_search():
-    ghs = GhSearchSelection.select().where(GhSearchSelection.selected_for_survey)
+    ghs = Project.select()
     return render_template("selected.html", latest_selection_list=ghs)
-
-
-commits_selection_in_memory: list = []
 
 
 @app.route("/showgithub/<select_id>/detail/")
 def form_commits_for_projects(select_id):
-    selection_in_memory: GhSearchSelection = GhSearchSelection.select().where(GhSearchSelection.id == select_id)
-    commits = CommitInformation.select().where(CommitInformation.id_project == select_id)
-    for commit in commits:
+    commits = CommitInfo.select().where(CommitInfo.idproject == select_id)
+    ghs: Project = Project.select().where(Project.id == select_id)
+    for commit in commits[0:10]:
         commit.selections_with_mc = get_files(commit.id)
-    global commits_selection_in_memory
-    commits_selection_in_memory = commits
     return render_template("detail.html",
                            commits=commits[0:10],
-                           selection=selection_in_memory[0],
+                           selection=ghs[0],
                            from_int=10,
                            to_int=20,
                            back_from_int=-10,
@@ -39,27 +34,23 @@ def form_commits_for_projects(select_id):
 
 
 @app.route("/showgithub/<select_id>/detail/<int:from_int>/<int:to_int>/")
-def form_commits_for_projects_paging(select_id, from_int, to_int):
-    selection_in_memory = GhSearchSelection.select().where(GhSearchSelection.id == select_id)
+def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
+    commits = CommitInfo.select().where(CommitInfo.idproject == select_id)
+    ghs: Project = Project.select().where(Project.id == select_id)
+    for commit in commits[from_int:to_int]:
+        commit.selections_with_mc = get_files(commit.id)
     return \
         render_template("detail.html",
-                        commits=commits_selection_in_memory[from_int:to_int],
-                        selection=selection_in_memory[0],
+                        commits=commits[from_int:to_int],
+                        selection=ghs[0],
                         from_int=from_int + 10,
                         to_int=to_int + 10,
                         back_from_int=from_int - 10,
                         back_to_int=to_int - 10)
 
 
-@app.route("/showgithub/<commit_id>/files/")
-def files(commit_id):
-    selections_with_mc = get_files(commit_id)
-    return render_template("files.html", selections=selections_with_mc)
-
-
 def get_files(commit_id):
-    selections = FileChanges.select().where(FileChanges.id_commit == commit_id,
-                                            FileChanges.extension.in_(['.ex', '.exs']))
+    selections = BestandsWijziging.select().where(BestandsWijziging.idcommit == commit_id)
     selections_with_mc_temp = []
     for sel in selections:
         analyse_text_after(sel)
@@ -70,13 +61,13 @@ def get_files(commit_id):
 
 
 def analyse_text_after(sel):
-    t = analyse(sel.text_after)
+    t = analyse(sel.tekstachteraf)
     sel.text_after_analysed = t[0]
     sel.multicore_found = t[1]
 
 
 def analyse_diff_text(sel):
-    t = analyse(sel.diff_text)
+    t = analyse(sel.difftext)
     sel.diff_text_analysed = t[0]
     sel.diff_text_multicore_found = t[1]
 

@@ -4,6 +4,7 @@ from src.processes.commitextractor import extract_repository
 
 global db_connectie
 
+
 # pip install package pydriller
 # pip install package mysql-connector-python
 # extract_repositories is the starting point for this functionality

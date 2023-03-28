@@ -1,7 +1,7 @@
 {% extends "master.html" %}
 
 {% block content %}
-<h1>{{ selection.name }}</h1>
+<h1>{{ selection.naam }}</h1>
 {% if back_from_int >= 0: %}
 <a href="/showgithub/{{ selection.id }}/detail/{{ back_from_int }}/{{ back_to_int }}/"> previous 10 </a><br>
 {% endif %}
@@ -20,9 +20,9 @@
     {% for commit in commits %}
     <tr>
         <th scope="row"><a href="/showgithub/{{ commit.id }}/files/">show files</a></th>
-        <td>{{ commit.commit_date_time }}</td>
+        <td>{{ commit.commitdatumtijd }}</td>
         <td>{{ commit.username }}</td>
-        <td>{{ commit.email_address }}</td>
+        <td>{{ commit.emailaddress }}</td>
         <td>{{ commit.remark }}</td>
     </tr>
     <tr>
