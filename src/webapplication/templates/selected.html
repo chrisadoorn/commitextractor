@@ -1,0 +1,25 @@
+{% extends "master.html" %}
+{% block content %}
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">name</th>
+        <th scope="col">commits</th>
+        <th scope="col">contributors</th>
+        <th scope="col">created_at</th>
+        <th scope="col">last_commit</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for selection in latest_selection_list %}
+    <tr>
+        <th scope="row"><a href="/showgithub/{{ selection.id }}/detail/">{{ selection.naam }}</a></th>
+        <td>{{ selection.aantal_commits }}</td>
+        <td>{{ selection.contributors }}</td>
+        <td>{{ selection.create_date }}</td>
+        <td>{{ selection.last_commit }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

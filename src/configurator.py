@@ -1,3 +1,4 @@
+import os
 from configparser import ConfigParser
 
 GHSEARCH = 'ghsearch'
@@ -8,7 +9,9 @@ PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
 
 # INI_FILE contains the default location of the configuration
-INI_FILE = '../var/commitextractor.ini'
+INI_FILE = ROOT_DIR = \
+    os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                  '..', 'var', 'commitextractor.ini'))
 
 global inifile
 inifile = INI_FILE

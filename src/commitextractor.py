@@ -4,8 +4,8 @@ from datetime import datetime
 from pydriller import Repository
 
 import db_postgresql
-import hashing
-from extracted_data_models import BestandsWijziging, CommitInfo
+from src.models.models import CommitInfo, BestandsWijziging
+from src.processes import hashing
 
 global db_connectie
 
