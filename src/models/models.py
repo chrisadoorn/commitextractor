@@ -67,7 +67,7 @@ class Selectie(BaseModel):
 class Project(BaseModel):
     id = AutoField(primary_key=True)
     naam = CharField(null=True)
-    idselectie = ForeignKeyField(Selectie, backref="projects")
+    idselectie = ForeignKeyField(Selectie, backref="projects", column_name="idselectie")
     main_language = CharField(null=True)
     is_fork = BooleanField(null=True)
     license = CharField(null=True)
@@ -78,12 +78,12 @@ class Project(BaseModel):
     last_commit = DateField(null=True)
     number_of_languages = IntegerField(null=True)
     languages = TextField(null=True)
-    commits = IntegerField(null=False, constraints=[SQL('DEFAULT 0')])
+    aantal_commits = IntegerField(null=True)
 
 
 class CommitInfo(BaseModel):
     id = AutoField(primary_key=True)
-    idproject = ForeignKeyField(Project, backref="commits", on_delete="CASCADE")
+    idproject = ForeignKeyField(Project, backref="commits", on_delete="CASCADE", column_name="idproject")
     commitdatumtijd = DateTimeField(null=True)
     hashvalue = CharField(null=True, max_length=40)
     username = CharField(null=True)
@@ -93,7 +93,7 @@ class CommitInfo(BaseModel):
 
 class BestandsWijziging(BaseModel):
     id = AutoField(primary_key=True)
-    idcommit = ForeignKeyField(CommitInfo, backref="bestands_wijzigingen", on_delete="CASCADE")
+    idcommit = ForeignKeyField(CommitInfo, backref="bestands_wijzigingen", on_delete="CASCADE", column_name="idcommit")
     filename = CharField(null=True, max_length=512)
     locatie = CharField(null=True, max_length=512)
     extensie = CharField(null=True, max_length=20)

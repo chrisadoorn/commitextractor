@@ -43,8 +43,11 @@ def execute(subproject):
         project.project_size = t.size
         project.create_date = t.created_at
         project.last_commit = t.last_commit
-        project.commits = t.commits
+        project.number_of_languages = 0
+        project.languages = ""
+        project.aantal_commits = t.commits
         project.save()
+
         print(t.name)
         t.meta_import_started_at = datetime.now()
         t.selected_for_survey = True

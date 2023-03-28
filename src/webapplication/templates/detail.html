@@ -9,7 +9,6 @@
 <table class="table">
     <thead>
     <tr>
-        <th scope="col">show files</th>
         <th scope="col">commit_date_time</th>
         <th scope="col">username</th>
         <th scope="col">email_address</th>
@@ -19,7 +18,6 @@
     <tbody>
     {% for commit in commits %}
     <tr>
-        <th scope="row"><a href="/showgithub/{{ commit.id }}/files/">show files</a></th>
         <td>{{ commit.commitdatumtijd }}</td>
         <td>{{ commit.username }}</td>
         <td>{{ commit.emailaddress }}</td>
