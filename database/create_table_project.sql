@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS project
     create_date date,
     last_commit date,
     number_of_languages integer,
+    aantal_commits integer,
     languages text COLLATE pg_catalog."default",
     CONSTRAINT project_pkey PRIMARY KEY (id),
     CONSTRAINT selectie_fkey FOREIGN KEY (idselectie)
