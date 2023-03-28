@@ -9,7 +9,7 @@ PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
 
 # INI_FILE contains the default location of the configuration
-INI_FILE = ROOT_DIR = \
+INI_FILE = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
                                   '..', 'var', 'commitextractor.ini'))
 
