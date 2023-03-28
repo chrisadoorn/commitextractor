@@ -1,10 +1,30 @@
+import os
+from configparser import ConfigParser
+
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
     IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField, ForeignKeyField
 # from playhouse.migrate import PostgresqlMigrator, migrate
 
-from src import configurator
+POSTGRESQL = 'postgresql'
+inifile = \
+    os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                  '..', '..', 'var', 'commitextractor.ini'))
 
-params = configurator.get_database_configuration()
+def get_database_configuration():
+    config = ConfigParser()
+    config.read(inifile)
+    db = {}
+    if config.has_section(POSTGRESQL):
+        params = config.items(POSTGRESQL)
+        for param in params:
+            db[param[0]] = param[1]
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(POSTGRESQL, inifile))
+
+    return db
+
+
+params = get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
                            host='localhost', port=params.get('port'))
 
