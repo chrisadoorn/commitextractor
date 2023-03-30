@@ -2,10 +2,9 @@ import logging
 from datetime import datetime
 
 from pydriller import Repository
-import db_postgresql
 import hashing
 from extracted_data_models import CommitInfo, BestandsWijziging
-from src.utils import configurator
+from src.utils import configurator, db_postgresql
 
 global db_connectie
 

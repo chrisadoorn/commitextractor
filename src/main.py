@@ -2,7 +2,7 @@ import logging
 import uuid
 from multiprocessing import freeze_support
 
-import db_postgresql
+from src.utils import db_postgresql
 import parallelizer
 import sanitychecker
 
