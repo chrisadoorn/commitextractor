@@ -4,7 +4,7 @@ import os
 import uuid
 from datetime import datetime
 
-import commitextractor
+from src.repo_extractor import commitextractor
 from src.utils import configurator
 
 
