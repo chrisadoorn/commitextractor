@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # initialiseer logging
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                            '..', 'log', 'main.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+                                             '../..', 'log', 'main.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
