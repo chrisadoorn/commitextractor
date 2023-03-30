@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from src import load_ghsearch
+from src.selection_loader import load_ghsearch
 from src.utils import configurator
 
 
