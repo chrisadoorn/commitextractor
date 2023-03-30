@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from datetime import datetime
-from time import strftime
 
 from src.utils import configurator, db_postgresql
 
