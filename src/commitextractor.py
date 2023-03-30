@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydriller import Repository
 import hashing
-from extracted_data_models import CommitInfo, BestandsWijziging
+from src.models.extracted_data_models import CommitInfo, BestandsWijziging
 from src.utils import configurator, db_postgresql
 
 global db_connectie
