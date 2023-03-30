@@ -3,8 +3,7 @@ import logging
 import os
 from datetime import datetime
 
-import configurator
-import db_postgresql
+from src.utils import configurator, db_postgresql
 
 global connection
 
@@ -149,10 +148,18 @@ def load():
 #         start of code             #
 #####################################
 
-if __name__ == '__main__':
+def initialize():
+    global filename
     # initialiseer logging
-    logging.basicConfig(filename='../log/load_projects.log',
+    dt = datetime.now()
+    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                             '..', '..', 'log', 'main.' + dt.strftime('%y%m%d-%H%M%S') + '.log'))
+    logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
+
+
+if __name__ == '__main__':
+    initialize()
 
     load()
