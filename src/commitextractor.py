@@ -3,6 +3,7 @@ from datetime import datetime
 from pydriller import Repository
 from src import db_postgresql, hashing
 from src.extracted_data_models import BestandsWijziging, CommitInfo
+from src import configurator
 
 global db_connectie
 
@@ -44,8 +45,10 @@ def extract_repository(projectname, project_id):
 
 
 def save_bestandswijziging(file, commit_id):
-    if file.filename.endswith('.java') or (
-            file.filename == 'pom.xml' and file.new_path == '' and file.old_path == ''):
+    extensions = configurator.get_extensions()
+
+    for x in range(len(extensions)):
+    if file.filename.endswith(extensions[x]):
         # sla op in database
         file_changes = BestandsWijziging()
         file_changes.filename = file.filename

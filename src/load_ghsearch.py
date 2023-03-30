@@ -125,8 +125,8 @@ def load():
     logging.info('Starting load')
     global connection
     connection = db_postgresql.open_connection()
-
     importfile = configurator.get_ghsearch_importfile()
+
     logging.info('start importing ' + importfile)
     data = read_json(importfile)
     if not data:
