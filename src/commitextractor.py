@@ -1,9 +1,11 @@
 import logging
 from datetime import datetime
+
 from pydriller import Repository
-from src import db_postgresql, hashing
-from src.extracted_data_models import BestandsWijziging, CommitInfo
-from src import configurator
+import db_postgresql
+import hashing
+from extracted_data_models import CommitInfo, BestandsWijziging
+import configurator
 
 global db_connectie
 
@@ -30,7 +32,7 @@ def extract_repository(projectname, project_id):
         try:
             commit_info.save()
             for file in commit.modified_files:
-                save_bestandswijziging(file, commit_info.idcommit)
+                save_bestandswijziging(file, commit_info.id)
         except UnicodeDecodeError as e_inner:
             logging.exception(e_inner)
         except ValueError as e_inner:

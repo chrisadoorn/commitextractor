@@ -4,7 +4,7 @@ import os
 # locatie van de file die de seed bevat
 SEED_FILE = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '..', 'var', 'commitextractor.seed'))
+                                  '..', '..', 'var', 'commitextractor.seed'))
 global seed_value
 
 

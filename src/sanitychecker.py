@@ -1,6 +1,8 @@
 import logging
 
-from src import hashing, db_postgresql, configurator
+import configurator
+import db_postgresql
+import hashing
 
 
 # check_connection checks if it is possible to connect to the database with the parameters given in the ini file.

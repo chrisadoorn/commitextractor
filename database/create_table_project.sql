@@ -2,13 +2,13 @@ set schema 'test';
 
 -- Table: project
 
--- DROP TABLE IF EXISTS project;
+DROP TABLE IF EXISTS project;
 
 CREATE TABLE IF NOT EXISTS project
 (
     id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
     naam character varying COLLATE pg_catalog."default" NOT NULL,
-    selectie_id bigint NOT NULL,
+    idselectie bigint NOT NULL,
     main_language character varying COLLATE pg_catalog."default",
     is_fork boolean,
     license character varying COLLATE pg_catalog."default",
@@ -18,9 +18,10 @@ CREATE TABLE IF NOT EXISTS project
     create_date date,
     last_commit date,
     number_of_languages integer,
+    aantal_commits integer,
     languages text COLLATE pg_catalog."default",
     CONSTRAINT project_pkey PRIMARY KEY (id),
-    CONSTRAINT selectie_fkey FOREIGN KEY (selectie_id)
+    CONSTRAINT selectie_fkey FOREIGN KEY (idselectie)
         REFERENCES test.selectie (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
@@ -40,5 +41,5 @@ GRANT ALL ON TABLE project TO postgres;
 
 CREATE INDEX IF NOT EXISTS fki_selectie_fkey
     ON project USING btree
-    (selectie_id ASC NULLS LAST)
+    (idselectie ASC NULLS LAST)
     TABLESPACE pg_default;

@@ -24,3 +24,10 @@ select count(1) from test.bestandswijziging;
 --delete from test.processor;   
 	
 
+-- update test.verwerk_project
+-- set processor = null   ,start_extractie = null   ,einde_extractie = null   ,resultaat = null   ,status = 'nieuw'
+-- where naam = 'googleapis/java-bigtable-hbase';
+
+update test.verwerk_project set status = 'geblokt'
+where status = 'nieuw';
+

@@ -1,9 +1,10 @@
+import json
 import logging
 import os
-import json
 from datetime import datetime
 
-from src import db_postgresql, configurator
+import configurator
+import db_postgresql
 
 global connection
 
@@ -39,7 +40,7 @@ def import_projects(jsondata, conn, selectie_id):
         v_no_languages = len(project['languages'])
         v_languages = project['languages']
 
-        sql_fields = "INSERT INTO project (naam, selectie_id, main_language, is_fork, license, forks," \
+        sql_fields = "INSERT INTO project (naam, idselectie, main_language, is_fork, license, forks," \
                      " contributors, project_size, create_date, last_commit, number_of_languages, languages"
         sql_values = ") values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
         sql_return = " returning id"
@@ -121,11 +122,10 @@ def import_selectioncriteria(jsondata, conn):
     return new_id
 
 
-def load():
-    logging.info('Starting load')
+def load_importfile(importfile):
+    logging.info('Starting load ' + importfile)
     global connection
     connection = db_postgresql.open_connection()
-    importfile = configurator.get_ghsearch_importfile()
 
     logging.info('start importing ' + importfile)
     data = read_json(importfile)
@@ -139,6 +139,10 @@ def load():
 
     db_postgresql.close_connection()
     configurator.set_ghsearch_import_wanted(False)
+
+
+def load():
+    load_importfile(configurator.get_ghsearch_importfile())
 
 
 #####################################

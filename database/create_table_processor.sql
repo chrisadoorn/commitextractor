@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS processor
     start_processing timestamp without time zone DEFAULT now(),
     einde_processing timestamp without time zone,
     status character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'actief'::character varying,
-    CONSTRAINT processor_pkey PRIMARY KEY (id)
+    CONSTRAINT processor_pkey PRIMARY KEY (id),
+    CONSTRAINT processor_un UNIQUE (identifier)
+
 )
 
 TABLESPACE pg_default;
