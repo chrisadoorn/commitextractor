@@ -10,7 +10,7 @@ pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params
 class BaseModel(Model):
     class Meta:
         database = pg_db
-        schema = 'test'
+        schema = params.get('schema')
 
 
 class CommitInfo(BaseModel):
