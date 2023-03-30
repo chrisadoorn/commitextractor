@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 
+from src.models.models import Selectie
 from src.utils import configurator, db_postgresql
 
 global connection
@@ -68,7 +69,7 @@ def import_projects(jsondata, conn, selectie_id):
 
 def import_selectioncriteria(jsondata, conn):
     logging.info('Starting import_selectioncriteria')
-    vandaag = datetime.now()
+
     v_language = None
     v_commits_min = None
     v_contributors_min = None
@@ -78,6 +79,7 @@ def import_selectioncriteria(jsondata, conn):
     v_has_pulls = None
     v_has_wiki = None
     v_has_license = None
+    v_committed_min = None
     # get data from json
     for param in jsondata['parameters']:
         logging.debug('param: ' + str(param))
@@ -100,25 +102,30 @@ def import_selectioncriteria(jsondata, conn):
                 v_has_wiki = jsondata['parameters'][param]
             case 'hasLicense':
                 v_has_license = jsondata['parameters'][param]
+            case 'committedMin':
+                v_committed_min = jsondata['parameters'][param]
 
     # database part
-    sql_select = "INSERT INTO selectie ( selectionmoment, language, commitsMinimum, contributorsMinimum," \
-                 " excludeForks, onlyForks, hasIssues, hasPulls, hasWiki, hasLicense"
-    sql_values = ") values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
-    sql_return = " returning id"
-    cursor = conn.cursor()
-    sql = sql_select + sql_values + sql_return
-    logging.debug('sql = ' + sql)
-    values_tuple = (vandaag.strftime("%Y-%m-%d"), v_language, v_commits_min, v_contributors_min, v_exclude_forks,
-                    v_only_forks, v_has_issues, v_has_pulls, v_has_wiki, v_has_license)
-    cursor.execute(sql, values_tuple)
-    conn.commit()
-    new_id = cursor.fetchone()[0]
-    logging.debug('selectie id = ' + str(new_id))
+    selectie = Selectie()
+    selectie.selectionmoment = datetime.now().strftime("%Y-%m-%d")
+    selectie.language = v_language
+    selectie.commitsminimum = v_commits_min
+    selectie.contributorsminimum = v_contributors_min
+    selectie.excludeforks = v_exclude_forks
+    selectie.onlyforks = v_only_forks
+    selectie.hasissues = v_has_issues
+    selectie.haspulls = v_has_pulls
+    selectie.haswiki = v_has_wiki
+    selectie.haslicense = v_has_license
+    selectie.committedmin = v_committed_min
 
-    cursor.close()
+    try:
+        selectie.save()
+    except ValueError as e:
+        logging.exception(e)
+        exit(1)
 
-    return new_id
+    return selectie.id
 
 
 def load_importfile(importfile):

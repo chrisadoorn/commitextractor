@@ -34,4 +34,3 @@ class BestandsWijziging(BaseModel):
 
 
 pg_db.connect()
-# pg_db.create_tables([GhSearchSelection, CommitInformation, FileChanges])
