@@ -52,10 +52,10 @@ def get_extensions():
     config = ConfigParser()
     config.read(inifile)
 
-    if config.has_section(EXTENSIONS):
+    if config.has_section(language):
         extensions = config.get('language', 'list_extensions').replace(' ', '').split(',')
     else:
-        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
+        raise Exception('Section {0} not found in the {1} file'.format(language, inifile))
 
     return extensions
 
