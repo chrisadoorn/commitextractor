@@ -4,6 +4,7 @@ from configparser import ConfigParser
 GHSEARCH = 'ghsearch'
 IMPORT = 'import'
 IMPORTFILE = 'importfile'
+EXTENSIONS = 'language'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
@@ -46,17 +47,18 @@ def get_database_configuration():
 
     return db
 
-# get_database_configuration returns a list of database connection parameters
+
 def get_extensions():
     config = ConfigParser()
     config.read(inifile)
 
-    if config.has_section(language):
+    if config.has_section(EXTENSIONS):
         extensions = config.get('language', 'list_extensions').replace(' ', '').split(',')
     else:
-        raise Exception('Section {0} not found in the {1} file'.format(language, inifile))
+        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
 
     return extensions
+
 
 # get_ghsearch_importfile returns the file from which a list of projects can be added to be extracted.
 def get_ghsearch_importfile():

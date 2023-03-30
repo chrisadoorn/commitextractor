@@ -1,5 +1,8 @@
 import logging
 import unittest
+import os
+import sys
+
 from src import configurator, load_ghsearch
 
 
@@ -13,7 +16,7 @@ class Test(unittest.TestCase):
         logging.info('starting test')
         configurator.set_inifile('var/test.ini')
         # vraag max id op van selectie en project
-        load_ghsearch.load()
+        load_ghsearch.load_importfile(configurator.get_ghsearch_importfile())
         # vraag max id op van selectie en project
         #   dit moet bij beide 1 hoger zijn
         #   vraag record selectie op. controleer de inhoud
