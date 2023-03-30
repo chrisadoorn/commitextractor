@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from peewee import fn
 from src.processes.commitextractor import extract_repository
-from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project
+from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, ManualChecking
 
 dt = datetime.now()
 filename = \
@@ -18,14 +18,14 @@ def initialize():
 
 
 def create_tables():
-    pg_db.create_tables([GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging], safe=True)
+    pg_db.create_tables([GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging, ManualChecking], safe=True)
 
 
 def execute(subproject):
     ghs = GhSearchSelection.select().where(GhSearchSelection.sub_study == subproject,
                                            GhSearchSelection.meta_import_started_at.is_null(),
                                            GhSearchSelection.meta_import_ready_at.is_null()).order_by(
-        fn.Random()).limit(5)
+        fn.Random()).limit(10)
 
     selection = Selectie()
     selection.language = subproject
@@ -59,4 +59,4 @@ def execute(subproject):
 if __name__ == '__main__':
     initialize()
     create_tables()
-    execute('Elixir')
+    # execute('Elixir')

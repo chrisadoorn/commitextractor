@@ -7,15 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
 </head>
 <body>
-<article>
-    <header class="Header">
-        <h1 class="Strap">Commit extractor</h1>
-    </header>
-    {% block content %}
-    {% endblock %}
-</article>
-<footer>
-    Made for analysis of commits
-</footer>
+{% block content %}
+{% endblock %}
 </body>
 </html>

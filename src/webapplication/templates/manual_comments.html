@@ -1,0 +1,37 @@
+{% extends "master_content.html" %}
+{% block content %}
+<div class="p-5 bg-primary text-white text-center">
+    Kommentaar
+</div>
+<div class="container mt-5">
+<form action="/manual_comments/save/" method="post">
+    <div class="form-group">
+        <input type="hidden"  class="form-control" id="idproject" name="idproject"
+                                              value="{{ manual_checking.idproject }}">
+    </div>
+    <div class="form-group">
+        <label for="comment">Comment</label>
+        <input type="text" class="form-control" id="comment" name="comment" placeholder="comment"
+               value="{{  manual_checking.comment }}">
+    </div>
+    <div class="form-group">
+        <label for="type_of_project">Type project</label>
+        <input type="text" class="form-control" id="type_of_project" name="type_of_project" placeholder="type project"
+               value="{{  manual_checking.type_of_project }}">
+    </div>
+    <div class="form-group">
+        <label for="exclude">Uitsluiten?</label>
+        <input type="text" class="form-control" id="exclude" name="exclude"
+               value="{{  manual_checking.exclude }}">
+    </div>
+
+    <div class="form-group">
+        <label for="exclude_reason">Uitsluit reden</label>
+        <input type="text" class="form-control" id="exclude_reason" name="exclude_reason" placeholder="uitsluit reden"
+               value="{{  manual_checking.exclude_reason }}">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Opslaan</button>
+</form>
+</div>
+{% endblock %}

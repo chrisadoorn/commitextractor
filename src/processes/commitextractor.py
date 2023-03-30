@@ -34,6 +34,8 @@ def extract_repository(projectname, project_id, extended=False):
                     logging.exception(e_inner)
                 except ValueError as e_inner:
                     logging.exception(e_inner)
+                except AttributeError as e_inner:
+                    logging.exception(e_inner)
             except ValueError as e_inner:
                 logging.exception(e_inner)
     except GitCommandError as e_inner:
