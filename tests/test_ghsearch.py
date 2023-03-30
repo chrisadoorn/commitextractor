@@ -1,9 +1,8 @@
 import logging
 import unittest
-import os
-import sys
 
-from src import configurator, load_ghsearch
+from src import load_ghsearch
+from src.utils import configurator
 
 
 class Test(unittest.TestCase):

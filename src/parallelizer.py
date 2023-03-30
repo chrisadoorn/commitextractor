@@ -3,7 +3,7 @@ import multiprocessing as mp
 import uuid
 
 import commitextractor
-import configurator
+from src.utils import configurator
 
 
 # start_extraction starts in a new process.

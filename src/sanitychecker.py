@@ -1,6 +1,6 @@
 import logging
 
-import configurator
+from src.utils import configurator
 import db_postgresql
 import hashing
 

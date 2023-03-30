@@ -5,7 +5,7 @@ from pydriller import Repository
 import db_postgresql
 import hashing
 from extracted_data_models import CommitInfo, BestandsWijziging
-import configurator
+from src.utils import configurator
 
 global db_connectie
 

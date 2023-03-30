@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 
-import configurator
+from src.utils import configurator
 import db_postgresql
 
 global connection

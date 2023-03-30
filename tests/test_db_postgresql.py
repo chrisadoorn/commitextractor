@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../s
 
 # door bovenstaand statement hoef je hier geen from src meer te gebruiken, maar de IDE snapt dit niet.
 # from src mag nog wel, dus dit gaat goed zonder foutmeldingen.
-from src import configurator, db_postgresql
+from src import db_postgresql
+from src.utils import configurator
 
 TEST_INI_FILE = 'var/test.ini'
 TEST_ERROR_FILE = 'var/test_error.ini'

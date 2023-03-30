@@ -2,7 +2,7 @@ import logging
 
 import psycopg2
 
-import configurator
+from src.utils import configurator
 
 global db_conn
 
