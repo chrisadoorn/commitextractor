@@ -1,7 +1,7 @@
 import logging
 
 from src.utils import configurator, db_postgresql
-import hashing
+from src.repo_extractor import hashing
 
 
 # check_connection checks if it is possible to connect to the database with the parameters given in the ini file.
