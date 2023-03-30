@@ -5,7 +5,7 @@ from datetime import datetime
 from multiprocessing import freeze_support
 
 from src.utils import db_postgresql, sanitychecker
-import parallelizer
+from src.repo_extractor import parallelizer
 
 
 #####################################
