@@ -1,11 +1,5 @@
 {% extends "master.html" %}
 {% block content %}
-<script type="text/javascript">
-    function newSrc(newSrc,project_name) {
-        document.getElementById("MyFrame").src = newSrc;
-        document.getElementById("aantekeningen").innerHTML = project_name;
-    }
-</script>
 <main>
     <div style="display: flex" class="split">
         <section>
@@ -29,32 +23,35 @@
                 <tbody>
                 {% for project in latest_selection_list %}
                 <tr>
-                    <th scope="row">{{ project.id }}</th>
+                    <th scope="row" class="align-right">{{ project.id }}</th>
                     <th scope="row"><a href="https://github.com/{{ project.naam }}" target="_blank">github.com/{{
                         project.naam }}</a></th>
                     <th scope="row"><a href="/showgithub/{{ project.id }}/detail/">show imported commits</a></th>
                     <th scope="row">
-                        <button onClick="newSrc('/manual_comments/save/?mc_id={{project.id}}','{{ project.naam }}');">toon opmerkingen
-                        </button>
+                        <a onClick="newSrc('/manual_comments/save/?mc_id={{project.id}}','{{ project.naam }}');">opmerkingen
+                        </a>
                     </th>
-                    <td>{{ project.aantal_commits }}</td>
-                    <td>{{ project.contributors }}</td>
-                    <td>{{ project.create_date }}</td>
-                    <td>{{ project.last_commit }}</td>
+                    <td class="align-right">{{ project.aantal_commits }}</td>
+                    <td class="align-right">{{ project.contributors }}</td>
+                    <td class="align-right">{{ project.create_date }}</td>
+                    <td class="align-right">{{ project.last_commit }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </section>
-        <section>
-            <hgroup>
-                <h1>Aantekeningen</h1>
-                <p>project <span id="aantekeningen"></span></p>
-            </hgroup>
-            <div class="embed-container">
-                <iframe id="MyFrame" allowfullscreen></iframe>
-            </div>
-        </section>
     </div>
 </main>
+
+<dialog id="dialogEle" style="background: #8e91f7">
+    <form method="dialog">
+        <div style="display: flex; justify-content: flex-end; background: #8e91f7; margin-bottom: 10px;">
+            <button value="Dismissed!" class="btn btn-functional"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="embed-container" style="background: #DDECEE">
+            <iframe id="MyFrame" allowfullscreen></iframe>
+        </div>
+
+    </form>
+</dialog>
 {% endblock %}

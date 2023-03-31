@@ -19,6 +19,10 @@ td {
     text-overflow: ellipsis;
 }
 
+.align-right {
+    text-align: right;
+}
+
 
 .embed-container {
     position: relative;
@@ -28,7 +32,6 @@ td {
     overflow-x: hidden;
     max-width: 500px;
     width: 500px;
-    border:1px solid #000;
 }
 .embed-container iframe,
 .embed-container object,
@@ -48,3 +51,62 @@ td {
     flex-direction: row;
     justify-content: space-evenly;
 }
+
+dialog {
+    border-radius: 10px;
+}
+dialog::backdrop {
+    animation: fade 0.5s ease forwards;
+}
+
+
+@keyframes fade {
+    0% {
+        background-color: transparent;
+    }
+    100% {
+        background-color: rgb(220 220 220 / 0.5);
+    }
+}
+
+iframe {
+    border: 0;
+}
+
+.btn {
+    border: 0;
+    background-color: transparent;
+    font-size: 1.5em;
+    cursor: pointer;
+    border-radius:5px;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #f90;
+    border-color: #f90;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #fa0;
+    border-color: #fa0;
+}
+
+.btn-functional {
+    color: #fff;
+    background-color: #444;
+    border-color: #444;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-functional:hover {
+    color: #fff;
+    background-color: #555;
+    border-color: #555;
+}
+
+
