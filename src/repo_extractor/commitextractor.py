@@ -2,9 +2,9 @@ import logging
 from datetime import datetime
 
 from pydriller import Repository
-import db_postgresql
-import hashing
-from extracted_data_models import CommitInfo, BestandsWijziging
+from src.repo_extractor import hashing
+from src.models.extracted_data_models import CommitInfo, BestandsWijziging
+from src.utils import configurator, db_postgresql
 
 global db_connectie
 
@@ -46,21 +46,23 @@ def extract_repository(projectname, project_id):
 
 
 def save_bestandswijziging(file, commit_id):
-    if file.filename.endswith('.java') or (
-            file.filename == 'pom.xml' and file.new_path == '' and file.old_path == ''):
-        # sla op in database
-        file_changes = BestandsWijziging()
-        file_changes.filename = file.filename
-        file_changes.difftext = file.diff
-        file_changes.tekstachteraf = file.content
-        file_changes.idcommit = commit_id
-        file_changes.locatie = file.new_path
-        try:
-            file_changes.save()
-        except UnicodeDecodeError as e_inner:
-            logging.exception(e_inner)
-        except ValueError as e_inner:
-            logging.exception(e_inner)
+    extensions = configurator.get_extensions()
+
+    for x in range(len(extensions)):
+        if file.filename.endswith(extensions[x]):
+            # sla op in database
+            file_changes = BestandsWijziging()
+            file_changes.filename = file.filename
+            file_changes.difftext = file.diff
+            file_changes.tekstachteraf = file.content
+            file_changes.idcommit = commit_id
+            file_changes.locatie = file.new_path
+            try:
+                file_changes.save()
+            except UnicodeDecodeError as e_inner:
+                logging.exception(e_inner)
+            except ValueError as e_inner:
+                logging.exception(e_inner)
 
 
 # extract_repositories is the starting point for this functionality

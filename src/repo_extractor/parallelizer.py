@@ -1,16 +1,23 @@
 import logging
 import multiprocessing as mp
+import os
 import uuid
+from datetime import datetime
 
-import commitextractor
-import configurator
+from src.repo_extractor import commitextractor
+from src.utils import configurator
 
 
 # start_extraction starts in a new process.
 # Therefore, it needs a new logging file.
 def _start_extraction(nummer=0):
     process_identifier = str(uuid.uuid4())
-    logging.basicConfig(filename='../log/process.' + process_identifier + '.log',
+    dt = datetime.now()
+    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                             '../..', 'log',
+                                             'processor.' + dt.strftime(
+                                                 '%y%m%d-%H%M%S') + '.' + process_identifier + '.log'))
+    logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
     logging.info('start process ' + str(nummer) + '  with id: ' + process_identifier)

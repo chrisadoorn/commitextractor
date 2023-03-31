@@ -1,6 +1,6 @@
 from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, BigIntegerField
 
-import configurator
+from src.utils import configurator
 
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
@@ -10,7 +10,7 @@ pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params
 class BaseModel(Model):
     class Meta:
         database = pg_db
-        schema = 'test'
+        schema = params.get('schema')
 
 
 class CommitInfo(BaseModel):
@@ -34,4 +34,3 @@ class BestandsWijziging(BaseModel):
 
 
 pg_db.connect()
-# pg_db.create_tables([GhSearchSelection, CommitInformation, FileChanges])

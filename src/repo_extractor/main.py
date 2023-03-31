@@ -1,10 +1,11 @@
 import logging
+import os
 import uuid
+from datetime import datetime
 from multiprocessing import freeze_support
 
-import db_postgresql
-import parallelizer
-import sanitychecker
+from src.utils import db_postgresql, sanitychecker
+from src.repo_extractor import parallelizer
 
 
 #####################################
@@ -55,7 +56,11 @@ def start_with_checks():
 if __name__ == '__main__':
     # initialiseer logging
     instance_uuid = str(uuid.uuid4())
-    logging.basicConfig(filename='../log/main.' + instance_uuid + '.log',
+    # initialiseer logging
+    dt = datetime.now()
+    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                             '../..', 'log', 'main.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+    logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
 

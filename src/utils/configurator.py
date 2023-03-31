@@ -4,6 +4,7 @@ from configparser import ConfigParser
 GHSEARCH = 'ghsearch'
 IMPORT = 'import'
 IMPORTFILE = 'importfile'
+EXTENSIONS = 'language'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
@@ -11,7 +12,7 @@ RUN_PARALLEL = 'run_parallel'
 # INI_FILE contains the default location of the configuration
 INI_FILE = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '..', 'var', 'commitextractor.ini'))
+                                  '../..', 'var', 'commitextractor.ini'))
 
 global inifile
 inifile = INI_FILE
@@ -45,6 +46,18 @@ def get_database_configuration():
         raise Exception('Section {0} not found in the {1} file'.format(POSTGRESQL, inifile))
 
     return db
+
+
+def get_extensions():
+    config = ConfigParser()
+    config.read(inifile)
+
+    if config.has_section(EXTENSIONS):
+        extensions = config.get('language', 'list_extensions').replace(' ', '').split(',')
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
+
+    return extensions
 
 
 # get_ghsearch_importfile returns the file from which a list of projects can be added to be extracted.

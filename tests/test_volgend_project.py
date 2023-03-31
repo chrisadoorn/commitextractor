@@ -12,7 +12,8 @@ import sys
 # N.B. Deze constructie is alleen nodig bij een test waarbij module getest wordt die een andere module nodig heeft.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/')))
 
-from src import db_postgresql, configurator, load_ghsearch
+from src.selection_loader import load_ghsearch
+from src.utils import configurator, db_postgresql
 
 TEST_INI_FILE = 'var/test_vraag_volgend_project.ini'
 

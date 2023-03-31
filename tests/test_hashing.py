@@ -1,5 +1,6 @@
 import unittest
-from src import hashing
+from src.repo_extractor import hashing
+
 
 class Test(unittest.TestCase):
     # tests of de juiste combinatie van hash methode en seed gebruikt wordt

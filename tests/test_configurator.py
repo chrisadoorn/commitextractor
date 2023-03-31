@@ -1,5 +1,5 @@
 import unittest
-from src import configurator
+from src.utils import configurator
 
 TEST_INI_FILE = 'var/test.ini'
 TEST_ERROR_FILE = 'var/test_error.ini'
