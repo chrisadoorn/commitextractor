@@ -32,8 +32,8 @@ def import_projects(jsondata, selectie_id):
         project_details.naam = project.get('name') or None
         project_details.idselectie = selectie_id
         project_details.main_language = project.get('mainLanguage') or None
-        project_details.is_fork = project.get('isFork') or None
-        project_details.license = project.get('license') or None
+        project_details.is_fork = project.get('isFork', None)
+        project_details.license = project.get('license', None) or None
         project_details.forks = project.get('forks') or None
         project_details.contributors = project.get('contributors') or None
         project_details.project_size = project.get('size') or None
@@ -66,12 +66,12 @@ def import_selectioncriteria(jsondata):
     selectie.language = jsondata.get('parameters').get('language') or None
     selectie.commitsminimum = jsondata.get('parameters').get('commitsMin') or None
     selectie.contributorsminimum = jsondata.get('parameters').get('contributorsMin') or None
-    selectie.excludeforks = jsondata.get('parameters').get('excludeForks') or None
-    selectie.onlyforks = jsondata.get('parameters').get('onlyForks') or None
-    selectie.hasissues = jsondata.get('parameters').get('hasIssues') or None
-    selectie.haspulls = jsondata.get('parameters').get('hasPulls') or None
-    selectie.haswiki = jsondata.get('parameters').get('hasWiki') or None
-    selectie.haslicense = jsondata.get('parameters').get('hasLicense') or None
+    selectie.excludeforks = jsondata.get('parameters').get('excludeForks', None)
+    selectie.onlyforks = jsondata.get('parameters').get('onlyForks', None)
+    selectie.hasissues = jsondata.get('parameters').get('hasIssues', None)
+    selectie.haspulls = jsondata.get('parameters').get('hasPulls', None)
+    selectie.haswiki = jsondata.get('parameters').get('hasWiki', None)
+    selectie.haslicense = jsondata.get('parameters').get('hasLicense', None)
     selectie.committedmin = jsondata.get('parameters').get('committedMin') or None
 
     try:
