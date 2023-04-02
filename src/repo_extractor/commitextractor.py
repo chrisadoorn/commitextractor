@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime
 
 from pydriller import Repository
@@ -8,6 +9,8 @@ from src.utils import configurator, db_postgresql
 
 global db_connectie
 
+GITHUB = 'https://github.com/'
+extensions = configurator.get_extensions()
 
 # pip install package pydriller
 # pip install package mysql-connector-python
@@ -17,7 +20,7 @@ def extract_repository(projectname, project_id):
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
 
-    full_repository = Repository('https://github.com/' + projectname)
+    full_repository = Repository(GITHUB + projectname)
     for commit in full_repository.traverse_commits():
 
         commit_info = CommitInfo()
@@ -46,23 +49,30 @@ def extract_repository(projectname, project_id):
 
 
 def save_bestandswijziging(file, commit_id):
-    extensions = configurator.get_extensions()
+    fs = file_selector(file)
+    if fs[0]:
+        # sla op in database
+        file_changes = BestandsWijziging()
+        file_changes.filename = file.filename
+        file_changes.difftext = file.diff
+        file_changes.tekstachteraf = file.content
+        file_changes.idcommit = commit_id
+        file_changes.locatie = file.new_path
+        file_changes.extensie = fs[1]
+        try:
+            file_changes.save()
+        except UnicodeDecodeError as e_inner:
+            logging.exception(e_inner)
+        except ValueError as e_inner:
+            logging.exception(e_inner)
 
-    for x in range(len(extensions)):
-        if file.filename.endswith(extensions[x]):
-            # sla op in database
-            file_changes = BestandsWijziging()
-            file_changes.filename = file.filename
-            file_changes.difftext = file.diff
-            file_changes.tekstachteraf = file.content
-            file_changes.idcommit = commit_id
-            file_changes.locatie = file.new_path
-            try:
-                file_changes.save()
-            except UnicodeDecodeError as e_inner:
-                logging.exception(e_inner)
-            except ValueError as e_inner:
-                logging.exception(e_inner)
+
+def file_selector(file):
+    split_up = os.path.splitext(file.filename)
+    try:
+        return split_up[1] in extensions, split_up[1]
+    except ValueError:
+        return False
 
 
 # extract_repositories is the starting point for this functionality

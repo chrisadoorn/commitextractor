@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 from peewee import fn
-from src.processes.commitextractor import extract_repository
+from src.repo_extractor.commitextractor import extract_repository
 from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, ManualChecking
 
 dt = datetime.now()
@@ -25,7 +25,7 @@ def execute(subproject):
     ghs = GhSearchSelection.select().where(GhSearchSelection.sub_study == subproject,
                                            GhSearchSelection.meta_import_started_at.is_null(),
                                            GhSearchSelection.meta_import_ready_at.is_null()).order_by(
-        fn.Random()).limit(10)
+        fn.Random()).limit(1)
 
     selection = Selectie()
     selection.language = subproject
@@ -51,7 +51,7 @@ def execute(subproject):
         print(t.name)
         t.meta_import_started_at = datetime.now()
         t.selected_for_survey = True
-        extract_repository(t.name, project.id, extended=True)
+        extract_repository(t.name, project.id)
         t.meta_import_ready_at = datetime.now()
         t.save()
 
@@ -59,4 +59,4 @@ def execute(subproject):
 if __name__ == '__main__':
     initialize()
     create_tables()
-    # execute('Elixir')
+    execute('Elixir')
