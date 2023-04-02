@@ -2,8 +2,8 @@ import logging
 import os
 from datetime import datetime
 from peewee import fn
-from src.processes.commitextractor import extract_repository
-from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project
+from src.repo_extractor.commitextractor import extract_repository
+from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, ManualChecking
 
 dt = datetime.now()
 filename = \
@@ -18,14 +18,14 @@ def initialize():
 
 
 def create_tables():
-    pg_db.create_tables([GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging], safe=True)
+    pg_db.create_tables([GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging, ManualChecking], safe=True)
 
 
 def execute(subproject):
     ghs = GhSearchSelection.select().where(GhSearchSelection.sub_study == subproject,
                                            GhSearchSelection.meta_import_started_at.is_null(),
                                            GhSearchSelection.meta_import_ready_at.is_null()).order_by(
-        fn.Random()).limit(5)
+        fn.Random()).limit(1)
 
     selection = Selectie()
     selection.language = subproject
@@ -51,7 +51,7 @@ def execute(subproject):
         print(t.name)
         t.meta_import_started_at = datetime.now()
         t.selected_for_survey = True
-        extract_repository(t.name, project.id, extended=True)
+        extract_repository(t.name, project.id)
         t.meta_import_ready_at = datetime.now()
         t.save()
 

@@ -1,0 +1,112 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #444;
+}
+
+th {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+td {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.align-right {
+    text-align: right;
+}
+
+
+.embed-container {
+    position: relative;
+    padding: 5px;
+    height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-width: 500px;
+    width: 500px;
+}
+.embed-container iframe,
+.embed-container object,
+.embed-container embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 90%;
+    border:0;
+    margin: 10px;
+}
+
+.split {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+dialog {
+    border-radius: 10px;
+}
+dialog::backdrop {
+    animation: fade 0.5s ease forwards;
+}
+
+
+@keyframes fade {
+    0% {
+        background-color: transparent;
+    }
+    100% {
+        background-color: rgb(220 220 220 / 0.5);
+    }
+}
+
+iframe {
+    border: 0;
+}
+
+.btn {
+    border: 0;
+    background-color: transparent;
+    font-size: 1.5em;
+    cursor: pointer;
+    border-radius:5px;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #f90;
+    border-color: #f90;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #fa0;
+    border-color: #fa0;
+}
+
+.btn-functional {
+    color: #fff;
+    background-color: #444;
+    border-color: #444;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-functional:hover {
+    color: #fff;
+    background-color: #555;
+    border-color: #555;
+}
+
+

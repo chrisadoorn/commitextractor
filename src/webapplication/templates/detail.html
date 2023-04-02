@@ -1,7 +1,7 @@
 {% extends "master.html" %}
 
 {% block content %}
-<h1>{{ selection.naam }}</h1>
+<h1><a href="/">{{ selection.naam }}</a></h1>
 {% if back_from_int >= 0: %}
 <a href="/showgithub/{{ selection.id }}/detail/{{ back_from_int }}/{{ back_to_int }}/"> previous 10 </a><br>
 {% endif %}

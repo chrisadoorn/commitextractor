@@ -101,6 +101,15 @@ class Project(BaseModel):
     aantal_commits = IntegerField(null=True)
 
 
+class ManualChecking(BaseModel):
+    id = AutoField(primary_key=True)
+    idproject = ForeignKeyField(Project, backref="manual_checkings", on_delete="CASCADE", column_name="idproject")
+    comment = TextField(null=True)
+    type_of_project = CharField(null=True)
+    exclude = BooleanField(null=True)
+    exclude_reason = CharField(null=True)
+
+
 class CommitInfo(BaseModel):
     id = AutoField(primary_key=True)
     idproject = ForeignKeyField(Project, backref="commits", on_delete="CASCADE", column_name="idproject")

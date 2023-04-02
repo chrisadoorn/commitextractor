@@ -1,8 +1,8 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
-from src.models.models import Project, CommitInfo, BestandsWijziging
+from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking
 
 POSTGRESQL = 'postgresql'
 CONFIGFILE = 'config.ini'
@@ -14,7 +14,7 @@ app.config.from_object(__name__)
 
 @app.route("/")
 def form_gh_search():
-    ghs = Project.select()
+    ghs = Project.select().where(Project.main_language == "Elixir").order_by(Project.id.asc()).limit(10)
     return render_template("selected.html", latest_selection_list=ghs)
 
 
@@ -47,6 +47,40 @@ def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
                         to_int=to_int + 10,
                         back_from_int=from_int - 10,
                         back_to_int=to_int - 10)
+
+
+@app.route('/manual_comments/save/', methods=['POST', 'GET'])
+def manual_comments():
+    if request.method == 'POST':
+        project_id = request.form['idproject']
+        existing_manual_checking = ManualChecking.select().where(ManualChecking.idproject == project_id)
+        if len(existing_manual_checking) == 0:
+            manual_checking = ManualChecking()
+            manual_checking.idproject = request.form['idproject']
+            manual_checking.comment = request.form['comment']
+            manual_checking.type_of_project = request.form['type_of_project']
+            manual_checking.exclude = request.form['exclude']
+            manual_checking.exclude_reason = request.form['exclude_reason']
+        else:
+            manual_checking = existing_manual_checking[0]
+            manual_checking.comment = request.form['comment']
+            manual_checking.type_of_project = request.form['type_of_project']
+            manual_checking.exclude = request.form['exclude']
+            manual_checking.exclude_reason = request.form['exclude_reason']
+        manual_checking.save()
+    else:
+        project_id = request.args.get('mc_id')
+        existing_manual_checking = ManualChecking.select().where(ManualChecking.idproject == project_id)
+        if len(existing_manual_checking) == 0:
+            manual_checking = ManualChecking()
+            manual_checking.idproject = project_id
+            manual_checking.comment = ''
+            manual_checking.type_of_project = ''
+            manual_checking.exclude = ''
+            manual_checking.exclude_reason = ''
+        else:
+            manual_checking = existing_manual_checking[0]
+    return render_template('manual_comments.html', manual_checking=manual_checking)
 
 
 def get_files(commit_id):
