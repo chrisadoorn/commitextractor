@@ -22,7 +22,7 @@ class Test(unittest.TestCase):
     def test_database_configuration(self):
         configurator.set_inifile(TEST_INI_FILE)
         resultaat = configurator.get_database_configuration()
-        unittest.TestCase.assertEqual(self, 5, len(resultaat), 'aantal database parameters matchen niet!')
+        unittest.TestCase.assertEqual(self, 6, len(resultaat), 'aantal database parameters matchen niet!')
 
     # test of er een exception komt als het aantal processen niet opgehaald kan worden
     def test_number_of_processes_error(self):
