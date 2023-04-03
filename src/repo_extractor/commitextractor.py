@@ -11,6 +11,8 @@ global db_connectie
 
 GITHUB = 'https://github.com/'
 extensions = configurator.get_extensions()
+files = configurator.get_files()
+
 
 # pip install package pydriller
 # pip install package mysql-connector-python
@@ -69,6 +71,14 @@ def save_bestandswijziging(file, commit_id):
 
 def file_selector(file):
     split_up = os.path.splitext(file.filename)
+    # bestand is apart genoemd
+    if file.new_path in files:
+        try:
+            return True, split_up[1]
+        except ValueError:
+            return False
+
+    # bestand is van gewenst type
     try:
         return split_up[1] in extensions, split_up[1]
     except ValueError:
