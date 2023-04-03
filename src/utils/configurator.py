@@ -60,6 +60,18 @@ def get_extensions():
     return extensions
 
 
+def get_files():
+    config = ConfigParser()
+    config.read(inifile)
+
+    if config.has_section(EXTENSIONS):
+        extensions = config.get('language', 'list_files').replace(' ', '').split(',')
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
+
+    return extensions
+
+
 # get_ghsearch_importfile returns the file from which a list of projects can be added to be extracted.
 def get_ghsearch_importfile():
     config = ConfigParser()
