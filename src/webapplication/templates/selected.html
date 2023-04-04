@@ -24,9 +24,10 @@
                 <th scope="row" class="align-right">{{ project.id }}</th>
                 <td><a href="https://github.com/{{ project.naam }}" target="_blank">github.com/{{
                     project.naam }}</a></td>
-                <td><a href="/showgithub/{{ project.id }}/detail/">show imported commits</a></td>
+                <td><a href="/showgithub/{{ project.id }}/commitsonly/">show imported commits</a><br>
+                <a href="/showgithub/{{ project.id }}/detail/">show imported detail</a></td>
                 <td>
-                    <a  onClick="newSrc({{project.id}}); return false;">opmerkingen
+                    <a onClick="newSrc({{project.id}}); return false;">opmerkingen
                     </a>
                 </td>
                 <td class="align-right">{{ project.aantal_commits }}</td>
