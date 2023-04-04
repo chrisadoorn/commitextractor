@@ -11,8 +11,12 @@ APP_DIR = os.path.dirname(os.path.realpath(__file__))
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-
 @app.route("/")
+def home():
+    return render_template("home.html")
+
+
+@app.route("/selected/")
 def form_gh_search():
     ghs = Project.select().where(Project.main_language == "Elixir").order_by(Project.id.asc()).limit(10)
     return render_template("selected.html", latest_selection_list=ghs)

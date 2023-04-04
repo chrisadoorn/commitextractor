@@ -1,55 +1,54 @@
 {% extends "master.html" %}
 {% block content %}
-<main>
-    <div style="display: flex" class="split">
-        <section>
-            <hgroup>
-                <h1>Latest selected projects</h1>
-                <p>geselecteerde projecten</p>
-            </hgroup>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th scope="col">project_id</th>
-                    <th scope="col">to github</th>
-                    <th scope="col">name</th>
-                    <th scope="col">comments</th>
-                    <th scope="col">commits</th>
-                    <th scope="col">contributors</th>
-                    <th scope="col">created_at</th>
-                    <th scope="col">last_commit</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for project in latest_selection_list %}
-                <tr>
-                    <th scope="row" class="align-right">{{ project.id }}</th>
-                    <th scope="row"><a href="https://github.com/{{ project.naam }}" target="_blank">github.com/{{
-                        project.naam }}</a></th>
-                    <th scope="row"><a href="/showgithub/{{ project.id }}/detail/">show imported commits</a></th>
-                    <th scope="row">
-                        <a onClick="newSrc('/manual_comments/save/?mc_id={{project.id}}','{{ project.naam }}');">opmerkingen
-                        </a>
-                    </th>
-                    <td class="align-right">{{ project.aantal_commits }}</td>
-                    <td class="align-right">{{ project.contributors }}</td>
-                    <td class="align-right">{{ project.create_date }}</td>
-                    <td class="align-right">{{ project.last_commit }}</td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </section>
-    </div>
-</main>
+<div>
+    <section>
+        <hgroup>
+            <h1>Selected projects</h1>
+        </hgroup>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">project_id</th>
+                <th scope="col">to github</th>
+                <th scope="col">name</th>
+                <th scope="col">comments</th>
+                <th scope="col">commits</th>
+                <th scope="col">contributors</th>
+                <th scope="col">created_at</th>
+                <th scope="col">last_commit</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for project in latest_selection_list %}
+            <tr>
+                <th scope="row" class="align-right">{{ project.id }}</th>
+                <td><a href="https://github.com/{{ project.naam }}" target="_blank">github.com/{{
+                    project.naam }}</a></td>
+                <td><a href="/showgithub/{{ project.id }}/detail/">show imported commits</a></td>
+                <td>
+                    <a  onClick="newSrc('/manual_comments/save/?mc_id={{project.id}}','{{ project.naam }}'); return false;">opmerkingen
+                    </a>
+                </td>
+                <td class="align-right">{{ project.aantal_commits }}</td>
+                <td class="align-right">{{ project.contributors }}</td>
+                <td class="align-right">{{ project.create_date }}</td>
+                <td class="align-right">{{ project.last_commit }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
 
-<dialog id="dialogEle" style="background: #8e91f7">
+
+<dialog id="dialogEle" style="background: #ebebeb">
     <form method="dialog">
-        <div style="display: flex; justify-content: flex-end; background: #8e91f7; margin-bottom: 10px;">
-            <button value="Dismissed!" class="btn btn-functional"><i class="bi bi-x"></i></button>
+        <div style="display: flex; justify-content: space-evenly; align-items:baseline; color: #11557C; font-weight: bolder; background: #ebebeb; margin-bottom: 10px;">
+            <div id="aantekeningen"></div>
+            <button value="Dismissed!" class="btn btn-functional last-item"><i class="bi bi-x"></i></button>
         </div>
-        <div class="embed-container" style="background: #DDECEE">
-            <iframe id="MyFrame" allowfullscreen></iframe>
+        <div class="embed-container" style="background: #ebebeb">
+            <iframe id="MyFrame"></iframe>
         </div>
 
     </form>
