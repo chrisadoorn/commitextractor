@@ -25,7 +25,7 @@ def execute(subproject):
     ghs = GhSearchSelection.select().where(GhSearchSelection.sub_study == subproject,
                                            GhSearchSelection.meta_import_started_at.is_null(),
                                            GhSearchSelection.meta_import_ready_at.is_null()).order_by(
-        fn.Random()).limit(1)
+        fn.Random()).limit(11)
 
     selection = Selectie()
     selection.language = subproject

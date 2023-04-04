@@ -14,6 +14,7 @@ footer {
     background-color: violet;
     color: #fff;
     padding: 1.5rem;
+    min-width: 930px;
 }
 
 main {
@@ -174,6 +175,7 @@ dialog::backdrop {
     display: flex;
     align-items: center;
     padding: 0 1rem;
+    min-width: 950px;
 }
 
 .item,
