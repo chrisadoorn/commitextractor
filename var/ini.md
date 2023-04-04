@@ -27,3 +27,14 @@ This section is optional, but if it is used the following options must be filled
 * **import** A single 1 to indicate that the import has to be done. After running the import the value is automatically reset to 0
 * **importfile** The relative path to the json file which has to be loaded. The file must exist and be readable for the process. 
 The relative path to the data directory is ../data
+
+
+#### Section language
+This section is used to make a selection of files you want to study. Only files which are included will be extracted for further study.
+There are two ways to select those files: by extension, or by name.
+
+ **Options**  
+* **list_extensions** This is a comma separted list of extensions, each extension starting with a dot. 
+ All files with one of those extensions will be selected. Example: list_extensions = .go, .md, .exs, .ex 
+* **list_files** This is a comma seperated list of filenames, each filename containing a relative path to the least nested level of the repository.
+ For instance, pom.xml refers to the pom.xml at root level, var/build.properties refers to the build.properties file in the var directory.
