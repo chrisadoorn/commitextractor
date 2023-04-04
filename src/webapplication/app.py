@@ -1,7 +1,8 @@
+import json
 import os
 
-from flask import Flask, render_template, request
-
+from flask import Flask, render_template, request, jsonify
+from playhouse.shortcuts import model_to_dict, dict_to_model
 from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking
 
 POSTGRESQL = 'postgresql'
@@ -69,9 +70,13 @@ def manual_comments():
             manual_checking = existing_manual_checking[0]
             manual_checking.comment = request.form['comment']
             manual_checking.type_of_project = request.form['type_of_project']
-            manual_checking.exclude = request.form['exclude']
+            if 'exclude' in request.form:
+                manual_checking.exclude = request.form['exclude']
+            else:
+                manual_checking.exclude = False
             manual_checking.exclude_reason = request.form['exclude_reason']
         manual_checking.save()
+        return jsonify(status=201)
     else:
         project_id = request.args.get('mc_id')
         existing_manual_checking = ManualChecking.select().where(ManualChecking.idproject == project_id)
@@ -84,7 +89,14 @@ def manual_comments():
             manual_checking.exclude_reason = ''
         else:
             manual_checking = existing_manual_checking[0]
-    return render_template('manual_comments.html', manual_checking=manual_checking)
+
+        return jsonify(
+            idproject=manual_checking.idproject_id,
+            comment=manual_checking.comment,
+            type_of_project=manual_checking.type_of_project,
+            exclude=manual_checking.exclude,
+            exclude_reason=manual_checking.exclude_reason
+        )
 
 
 def get_files(commit_id):
