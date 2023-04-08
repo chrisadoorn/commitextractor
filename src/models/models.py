@@ -1,30 +1,10 @@
-import os
-from configparser import ConfigParser
-
 from peewee import CharField, DateField, Model, AutoField, BooleanField, \
     IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField, ForeignKeyField
-# from playhouse.migrate import PostgresqlMigrator, migrate
 
-POSTGRESQL = 'postgresql'
-inifile = \
-    os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '..', '..', 'var', 'commitextractor.ini'))
-
-def get_database_configuration():
-    config = ConfigParser()
-    config.read(inifile)
-    db = {}
-    if config.has_section(POSTGRESQL):
-        params = config.items(POSTGRESQL)
-        for param in params:
-            db[param[0]] = param[1]
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(POSTGRESQL, inifile))
-
-    return db
+from src.utils import configurator
 
 
-params = get_database_configuration()
+params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
                            host='localhost', port=params.get('port'))
 
@@ -128,6 +108,24 @@ class BestandsWijziging(BaseModel):
     extensie = CharField(null=True, max_length=20)
     difftext = TextField(null=True)
     tekstachteraf = TextField(null=True)
+
+
+class CommitAuthorInformation(BaseModel):
+    id = AutoField(primary_key=True)
+    sha = CharField(null=False, max_length=40, index=True)
+    project_name = CharField(null=False, index=True)
+    author_login = CharField(null=False)
+    author_id = IntegerField(null=False)
+
+
+class ProjectsProcessedForAuthors(BaseModel):
+    id = AutoField(primary_key=True)
+    project_name = CharField(null=False)
+    project_id = ForeignKeyField(Project, backref="projects_processed_for_authors", on_delete="CASCADE",
+                                 column_name="project_id")
+    date_time = DateField(null=False, constraints=[SQL('DEFAULT CURRENT_DATE')])
+    processed = BooleanField(null=False, default=False)
+    error_description = TextField(null=True)
 
 # migrator = PostgresqlMigrator(pg_db)
 # selected_for_survey = BooleanField(null=True)

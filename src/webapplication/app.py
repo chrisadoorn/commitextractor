@@ -1,7 +1,5 @@
 import os
-
 from flask import Flask, render_template, request, jsonify
-
 from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking
 
 POSTGRESQL = 'postgresql'
