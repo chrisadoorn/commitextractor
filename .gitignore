@@ -156,3 +156,4 @@ cython_debug/
 /src/webapplication/config.ini
 
 /var/config.ini
+/var/commitextractor.ini
