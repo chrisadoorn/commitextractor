@@ -157,3 +157,4 @@ cython_debug/
 
 /var/config.ini
 /var/personal.ini
+/var/commitextractor.ini
