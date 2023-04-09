@@ -14,7 +14,7 @@ PERSONAL_ACCESS_TOKEN = 'personal_access_token'
 # INI_FILE contains the default location of the configuration
 INI_FILE = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '../..', 'var', 'personal.ini'))
+                                  '../..', 'var', 'commitextractor.ini'))
 
 inifile = INI_FILE
 
