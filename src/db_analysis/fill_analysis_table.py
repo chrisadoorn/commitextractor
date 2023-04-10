@@ -6,48 +6,26 @@ from src.utils import configurator
 
 global db_connectie
 
-keywords = configurator.get_keywords()
+
 
 def start_fill_analysis_table():
     file_changes = Analyse()
 
-    split_up = os.path.splitext(file.filename)
-    # bestand is apart genoemd
-    if file.new_path in files:
+    keywords = configurator.get_keywords()
 
-    for t in BestandsWijziging.select().where(BestandsWijziging.difftext.contains('tennis')):
+    for x in range(len(keywords)):
 
-        split_up = os.path.splitext(file.filename)
-        # bestand is apart genoemd
+        for t in BestandsWijziging.select().where(BestandsWijziging.difftext.contains(keywords[x])):
 
-            query = Facility.select()
+                file_changes.idproject = t.Project.id
+                file_changes.idcommit = t.CommitInfo.id
+                file_changes.idbestand = t.BestandsWijziging.id
+                file_changes.committer_name = t.CommitInfo.username
+                file_changes.committer_emailaddress = t.CommitInfo.emailaddress
+                file_changes.keyword = keywords[x]
+                # LoC tellen via ModifiedFile nloc: Lines Of Code (LOC) of the file
+                file_changes.loc = 0
 
-            # hoe via de foreign key makkelijk iets ophalen?
-            file_changes.idproject = t.Project.id
 
-            # hoe via de foreign key makkelijk iets ophalen?
-            file_changes.idcommit = t.CommitInfo.id
-
-            file_changes.idbestand = t.BestandsWijziging.id
-
-            # hoe via de foreign key makkelijk iets ophalen?
-            file_changes.committer_name = t.CommitInfo.username
-
-            # hoe via de foreign key makkelijk iets ophalen?
-            file_changes.committer_emailaddress = t.CommitInfo.emailaddress
-
-            # keywords vanuit analysis.ini en mee integreren in query of via een in-statement (cfr. commit_extractor.py)
-            # select naam, difftext
-            # from test.bestandswijziging as bestandswijziging,
-            # 	 test.project as project,
-            # 	 test.commitinfo as commits
-            # where bestandswijziging.difftext ilike '%std::thread%'
-            # 	  and commits.idproject = project.id
-            # 	  and commits.idcommit = bestandswijziging.idcommit
-
-            file_changes.keyword =
-
-            # LoC tellen via ModifiedFile nloc: Lines Of Code (LOC) of the file
-            file_changes.loc =
-
+start_fill_analysis_table()
 

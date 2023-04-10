@@ -14,7 +14,6 @@ class BaseModel(Model):
 
 
 class Analyse(BaseModel):
-    id = AutoField(primary_key=True)
     idproject = ForeignKeyField(Project, backref="analysis", on_delete="CASCADE", column_name="id")
     idcommit = ForeignKeyField(CommitInfo, backref="analysis", on_delete="CASCADE", column_name="id")
     idbestand = ForeignKeyField(BestandsWijziging, backref="analysis", on_delete="CASCADE", column_name="id")
