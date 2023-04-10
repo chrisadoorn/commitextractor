@@ -15,12 +15,12 @@ class BaseModel(Model):
 
 class Analyse(BaseModel):
     id = AutoField(primary_key=True)
-    idproject = ForeignKeyField(Project, backref="analysis", on_delete="CASCADE", column_name="idproject")
-    idcommit = ForeignKeyField(CommitInfo, backref="analysis", on_delete="CASCADE", column_name="idcommit")
-    idbestand = ForeignKeyField(BestandsWijziging, backref="analysis", on_delete="CASCADE", column_name="idbestand")
+    idproject = ForeignKeyField(Project, backref="analysis", on_delete="CASCADE", column_name="id")
+    idcommit = ForeignKeyField(CommitInfo, backref="analysis", on_delete="CASCADE", column_name="id")
+    idbestand = ForeignKeyField(BestandsWijziging, backref="analysis", on_delete="CASCADE", column_name="id")
     committer_name = ForeignKeyField(CommitInfo, backref="analysis", on_delete="CASCADE", column_name="username")
     committer_emailaddress = ForeignKeyField(CommitInfo, backref="analysis", on_delete="CASCADE",
-                                             column_name="user_email")
+                                             column_name="emailaddress")
     keyword = TextField(null=True)
     loc = IntegerField(null=True)
 

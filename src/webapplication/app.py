@@ -14,7 +14,7 @@ app.config.from_object(__name__)
 
 @app.route("/")
 def form_gh_search():
-    ghs = Project.select().where(Project.main_language == "Elixir").order_by(Project.id.asc()).limit(10)
+    ghs = Project.select().where(Project.main_language == "Rust").order_by(Project.id.asc()).limit(10)
     return render_template("selected.html", latest_selection_list=ghs)
 
 
