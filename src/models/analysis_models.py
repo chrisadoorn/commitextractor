@@ -14,10 +14,10 @@ class BaseModel(Model):
 
 class Analyse(BaseModel):
     idproject = ForeignKeyField(Project, backref='id')
-    idcommit = ForeignKeyField(CommitInfo, backref="analysis")
+    idcommit = ForeignKeyField(CommitInfo, unique = False,  backref="analysis")
     idbestand = ForeignKeyField(BestandsWijziging, backref="analysis")
-    committer_name = ForeignKeyField(CommitInfo, backref="analysis", field="username")
-    committer_emailaddress = ForeignKeyField(CommitInfo, backref="analysis", field ="emailaddress")
+    committer_name = CharField(null=True)
+    committer_emailaddress = CharField(null=True)
     keyword = TextField(null=True)
     loc = IntegerField(null=True)
 

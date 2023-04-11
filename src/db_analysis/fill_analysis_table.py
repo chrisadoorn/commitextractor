@@ -1,36 +1,41 @@
-import logging
-from peewee import fn
+
+from peewee import PostgresqlDatabase
 from src.models.analysis_models import Analyse
-from src.models.models import Project, CommitInfo, BestandsWijziging
+from src.models.models import BestandsWijziging
 from src.utils import configurator
+from datetime import datetime
+
+from src.utils.configurator import get_database_configuration
 
 global db_connectie
 
-
+def create_tables():
+    pg_db.create_tables([Analyse], safe=True)
 
 def start_fill_analysis_table():
-    file_changes = Analyse()
+
     keywords = configurator.get_keywords()
-    #print(BestandsWijziging.select().where(BestandsWijziging.difftext.contains("extensions")))
 
+    for x in range(len(keywords)):
+        print(keywords[x])
+        print(datetime.now())
+        for t in BestandsWijziging.select().where(BestandsWijziging.difftext.contains(keywords[x])):
+                analyse = Analyse()
+                analyse.idproject_id = t.idcommit.idproject
+                #print(analyse.idproject_id )
+                analyse.idcommit_id = t.idcommit
+                analyse.idbestand_id = t.id
+                analyse.committer_name = t.idcommit.username
+                analyse.committer_emailaddress = t.idcommit.emailaddress
+                analyse.keyword = keywords[x]
+                # LoC tellen misschien via ModifiedFile nloc: Lines Of Code (LOC) of the file???
+                analyse.loc = 0
+                analyse.save()
+        print(datetime.now())
 
-    print(BestandsWijziging.select().where(BestandsWijziging.difftext.contains("threads")).count())
-
-    #for x in range(len(keywords)):
-        #for t in BestandsWijziging.select().where(BestandsWijziging.difftext.contains(keywords[x])):
-
-        #for t in BestandsWijziging.select():
-                #print(t.id)
-                #file_changes.idproject = t.Project.id
-                #print(t.Project.id)
-                #file_changes.idcommit = t.CommitInfo.id
-                #file_changes.idbestand = t.BestandsWijziging.id
-                #file_changes.committer_name = t.CommitInfo.username
-                #file_changes.committer_emailaddress = t.CommitInfo.emailaddress
-                #file_changes.keyword = keywords[x]
-                # LoC tellen via ModifiedFile nloc: Lines Of Code (LOC) of the file
-                #file_changes.loc = 0
-
-
+params = get_database_configuration()
+pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
+                           host='localhost', port=params.get('port'))
+create_tables()
 start_fill_analysis_table()
 
