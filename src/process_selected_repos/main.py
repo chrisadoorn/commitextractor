@@ -1,9 +1,11 @@
 import logging
 import os
 from datetime import datetime
-from peewee import fn
+
+from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, \
+    ManualChecking, CommitAuthorInformation, ProjectsProcessedForAuthors, ProjectAuthorInformation, pg_db_schema
 from src.repo_extractor.commitextractor import extract_repository
-from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, ManualChecking
+from src.requester.api_requester import get_author_data, get_author_data_one_commit
 
 dt = datetime.now()
 filename = \
@@ -18,14 +20,15 @@ def initialize():
 
 
 def create_tables():
-    pg_db.create_tables([GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging, ManualChecking], safe=True)
+    pg_db.create_tables([GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging, ManualChecking,
+                         CommitAuthorInformation, ProjectsProcessedForAuthors, ProjectAuthorInformation],
+                        safe=True)
 
 
-def execute(subproject):
+def process_repos(subproject):
     ghs = GhSearchSelection.select().where(GhSearchSelection.sub_study == subproject,
                                            GhSearchSelection.meta_import_started_at.is_null(),
-                                           GhSearchSelection.meta_import_ready_at.is_null()).order_by(
-        fn.Random()).limit(1)
+                                           GhSearchSelection.meta_import_ready_at.is_null())
 
     selection = Selectie()
     selection.language = subproject
@@ -50,13 +53,99 @@ def execute(subproject):
 
         print(t.name)
         t.meta_import_started_at = datetime.now()
-        t.selected_for_survey = True
-        extract_repository(t.name, project.id)
+
+        try:
+            extract_repository(t.name, project.id)
+            t.selected_for_survey = True
+        except Exception as e:
+            t.selected_for_survey = False
+            print(e)
         t.meta_import_ready_at = datetime.now()
         t.save()
 
 
+def fetch_authors_all_commits(limit=10):
+    schema = pg_db_schema
+    cursor = pg_db.execute_sql(
+        "SELECT p.naam, p.id , COALESCE(ppfa.processed,false) as processed  FROM " + schema + ".project AS p " +
+        "LEFT OUTER JOIN " + schema + ".projectsprocessedforauthors AS ppfa ON (p.id = ppfa.project_id) " +
+        "WHERE processed is null limit({});".format(limit)
+    )
+    for (project_naam, project_id, processed) in cursor.fetchall():
+        data = get_author_data(project_naam)
+        for (commit_sha, author_login, author_id) in data[0]:
+            print(commit_sha, author_login, author_id)
+            commit_author = CommitAuthorInformation()
+            commit_author.sha = commit_sha
+            commit_author.project_name = project_naam
+            commit_author.author_login = author_login
+            commit_author.author_id = author_id
+            if not CommitAuthorInformation().select().where(
+                    CommitAuthorInformation.sha == commit_sha, CommitAuthorInformation.project_name == project_naam) \
+                    .exists():
+                commit_author.save()
+        processed = ProjectsProcessedForAuthors()
+        processed.project_name = project_naam
+        processed.project_id = project_id
+        processed.processed = True
+        processed.error_description = data[1]
+        processed.save()
+
+
+def fetch_authors_per_project(limit=5):
+    schema = pg_db_schema
+    cursor = pg_db.execute_sql(
+        "SELECT p.naam, p.id , COALESCE(ppfa.processed,false) as processed  FROM " + schema + ".project AS p " +
+        "LEFT OUTER JOIN " + schema + ".projectsprocessedforauthors AS ppfa ON (p.id = ppfa.project_id) " +
+        "WHERE processed is null limit({});".format(limit)
+    )
+    for (project_naam, project_id, processed) in cursor.fetchall():
+        cursor2 = pg_db.execute_sql(
+            "SELECT ci.emailaddress, ci.username, ci.hashvalue FROM " + schema + ".commitinfo AS ci " +
+            "WHERE idproject = {};".format(project_id)
+        )
+        error = ''
+        for(emailaddress_hashed, username_hashed, sha) in cursor2.fetchall():
+            load_data = False
+            project_author_information = ProjectAuthorInformation()
+            try:
+                pai = ProjectAuthorInformation().select().where(
+                    ProjectAuthorInformation.project_name == project_naam,
+                    ProjectAuthorInformation.emailaddress_hashed == emailaddress_hashed,
+                    ProjectAuthorInformation.username_hashed == username_hashed).get()
+                if pai.author_id < 0:
+                    load_data = True
+                    project_author_information = pai
+            except ProjectAuthorInformation.DoesNotExist:
+                load_data = True
+            if load_data:
+                (commit_sha, author_login, author_id), error = get_author_data_one_commit(project_naam, sha)
+                project_author_information.project_name = project_naam
+                project_author_information.emailaddress_hashed = emailaddress_hashed
+                project_author_information.username_hashed = username_hashed
+                project_author_information.author_login = author_login
+                project_author_information.author_id = author_id
+                project_author_information.save()
+            else:
+                print('Already processed:' + project_naam + ', ea:' + emailaddress_hashed + ', us: ' + username_hashed)
+
+        processed = ProjectsProcessedForAuthors()
+        processed.project_name = project_naam
+        processed.project_id = project_id
+        processed.processed = True
+        processed.error_description = error
+        processed.save()
+
+
 if __name__ == '__main__':
-    initialize()
-    create_tables()
-    execute('Elixir')
+    try:
+        initialize()
+        logging.info('Started at:' + str(datetime.now()))
+        create_tables()
+        # GhSearchSampleRequester.get_sample('Elixir')
+        # process_repos('Elixir')
+        fetch_authors_per_project(1000)
+        logging.info('Finished at:' + str(datetime.now()))
+    except Exception as e:
+        logging.error('Crashed at:' + str(datetime.now()))
+        logging.exception(e)

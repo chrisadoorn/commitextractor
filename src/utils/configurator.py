@@ -8,13 +8,14 @@ EXTENSIONS = 'language'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
+GITHUB = 'github'
+PERSONAL_ACCESS_TOKEN = 'personal_access_token'
 
 # INI_FILE contains the default location of the configuration
 INI_FILE = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
                                   '../..', 'var', 'commitextractor.ini'))
 
-global inifile
 inifile = INI_FILE
 
 
@@ -107,6 +108,20 @@ def set_ghsearch_import_wanted(true_or_false: bool):
 
     with open(inifile, 'w') as configfile:
         config.write(configfile)
+
+
+def get_github_personal_access_token():
+    config = ConfigParser()
+    config.read(inifile)
+
+    # get section
+    if config.has_option(GITHUB, PERSONAL_ACCESS_TOKEN):
+        p_a_c = config[GITHUB][PERSONAL_ACCESS_TOKEN]
+    else:
+        raise Exception('Option {0} not found in the {1} file'.format(GITHUB, inifile))
+
+    return p_a_c
+
 
 
 # set_inifile makes the ini_file dynamic.
