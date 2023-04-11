@@ -7,7 +7,7 @@ from src.utils import configurator
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
                            host='localhost', port=params.get('port'))
-
+pg_db_schema = params.get('schema')
 
 class BaseModel(Model):
     class Meta:
@@ -118,6 +118,15 @@ class CommitAuthorInformation(BaseModel):
     author_id = IntegerField(null=False)
 
 
+class ProjectAuthorInformation(BaseModel):
+    id = AutoField(primary_key=True)
+    project_name = CharField(null=False, index=True)
+    username_hashed = CharField(null=False, index=True)
+    emailaddress_hashed = CharField(null=False, index=True)
+    author_login = CharField(null=True)
+    author_id = IntegerField(null=True)
+
+
 class ProjectsProcessedForAuthors(BaseModel):
     id = AutoField(primary_key=True)
     project_name = CharField(null=False)
@@ -126,16 +135,3 @@ class ProjectsProcessedForAuthors(BaseModel):
     date_time = DateField(null=False, constraints=[SQL('DEFAULT CURRENT_DATE')])
     processed = BooleanField(null=False, default=False)
     error_description = TextField(null=True)
-
-# migrator = PostgresqlMigrator(pg_db)
-# selected_for_survey = BooleanField(null=True)
-# meta_import_started_at = DateTimeField(null=True)
-# meta_import_ready_at = DateTimeField(null=True)
-#
-# migrate(
-#   migrator.set_search_path('test'),
-#   migrator.add_column('ghsearchselection', 'selected_for_survey', selected_for_survey),
-#   migrator.add_column('ghsearchselection', 'meta_import_started_at', meta_import_started_at),
-#   migrator.add_column('ghsearchselection', 'meta_import_ready_at', meta_import_ready_at)
-# )
-#
