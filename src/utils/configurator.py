@@ -5,6 +5,7 @@ GHSEARCH = 'ghsearch'
 IMPORT = 'import'
 IMPORTFILE = 'importfile'
 EXTENSIONS = 'language'
+KEYWORDS = 'keywords'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
@@ -16,7 +17,7 @@ INI_FILE = \
 
 INI_FILE2 = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '../..', 'var', 'commitextractor.ini'))
+                                  '../..', 'var', 'analysis.ini'))
 
 global inifile
 inifile = INI_FILE
@@ -67,9 +68,8 @@ def get_extensions():
 
 def get_keywords():
     config = ConfigParser()
-    config.read(inifile)
-
-    if config.has_section(keywords):
+    config.read(inifile2)
+    if config.has_section(KEYWORDS):
         extensions = config.get('keywords', 'list_keywords').replace(' ', '').split(',')
     else:
         raise Exception('Section {0} not found in the {1} file'.format(keywords, inifile2))
