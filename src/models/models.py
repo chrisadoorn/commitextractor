@@ -98,6 +98,8 @@ class CommitInfo(BaseModel):
     username = CharField(null=True)
     emailaddress = CharField(null=True)
     remark = TextField(null=True)
+    author_login = CharField(null=False)
+    author_id = IntegerField(null=False)
 
 
 class BestandsWijziging(BaseModel):

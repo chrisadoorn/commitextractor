@@ -105,7 +105,7 @@ def fetch_authors_per_project(limit=5):
             "WHERE idproject = {};".format(project_id)
         )
         error = ''
-        for(emailaddress_hashed, username_hashed, sha) in cursor2.fetchall():
+        for (emailaddress_hashed, username_hashed, sha) in cursor2.fetchall():
             load_data = False
             project_author_information = ProjectAuthorInformation()
             try:
@@ -137,6 +137,38 @@ def fetch_authors_per_project(limit=5):
         processed.save()
 
 
+def fetch_authors_per_commit(limit=5):
+    schema = pg_db_schema
+    cursor = pg_db.execute_sql(
+        "SELECT ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam "
+        "FROM " + schema + ".commitinfo AS ci " +
+        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " +
+        "WHERE author_id is null limit({});".format(limit)
+    )
+    for (id_project, email_address_hashed, username_hashed, sha, project_name) in cursor.fetchall():
+        try:
+            existing_commit_info = CommitInfo().select().where(
+                CommitInfo.idproject == id_project,
+                CommitInfo.username == username_hashed,
+                CommitInfo.emailaddress == email_address_hashed,
+                CommitInfo.author_id.is_null(False)).get()
+            print(
+                "[update] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
+            update_commit_info(id_project, sha, existing_commit_info.author_id, existing_commit_info.author_login)
+        except CommitInfo.DoesNotExist:
+            print("[New] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
+            (commit_sha, author_login, author_id), error = get_author_data_one_commit(project_name, sha)
+            update_commit_info(id_project, sha, author_id, author_login)
+
+
+def update_commit_info(id_project, sha, author_id, author_login):
+    to_update_commit_info = CommitInfo().select().where(
+        CommitInfo.idproject == id_project, CommitInfo.hashvalue == sha).get()
+    to_update_commit_info.author_id = author_id
+    to_update_commit_info.author_login = author_login
+    to_update_commit_info.save()
+
+
 if __name__ == '__main__':
     try:
         initialize()
@@ -144,7 +176,7 @@ if __name__ == '__main__':
         create_tables()
         # GhSearchSampleRequester.get_sample('Elixir')
         # process_repos('Elixir')
-        fetch_authors_per_project(1000)
+        fetch_authors_per_commit(1000)
         logging.info('Finished at:' + str(datetime.now()))
     except Exception as e:
         logging.error('Crashed at:' + str(datetime.now()))
