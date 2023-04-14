@@ -76,6 +76,16 @@ def get_keywords():
 
     return extensions
 
+def get_keywords_lib():
+    config = ConfigParser()
+    config.read(inifile2)
+    if config.has_section(KEYWORDS):
+        extensions = config.get('keywords', 'list_keywords_lib').replace(' ', '').split(',')
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(keywords, inifile2))
+
+    return extensions
+
 def get_files():
     config = ConfigParser()
     config.read(inifile)
