@@ -110,30 +110,3 @@ class BestandsWijziging(BaseModel):
     extensie = CharField(null=True, max_length=20)
     difftext = TextField(null=True)
     tekstachteraf = TextField(null=True)
-
-
-class CommitAuthorInformation(BaseModel):
-    id = AutoField(primary_key=True)
-    sha = CharField(null=False, max_length=40, index=True)
-    project_name = CharField(null=False, index=True)
-    author_login = CharField(null=False)
-    author_id = IntegerField(null=False)
-
-
-class ProjectAuthorInformation(BaseModel):
-    id = AutoField(primary_key=True)
-    project_name = CharField(null=False, index=True)
-    username_hashed = CharField(null=False, index=True)
-    emailaddress_hashed = CharField(null=False, index=True)
-    author_login = CharField(null=True)
-    author_id = IntegerField(null=True)
-
-
-class ProjectsProcessedForAuthors(BaseModel):
-    id = AutoField(primary_key=True)
-    project_name = CharField(null=False)
-    project_id = ForeignKeyField(Project, backref="projects_processed_for_authors", on_delete="CASCADE",
-                                 column_name="project_id")
-    date_time = DateField(null=False, constraints=[SQL('DEFAULT CURRENT_DATE')])
-    processed = BooleanField(null=False, default=False)
-    error_description = TextField(null=True)

@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS commitinfo
     username varchar COLLATE pg_catalog."default" NOT NULL,
     emailaddress varchar COLLATE pg_catalog."default" NOT NULL,
     remark text COLLATE pg_catalog."default",
+    author_login varchar(255),
+    author_id bigint,
     CONSTRAINT commit_pkey PRIMARY KEY (id)
 )
 
