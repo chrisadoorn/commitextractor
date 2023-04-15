@@ -136,10 +136,11 @@ def fetch_authors_per_commit(limit=None) -> None:
 
     schema = pg_db_schema
 
-    sql = "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
-          "FROM " + schema + ".commitinfo AS ci " + \
-          "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
-          "WHERE author_id is null;" \
+    sql = \
+        "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
+        "FROM " + schema + ".commitinfo AS ci " + \
+        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
+        "WHERE author_id is null;" \
         if limit is None else \
         "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
         "FROM " + schema + ".commitinfo AS ci " + \
