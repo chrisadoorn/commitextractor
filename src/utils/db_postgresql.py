@@ -123,6 +123,8 @@ def clean_testset():
     cursor = db_conn.cursor()
     sql = 'delete from test.verwerk_project;' \
           'delete from test.processor;' \
+          'delete from test.bestandswijziging_zoekterm;' \
+          'delete from test.bestandswijziging_info;' \
           'delete from test.bestandswijziging;' \
           'delete from test.commitinfo;' \
           'delete from test.project;' \
