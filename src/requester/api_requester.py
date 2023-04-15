@@ -15,6 +15,8 @@ bearer_token = configurator.get_github_personal_access_token()
 HEADERS = {"Accept": "application/vnd.github.text-match+json", "Content-Type": "text/plain;charset=UTF-8",
            "timeout": str(10), "Authorization": "Bearer {}".format(bearer_token)}
 
+NO_AUTHOR_FOUND_START_ID = 900000000
+
 current_ratelimit_remaining = 60
 reset_date_time = datetime.now() + timedelta(hours=1)
 
@@ -114,33 +116,39 @@ def __get_author_data_one_commit(project_name, sha) -> tuple[tuple[str, str, int
     return data
 
 
-def __update_commit_info(id_project, sha, author_id, author_login) -> None:
+def __update_commit_info(id_project, sha, author_id) -> None:
     """
     Update the commitInfo record.
     """
     to_update_commit_info = CommitInfo().select().where(
         CommitInfo.idproject == id_project, CommitInfo.hashvalue == sha).get()
     to_update_commit_info.author_id = author_id
-    to_update_commit_info.author_login = author_login
     to_update_commit_info.save()
 
 
-def fetch_authors_per_commit(limit=5) -> None:
+def fetch_authors_per_commit(limit=None) -> None:
     """
     Fetch the authors for the commits in the commitInfo table.
     If the commit info is already present in the commitInfo table, it is not fetched again.
     :param limit:
     :return:
     """
+
     schema = pg_db_schema
-    cursor = pg_db.execute_sql(
-        "SELECT ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam "
-        "FROM " + schema + ".commitinfo AS ci " +
-        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " +
+
+    sql = "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
+          "FROM " + schema + ".commitinfo AS ci " + \
+          "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
+          "WHERE author_id is null;" \
+        if limit is None else \
+        "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
+        "FROM " + schema + ".commitinfo AS ci " + \
+        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
         "WHERE author_id is null limit({});".format(limit)
-    )
+
+    cursor = pg_db.execute_sql(sql)
     counter = 1
-    for (id_project, email_address_hashed, username_hashed, sha, project_name) in cursor.fetchall():
+    for (commit_info_id, id_project, email_address_hashed, username_hashed, sha, project_name) in cursor.fetchall():
         print("Processing " + str(counter) + " of (max) " + str(limit))
         try:
             existing_commit_info = CommitInfo().select().where(
@@ -150,9 +158,12 @@ def fetch_authors_per_commit(limit=5) -> None:
                 CommitInfo.author_id.is_null(False)).get()
             print(
                 "[update] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
-            __update_commit_info(id_project, sha, existing_commit_info.author_id, existing_commit_info.author_login)
+            __update_commit_info(id_project, sha, existing_commit_info.author_id)
         except CommitInfo.DoesNotExist:
             print("[New] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
             (commit_sha, author_login, author_id), error = __get_author_data_one_commit(project_name, sha)
-            __update_commit_info(id_project, sha, author_id, author_login)
+            if author_id < 0:
+                author_id = (NO_AUTHOR_FOUND_START_ID + commit_info_id)
+                print("No author found in GitHub, new author id created:" + str(author_id))
+            __update_commit_info(id_project, sha, author_id)
         counter += 1

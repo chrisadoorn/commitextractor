@@ -71,7 +71,7 @@ if __name__ == '__main__':
         # create_tables()
         # GhSearchSampleRequester.get_sample('Elixir')
         # process_repos('Elixir')
-        fetch_authors_per_commit(500)
+        fetch_authors_per_commit()
         logging.info('Finished at:' + str(datetime.now()))
     except Exception as e:
         logging.error('Crashed at:' + str(datetime.now()))
