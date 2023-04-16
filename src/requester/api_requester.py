@@ -59,8 +59,8 @@ class Extractor:
         Get the author login and the author id from the json.
         :param json_: the json with the commit info
         :return: tuple, with a tuple with the commit sha, the author login and the author id, and the error message
-        When the author login or the author id is not present in the json, the value is set to 'no author present in
-        GitHub' or -1.
+            When the author login or the author id is not present in the json, the value is set to 'no author present in
+            GitHub' or -1.
         """
         error = ''
         try:
