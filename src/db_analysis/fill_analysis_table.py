@@ -2,7 +2,7 @@
 from peewee import PostgresqlDatabase
 from src.models.analysis_models import Analyse
 from src.models.models import BestandsWijziging
-from src.utils import configurator
+from src.utils import configurator, read_diff_rust
 from datetime import datetime
 
 from src.utils.configurator import get_database_configuration
@@ -20,7 +20,7 @@ def start_fill_analysis_table():
         a = 0
         print(keywords[x])
         print(datetime.now())
-        for t in BestandsWijziging.select().where(BestandsWijziging.extensie == '.rs' and BestandsWijziging.difftext.contains(keywords[x])):
+        for t in BestandsWijziging.select(BestandsWijziging.id).where(BestandsWijziging.extensie == '.rs' and BestandsWijziging.difftext.contains(keywords[x])):
                 analyse = Analyse()
                 analyse.idproject_id = t.idcommit.idproject
                 analyse.idcommit_id = t.idcommit
@@ -43,7 +43,7 @@ def start_fill_analysis_table():
         a = 0
         print(keywords_lib[x])
         print(datetime.now())
-        for t in BestandsWijziging.select().where(BestandsWijziging.extensie == '.toml' and BestandsWijziging.difftext.contains(keywords_lib[x])):
+        for t in BestandsWijziging.select(BestandsWijziging.id).where(BestandsWijziging.extensie == '.toml' and BestandsWijziging.difftext.contains(keywords_lib[x])):
                 analyse = Analyse()
                 analyse.idproject_id = t.idcommit.idproject
                 analyse.idcommit_id = t.idcommit
@@ -62,6 +62,7 @@ def start_fill_analysis_table():
 params = get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
                            host='localhost', port=params.get('port'))
+
 create_tables()
 start_fill_analysis_table()
 

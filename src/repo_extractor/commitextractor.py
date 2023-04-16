@@ -5,18 +5,13 @@ from datetime import datetime
 from pydriller import Repository
 from src.repo_extractor import hashing
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
-from src.utils import configurator, db_postgresql
+from src.utils import configurator, db_postgresql, read_diff_rust
 
 global db_connectie
 
 GITHUB = 'https://github.com/'
 extensions = configurator.get_extensions()
 files = configurator.get_files()
-
-
-# pip install package pydriller
-# pip install package mysql-connector-python
-
 
 def extract_repository(projectname, project_id):
     start = datetime.now()
@@ -56,7 +51,10 @@ def save_bestandswijziging(file, commit_id):
         # sla op in database
         file_changes = BestandsWijziging()
         file_changes.filename = file.filename
-        file_changes.difftext = file.diff
+        if fs[1] == '.toml':
+            file_changes.difftext = read_diff_rust(file.diff)
+        else:
+            file_changes.difftext = file.diff
         file_changes.tekstachteraf = file.content
         file_changes.idcommit = commit_id
         file_changes.locatie = file.new_path
