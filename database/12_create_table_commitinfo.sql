@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS commitinfo
     hashvalue varchar COLLATE pg_catalog."default" NOT NULL,
     username varchar COLLATE pg_catalog."default" NOT NULL,
     emailaddress varchar COLLATE pg_catalog."default" NOT NULL,
+    author_id integer,
     remark text COLLATE pg_catalog."default",
     CONSTRAINT commit_pkey PRIMARY KEY (id)
 )
@@ -21,7 +22,7 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS commitinfo
     OWNER to postgres;
    
-ALTER TABLE commitinfo ADD CONSTRAINT commitinfo_fk FOREIGN KEY (idproject) REFERENCES test.project(id) ON DELETE CASCADE;
+ALTER TABLE commitinfo ADD CONSTRAINT commitinfo_fk FOREIGN KEY (idproject) REFERENCES project(id) ON DELETE CASCADE;
 
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE commitinfo TO appl;

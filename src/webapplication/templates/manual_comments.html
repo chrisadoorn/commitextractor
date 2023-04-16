@@ -1,37 +1,43 @@
-{% extends "master_content.html" %}
-{% block content %}
-<div>
-    Kommentaar
-</div>
-<div class="container mt-5">
-<form action="/manual_comments/save/" method="post">
-    <div>
-        <input type="hidden"  class="form-control" id="idproject" name="idproject"
-                                              value="{{ manual_checking.idproject }}">
-    </div>
-    <div>
-        <label for="comment">Comment</label>
-        <input type="text" class="form-control" id="comment" name="comment" placeholder="comment"
-               value="{{  manual_checking.comment }}">
-    </div>
-    <div>
+<dialog id="dialogEle" style="background: #ebebeb" class="embed-container">
+    <div style="padding: 25px 25px 50px;">
+    <form id="manual_comments_form" autocomplete="off" method="dialog">
+        <div style="display: flex; justify-content: space-evenly; align-items:baseline; color: #11557C; font-weight: bolder; background: #ebebeb; margin-bottom: 10px;">
+            <div id="aantekeningen"></div>
+            <button type="button" id="close_modal" value="Dismissed!" class="btn btn-functional last-item"><i
+                    class="bi bi-x"></i>
+            </button>
+        </div>
+        <input type="hidden" id="idproject" name="idproject">
+        <label for="comment">Aantekeningen</label>
+        <textarea id="comment" name="comment" rows="6" cols="50" style="width:444px;resize: none"></textarea>
         <label for="type_of_project">Type project</label>
-        <input type="text" class="form-control" id="type_of_project" name="type_of_project" placeholder="type project"
-               value="{{  manual_checking.type_of_project }}">
-    </div>
-    <div>
-        <label for="exclude">Uitsluiten?</label>
-        <input type="text" class="form-control" id="exclude" name="exclude"
-               value="{{  manual_checking.exclude }}">
-    </div>
-
-    <div>
+        <input type="text" id="type_of_project" name="type_of_project"
+               placeholder="type project"
+               list="project-type">
+        <datalist id="project-type">
+            <label>
+                <select>
+                    <option value="Webserver"></option>
+                    <option value="Job processing"></option>
+                    <option value="Package manager"></option>
+                    <option value="Game"></option>
+                    <option value="Chat application"></option>
+                    <option value="Bot"></option>
+                    <option value="Email library"></option>
+                    <option value="Project manager"></option>
+                    <option value="Server rendering html"></option>
+                </select>
+            </label>
+        </datalist>
+        <label for="exclude">Uitsluiten</label>
+        <label style="width: 500px">
+            <input type="checkbox" id="exclude" name="exclude"> Ja
+        </label>
+        <br />
         <label for="exclude_reason">Uitsluit reden</label>
-        <input type="text" class="form-control" id="exclude_reason" name="exclude_reason" placeholder="uitsluit reden"
-               value="{{  manual_checking.exclude_reason }}">
+        <input type="text" id="exclude_reason" name="exclude_reason"
+               placeholder="uitsluit reden">
+        <input type="submit">
+    </form>
     </div>
-
-    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i></button>
-</form>
-</div>
-{% endblock %}
+</dialog>

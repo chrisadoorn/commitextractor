@@ -1,3 +1,6 @@
+-- definieer 2 schema's
+--  voor ontwikkelen
+--  voor verwerking
 -- SCHEMA: test
 
 -- DROP SCHEMA IF EXISTS test ;

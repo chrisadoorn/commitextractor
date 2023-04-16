@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS project
     languages text COLLATE pg_catalog."default",
     CONSTRAINT project_pkey PRIMARY KEY (id),
     CONSTRAINT selectie_fkey FOREIGN KEY (idselectie)
-        REFERENCES test.selectie (id) MATCH SIMPLE
+        REFERENCES selectie (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 )
@@ -37,7 +37,7 @@ GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE project TO appl;
 GRANT ALL ON TABLE project TO postgres;
 -- Index: fki_selectie_fkey
 
--- DROP INDEX IF EXISTS test.fki_selectie_fkey;
+-- DROP INDEX IF EXISTS fki_selectie_fkey;
 
 CREATE INDEX IF NOT EXISTS fki_selectie_fkey
     ON project USING btree

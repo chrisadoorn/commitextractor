@@ -1,8 +1,9 @@
--- PROCEDURE: test.verwerk_volgend_project(character, bigint, character varying, integer)
 
--- DROP PROCEDURE IF EXISTS test.verwerk_volgend_project(character, bigint, character varying, integer);
+set schema 'test';
+-- PROCEDURE: verwerk_volgend_project(character, bigint, character varying, integer)
+-- DROP PROCEDURE IF EXISTS verwerk_volgend_project(character, bigint, character varying, integer);
 
-CREATE OR REPLACE PROCEDURE test.verwerk_volgend_project(
+CREATE OR REPLACE PROCEDURE verwerk_volgend_project(
 	IN p_identifier character,
 	INOUT p_new_id bigint,
 	INOUT p_projectnaam character varying,
@@ -61,5 +62,5 @@ return;
 
 END;
 $BODY$;
-ALTER PROCEDURE test.verwerk_volgend_project(character, bigint, character varying, integer)
+ALTER PROCEDURE verwerk_volgend_project(character, bigint, character varying, integer)
     OWNER TO appl;

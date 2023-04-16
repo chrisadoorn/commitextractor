@@ -5,25 +5,19 @@ GHSEARCH = 'ghsearch'
 IMPORT = 'import'
 IMPORTFILE = 'importfile'
 EXTENSIONS = 'language'
-KEYWORDS = 'keywords'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
+GITHUB = 'github'
+PERSONAL_ACCESS_TOKEN = 'personal_access_token'
 
 # INI_FILE contains the default location of the configuration
 INI_FILE = \
     os.path.realpath(os.path.join(os.path.dirname(__file__),
                                   '../..', 'var', 'commitextractor.ini'))
 
-INI_FILE2 = \
-    os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '../..', 'var', 'analysis.ini'))
-
-global inifile
 inifile = INI_FILE
 
-global inifile2
-inifile2 = INI_FILE2
 
 # get_number_of_processes returns the number of processes for which the application is configured
 def get_number_of_processes():
@@ -66,25 +60,6 @@ def get_extensions():
 
     return extensions
 
-def get_keywords():
-    config = ConfigParser()
-    config.read(inifile2)
-    if config.has_section(KEYWORDS):
-        extensions = config.get('keywords', 'list_keywords').replace(' ', '').split(',')
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(keywords, inifile2))
-
-    return extensions
-
-def get_keywords_lib():
-    config = ConfigParser()
-    config.read(inifile2)
-    if config.has_section(KEYWORDS):
-        extensions = config.get('keywords', 'list_keywords_lib').replace(' ', '').split(',')
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(keywords, inifile2))
-
-    return extensions
 
 def get_files():
     config = ConfigParser()
@@ -133,6 +108,20 @@ def set_ghsearch_import_wanted(true_or_false: bool):
 
     with open(inifile, 'w') as configfile:
         config.write(configfile)
+
+
+def get_github_personal_access_token():
+    config = ConfigParser()
+    config.read(inifile)
+
+    # get section
+    if config.has_option(GITHUB, PERSONAL_ACCESS_TOKEN):
+        p_a_c = config[GITHUB][PERSONAL_ACCESS_TOKEN]
+    else:
+        raise Exception('Option {0} not found in the {1} file'.format(GITHUB, inifile))
+
+    return p_a_c
+
 
 
 # set_inifile makes the ini_file dynamic.
