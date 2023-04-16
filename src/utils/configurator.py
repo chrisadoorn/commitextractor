@@ -5,6 +5,7 @@ GHSEARCH = 'ghsearch'
 IMPORT = 'import'
 IMPORTFILE = 'importfile'
 EXTENSIONS = 'language'
+KEYWORDS = 'keywords'
 POSTGRESQL = 'postgresql'
 PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
@@ -18,6 +19,11 @@ INI_FILE = \
 
 inifile = INI_FILE
 
+INI_FILE2 = \
+    os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                  '../..', 'var', 'analysis.ini'))
+
+inifile2 = INI_FILE2
 
 # get_number_of_processes returns the number of processes for which the application is configured
 def get_number_of_processes():
@@ -60,6 +66,27 @@ def get_extensions():
 
     return extensions
 
+def get_keywords():
+    config = ConfigParser()
+    config.read(inifile2)
+
+    if config.has_section(KEYWORDS):
+        extensions = config.get('keywords', 'list_keywords').replace(' ', '').split(',')
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
+
+    return extensions
+
+def get_keywords_lib():
+    config = ConfigParser()
+    config.read(inifile2)
+
+    if config.has_section(KEYWORDS):
+        extensions = config.get('keywords', 'list_keywords_lib').replace(' ', '').split(',')
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
+
+    return extensions
 
 def get_files():
     config = ConfigParser()
