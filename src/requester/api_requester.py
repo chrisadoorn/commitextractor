@@ -59,8 +59,8 @@ class Extractor:
         Get the author login and the author id from the json.
         :param json_: the json with the commit info
         :return: tuple, with a tuple with the commit sha, the author login and the author id, and the error message
-        When the author login or the author id is not present in the json, the value is set to 'no author present in
-        GitHub' or -1.
+            When the author login or the author id is not present in the json, the value is set to 'no author present in
+            GitHub' or -1.
         """
         error = ''
         try:
@@ -136,10 +136,11 @@ def fetch_authors_per_commit(limit=None) -> None:
 
     schema = pg_db_schema
 
-    sql = "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
-          "FROM " + schema + ".commitinfo AS ci " + \
-          "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
-          "WHERE author_id is null;" \
+    sql = \
+        "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
+        "FROM " + schema + ".commitinfo AS ci " + \
+        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
+        "WHERE author_id is null;" \
         if limit is None else \
         "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
         "FROM " + schema + ".commitinfo AS ci " + \

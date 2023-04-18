@@ -109,3 +109,17 @@ class BestandsWijziging(BaseModel):
     extensie = CharField(null=True, max_length=20)
     difftext = TextField(null=True)
     tekstachteraf = TextField(null=True)
+
+
+class TempDiffTextAnalysis(BaseModel):
+    id = AutoField(primary_key=True)
+    idbestandswijziging = ForeignKeyField(BestandsWijziging, backref="temp_diff_text_analyses", on_delete="CASCADE", column_name="idbestandswijziging")
+    filename = CharField(null=True, max_length=512)
+    location = CharField(null=True, max_length=512)
+    line_number = IntegerField(null=True)
+    line_text = TextField(null=True)
+    primitives = TextField(null=True)
+    type_of_diff = IntegerField(null=True)
+    project_name = CharField(null=False)
+    author_id = IntegerField(null=False)
+    commitdatumtijd = DateTimeField(null=True)
