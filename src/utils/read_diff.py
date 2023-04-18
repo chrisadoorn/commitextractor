@@ -22,6 +22,10 @@ class Language(Enum):
 class ReadDiff:
 
     def __init__(self, language: Language = Language.JAVA):
+        """
+        Constructor
+        :param language: the language of the code in the diff
+        """
         self.linecounter = None
         self.removed_lines = None
         self.new_lines = None
@@ -57,7 +61,11 @@ class ReadDiff:
             self.__process_line(line)
         return self.new_lines, self.removed_lines
 
-    def __process_line(self, line):
+    def __process_line(self, line) -> None:
+        """
+        Process one line of the diff text
+        :param line: the line to process
+        """
         if line.startswith('@@'):
             self.linecounter = self.__process_chunk_line(line)
         elif line.startswith('-'):
@@ -77,12 +85,24 @@ class ReadDiff:
 
     @staticmethod
     def __process_chunk_line(line):
+        """
+        Process a chunk line (a line starting with '@@')
+        :param line: a line starting with '@@'
+        :return: tuple of two integers. The first integer is the start line number of old file (-), the other
+                 integer start line of the new file (+).
+        """
         first_at_removed = line[2:]
         split_on_at = [word.strip() for word in first_at_removed.split('@@')]
         split_chunk_parts = [word.strip() for word in split_on_at[0].split(' ')]
         return int(split_chunk_parts[0].split(',')[0][1:]), int(split_chunk_parts[1].split(',')[0][1:])
 
     def __clean_and_analyse_line(self, line):
+        """
+        Clean a line of the diff text, and analyse it for keywords
+        Removes first character (either + or -), and removes comments.
+        :param line: line to clean and analyse
+        :return: the line stripped of comments, and first character
+        """
         line = line[1:].strip()
         pos_comment = line.find(self.single_line_comment)
         if pos_comment >= 0:
@@ -94,6 +114,11 @@ class ReadDiff:
         return line, mc_found
 
     def __find_all_primitives(self, line):
+        """
+        Find all primitives in a line of code, also excludes text within string literals
+        :param line: a line stripped of comments and first character
+        :return: array containing all primitives found in the line
+        """
         mc_found = []
         temp_line = re.sub("\"", " QUOTE ", line)
         # vervang alles dat niet een letter, punt of underscore is door een spatie
