@@ -1,13 +1,13 @@
-from peewee import CharField, DateField, Model, AutoField, BooleanField, \
-    IntegerField, DateTimeField, SQL, PostgresqlDatabase, TextField, BigIntegerField, ForeignKeyField
+from peewee import CharField, DateField, Model, AutoField, BooleanField, IntegerField, DateTimeField, SQL, \
+    PostgresqlDatabase, TextField, BigIntegerField, ForeignKeyField
 
 from src.utils import configurator
 
-
 params = configurator.get_database_configuration()
-pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
-                           host='localhost', port=params.get('port'))
+pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'), host='localhost',
+                           port=params.get('port'))
 pg_db_schema = params.get('schema')
+
 
 class BaseModel(Model):
     class Meta:
@@ -113,7 +113,8 @@ class BestandsWijziging(BaseModel):
 
 class TempDiffTextAnalysis(BaseModel):
     id = AutoField(primary_key=True)
-    idbestandswijziging = ForeignKeyField(BestandsWijziging, backref="temp_diff_text_analyses", on_delete="CASCADE", column_name="idbestandswijziging")
+    idbestandswijziging = ForeignKeyField(BestandsWijziging, backref="temp_diff_text_analyses", on_delete="CASCADE",
+                                          column_name="idbestandswijziging")
     filename = CharField(null=True, max_length=512)
     location = CharField(null=True, max_length=512)
     line_number = IntegerField(null=True)
