@@ -152,6 +152,8 @@ def __analyse_diffs(thread_id, idva_from, idva_to):
     connection.close()
 
 
+NUMBER_OF_PROCESSES = 32
+
 if __name__ == '__main__':
     try:
         print(psutil.cpu_count())
@@ -173,7 +175,7 @@ if __name__ == '__main__':
             processes = []
             step = 1000
             c = 0
-            for i in range(0, 32):
+            for i in range(0, NUMBER_OF_PROCESSES):
                 t = Process(target=__analyse_diffs, args=(c, result, result + step))
                 processes.append(t)
                 result += step
