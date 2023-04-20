@@ -42,3 +42,20 @@ and to be able to assign the correct work for those processes.
 Processes register and deregister themselves (by calling procedures), this information in the 'processor' table.
 For each process, the state is kept the 'verwerk_project' table. The content is modified by calling procedures. 
 The procedures garantee that each project is only processed once, and that each project gets processed. 
+Each project passes through several stages, the name of which is stored in column 'processtap'.
+The status of the processing is indicated by filling the start time ( start_verwerking) and the id of the processor doing the work.
+Also, the status is set to 'bezig'.
+When a processor hasd finished processing a projects, the stop time is set ( einde_verwerking), the status is set to done ('verwerkt') and the result is indicated in 'resultaat'.
+The result can be 'verwerkt' for succesfull processing or to 'mislukt' in case a failure has happened.
+Onluy projects which are succesfully processed in the previous step are eligible for further processing.
+
+The next table shows the processes in the sequence in which they are performed.
+
+| name of proces step  | process                                          | performed by                       | step is registered? |
+|----------------------|--------------------------------------------------|------------------------------------|---------------------|
+| selectie             | storing the list of project to be processed      | selection_loader/load_ghsearch.py  | yes                 |
+| extractie            | downloading the project and storing file changes | repo_extractor/main.py             | yes                 |
+| identificatie        | determining the author of a filechange           | requester/api_requester.py         | no                  |
+| zoekterm_vinden      | determining which file changes contain keywords  | db_analysis/fill_analysis_table.py | no                  |
+| zoekterm_controleren | checking for false positives                     | diff_analyzer/check_zoekterm.py    | yes                 |
+ 
