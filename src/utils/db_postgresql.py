@@ -64,13 +64,13 @@ def insert_project(values):
     return resultaattuple[0]
 
 
-def volgend_project(processor):
+def volgend_project(processor, oude_processtap, nieuwe_processtap):
     new_id = 0
     rowcount = 0
     projectnaam = ''
 
-    values = (processor, new_id, projectnaam, rowcount)
-    sql = 'CALL verwerk_volgend_project(%s, %s, %s, %s)'
+    values = (processor, oude_processtap, nieuwe_processtap, new_id, projectnaam, rowcount)
+    sql = 'CALL verwerk_volgend_project(%s, %s, %s, %s, %s, %s)'
     projectcursor = db_conn.cursor()
     projectcursor.execute(sql, values)
     resultaat = projectcursor.fetchone()
@@ -79,7 +79,7 @@ def volgend_project(processor):
     projectcursor.close()
     if resultaat[2] == 0 and resultaat[0] is not None and resultaat[0] > 0:
         # bug racecondition: probeer opnieuw
-        return volgend_project(processor)
+        return volgend_project(processor, oude_processtap, nieuwe_processtap)
 
     return resultaat
 
