@@ -6,7 +6,7 @@
     <thead>
     <tr>
         <th scope="col">commit_date_time</th>
-        <th scope="col">username</th>
+        <th scope="col">author_id</th>
         <th scope="col">files</th>
         <th scope="col">remark</th>
     </tr>
@@ -15,26 +15,10 @@
     {% for commit in commits %}
     <tr>
         <td>{{ commit.commitdatumtijd }}</td>
-        <td>{{ commit.username }}<br />
-            {{ commit.emailaddress }}
+        <td>
+            {{ commit.author_id }}
         </td>
         <td>
-            {% for selection in commit.selections_with_mc %}
-
-            {{ selection.locatie }}
-            <br>
-
-            <div class="box">
-                {% if selection.diff_text_multicore_found | length > 0: %}
-                <pre style="color: green">{{ selection.diff_text_multicore_found }}</pre>
-                {% else %}
-                <pre style="color: red">no primitives found</pre>
-                {% endif %}
-            </div>
-
-
-            <hr>
-            {% endfor %}
         </td>
         <td>{{ commit.remark }}</td>
     </tr>
