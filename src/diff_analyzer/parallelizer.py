@@ -4,13 +4,13 @@ import os
 import uuid
 from datetime import datetime
 
-from src.repo_extractor import commitextractor
+from src.diff_analyzer import diff_analyzer
 from src.utils import configurator
 
 
 # start_extraction starts in a new process.
 # Therefore, it needs a new logging file.
-def _start_extraction(nummer=0):
+def _start_diff_analysis(nummer=0):
     process_identifier = str(uuid.uuid4())
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
@@ -21,17 +21,17 @@ def _start_extraction(nummer=0):
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
     logging.info('start process ' + str(nummer) + '  with id: ' + process_identifier)
-    commitextractor.extract_repositories(process_identifier)
+    diff_analyzer.analyze(process_identifier)
 
 
 # start_processen is the entry point for parallelizer
 # it starts a configurable number of processes
-def start_extractie_processen():
+def start_diff_analysis_processen():
     number_of_processes = configurator.get_number_of_processes()
     logging.info("Number of (virtual) processors on this machine: " + str(mp.cpu_count()))
     logging.info('Starting ' + str(number_of_processes) + ' processes')
 
     mp.Pool()
     pool = mp.Pool(number_of_processes)
-    pool.map(_start_extraction, range(number_of_processes))
+    pool.map(_start_diff_analysis, range(number_of_processes))
     pool.close()

@@ -57,5 +57,5 @@ The next table shows the processes in the sequence in which they are performed.
 | extractie            | downloading the project and storing file changes | repo_extractor/main.py             | yes                 |
 | identificatie        | determining the author of a filechange           | requester/api_requester.py         | no                  |
 | zoekterm_vinden      | determining which file changes contain keywords  | db_analysis/fill_analysis_table.py | no                  |
-| zoekterm_controleren | checking for false positives                     | diff_analyzer/check_zoekterm.py    | yes                 |
+| zoekterm_controleren | checking for false positives                     | diff_analyzer/main.py              | yes                 |
  
