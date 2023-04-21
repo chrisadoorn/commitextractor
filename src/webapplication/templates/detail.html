@@ -10,8 +10,7 @@
     <thead>
     <tr>
         <th scope="col">commit_date_time</th>
-        <th scope="col">username</th>
-        <th scope="col">email_address</th>
+        <th scope="col">author_id</th>
         <th scope="col">remark</th>
     </tr>
     </thead>
@@ -19,38 +18,26 @@
     {% for commit in commits %}
     <tr>
         <td>{{ commit.commitdatumtijd }}</td>
-        <td>{{ commit.username }}</td>
-        <td>{{ commit.emailaddress }}</td>
+        <td>{{ commit.author_id }}</td>
         <td>{{ commit.remark }}</td>
     </tr>
-    <tr>
-        <td></td>
-        <td colspan="5"> {% for selection in commit.selections_with_mc %}
+    <tr >
+        <td colspan="3"> {% for selection in commit.selections_with_mc %}
             <div style="display: flex">
                 <div>
                     <div><b>{{ selection.filename }} after update</b></div>
                     <div class="box">
-                        <pre>{{ selection.text_after_analysed }}</pre>
-                    </div>
-                    <div class="box">
-                        {% if selection.multicore_found | length > 0: %}
-                        <pre style="color: green">{{ selection.multicore_found }}</pre>
-                        {% else %}
-                        <pre style="color: red">no primitives found</pre>
-                        {% endif %}
+                        <pre>{{ selection.tekstachteraf }}</pre>
                     </div>
                 </div>
                 <div>
                     <div><b>diff</b></div>
                     <div class="box">
-                        <pre>{{ selection.diff_text_analysed }}</pre>
+                        <pre>{{ selection.difftext }}</pre>
                     </div>
                     <div class="box">
-                        {% if selection.diff_text_multicore_found | length > 0: %}
-                        <pre style="color: green">{{ selection.diff_text_multicore_found }}</pre>
-                        {% else %}
-                        <pre style="color: red">no primitives found</pre>
-                        {% endif %}
+                        <pre>{{ selection.diff_nl }}</pre>
+                        <pre>{{ selection.diff_ol }}</pre>
                     </div>
                 </div>
             </div>

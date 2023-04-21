@@ -243,3 +243,12 @@ a:hover {
     cursor: pointer;
     text-decoration: underline;
 }
+
+.box pre{
+    width: 750px;
+    overflow-x: scroll;
+    margin: 10px;
+    background: #27252d;
+    color: #5fba54;
+    border: 2px solid #ccc;
+}
