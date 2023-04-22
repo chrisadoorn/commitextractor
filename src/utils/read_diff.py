@@ -55,12 +55,12 @@ class ReadDiff:
         self.filepath = ""
         self.lines = ""
         self.mc_indicators = zoeklijst
-        match language:
-            case Language.JAVA:
+        match language.upper():
+            case 'JAVA':
                 self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
-            case Language.ELIXIR:
+            case 'ELIXIR':
                 self.single_line_comment = ELIXIR_SINGLE_LINE_COMMENT
-            case Language.RUST:
+            case 'RUST':
                 self.single_line_comment = RUST_SINGLE_LINE_COMMENT
 
 

@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo
-from src.utils import db_postgresql
+from src.utils import db_postgresql, configurator
 from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
 from src.utils.read_diff import ReadDiff, Language
 
@@ -11,6 +11,9 @@ from src.utils.read_diff import ReadDiff, Language
 def analyze_by_project(projectname, project_id):
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
+
+    # bepaal taal waarvoor gezocht moet worden
+    language = configurator.get_main_language()[0]
 
     # haal voor deze commit de lijst bestandswijzig id's op.
     commitinfo_lijst = CommitInfo.select(CommitInfo.id).where(CommitInfo.idproject == project_id)
@@ -37,7 +40,7 @@ def analyze_by_project(projectname, project_id):
                 BestandsWijziging.id == bestandswijziging_id)
 
             # doorzoek de diff op de eerder gevonden zoektermen
-            read_diff = ReadDiff(language=Language.JAVA, zoeklijst=zoektermlijst)
+            read_diff = ReadDiff(language=language, zoeklijst=zoektermlijst)
             (new_lines, old_lines) = read_diff.read_diff_text(difftekst.difftext)
 
             # sla gevonden resultaten op per bestandswijziging
