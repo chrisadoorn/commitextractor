@@ -48,6 +48,9 @@ def import_projects(jsondata, selectie_id):
             verwerk_details = Verwerk_Project()
             verwerk_details.id = project_details.id
             verwerk_details.naam = project_details.naam
+            verwerk_details.processtap = 'selectie'
+            verwerk_details.status = 'gereed'
+            verwerk_details.resultaat = 'verwerkt'
             try:
                 # verwerk_project neemt de id over van project. peewee denkt dan standaard dat het een update is.
                 # met force_insert wordt een insert afgedwongen.

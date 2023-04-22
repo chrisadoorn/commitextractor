@@ -1,7 +1,7 @@
 set schema 'test';
--- PROCEDURE: registreer_verwerking(bigint, character varying)
+-- PROCEDURE: test.registreer_verwerking(bigint, character varying)
 
--- DROP PROCEDURE IF EXISTS registreer_verwerking(bigint, character varying);
+-- DROP PROCEDURE IF EXISTS test.registreer_verwerking(bigint, character varying);
 
 CREATE OR REPLACE PROCEDURE registreer_verwerking(
 	IN p_projectid bigint,
@@ -9,17 +9,22 @@ CREATE OR REPLACE PROCEDURE registreer_verwerking(
 LANGUAGE 'plpgsql'
 AS $BODY$
 
+
 BEGIN
 
-set schema 'test';
-
 update verwerk_project
-set einde_extractie = now()
+set einde_verwerking = now()
    ,status = 'gereed'
    ,resultaat = p_resultaat
+   ,processor = null
 where id = p_projectid;
 
 END;
 $BODY$;
 ALTER PROCEDURE registreer_verwerking(bigint, character varying)
     OWNER TO appl;
+
+GRANT EXECUTE ON PROCEDURE registreer_verwerking(bigint, character varying) TO PUBLIC;
+
+GRANT EXECUTE ON PROCEDURE registreer_verwerking(bigint, character varying) TO appl;
+

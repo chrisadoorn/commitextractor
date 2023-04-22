@@ -42,6 +42,28 @@ class ReadDiff:
                 self.single_line_comment = RUST_SINGLE_LINE_COMMENT
                 self.mc_indicators = RUST_MC_INDICATOR
 
+    def __init__(self, language: Language = Language.JAVA, zoeklijst=None):
+        """
+        Constructor
+        :param language: the language of the code in the diff
+        """
+        if zoeklijst is None:
+            zoeklijst = ['Thread']
+        self.linecounter = None
+        self.removed_lines = None
+        self.new_lines = None
+        self.filepath = ""
+        self.lines = ""
+        self.mc_indicators = zoeklijst
+        match language.upper():
+            case 'JAVA':
+                self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
+            case 'ELIXIR':
+                self.single_line_comment = ELIXIR_SINGLE_LINE_COMMENT
+            case 'RUST':
+                self.single_line_comment = RUST_SINGLE_LINE_COMMENT
+
+
     def read_diff_text(self, chunk=''):
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and

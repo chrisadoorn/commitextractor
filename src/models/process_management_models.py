@@ -16,11 +16,12 @@ class BaseModel(Model):
 class Verwerk_Project(BaseModel):
     id = BigIntegerField(primary_key=True)
     naam = CharField(null=False)
-    start_extractie = DateTimeField(null=True)
-    einde_extractie = DateTimeField(null=True)
+    start_verwerking = DateTimeField(null=True)
+    einde_verwerking = DateTimeField(null=True)
     processor = CharField(null=True)
     status = CharField(null=True)
     resultaat = TextField(null=True)
+    processtap = CharField(null=True)
 
 
 pg_db.connect()

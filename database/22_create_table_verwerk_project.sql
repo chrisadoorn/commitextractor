@@ -8,11 +8,12 @@ CREATE TABLE IF NOT EXISTS verwerk_project
 (
     id bigint NOT NULL,
     naam character varying COLLATE pg_catalog."default" NOT NULL,
-    start_extractie timestamp without time zone,
-    einde_extractie timestamp without time zone,
+    start_verwerking timestamp without time zone,
+    einde_verwerking timestamp without time zone,
     processor character(36) COLLATE pg_catalog."default",
     status character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'nieuw'::character varying,
     resultaat character varying COLLATE pg_catalog."default",
+    processtap character varying COLLATE pg_catalog."default",
     CONSTRAINT verwerk_project_pkey PRIMARY KEY (id),
     CONSTRAINT project_fkey FOREIGN KEY (id)
         REFERENCES project (id) MATCH SIMPLE
