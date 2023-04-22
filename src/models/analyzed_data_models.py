@@ -34,12 +34,16 @@ class BestandsWijzigingZoekterm(BaseModel):
         table_name = 'bestandswijziging_zoekterm'
 
     id = AutoField(primary_key=True)
-    idbestandswijziging = ForeignKeyField(BestandsWijziging, backref="bestandswijziging_zoekterm", on_delete="CASCADE",
-                                          column_name="idbestandswijziging"),
+    idbestandswijziging = BigIntegerField(null=False),
     zoekterm = CharField(null=False),
     falsepositive = BooleanField(default=False)
     regelnummers = playhouse.postgres_ext.ArrayField(field_class=IntegerField)
     aantalgevonden = IntegerField(default=0)
+
+    def get_voor_bestandswijziging(bestandswijzigings_id):
+        sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(bestandswijzigings_id)
+        cursor = pg_db.execute_sql(sql)
+        return cursor.fetchall()
 
 
 pg_db.connect()

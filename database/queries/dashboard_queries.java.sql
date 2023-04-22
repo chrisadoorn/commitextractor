@@ -56,6 +56,16 @@ from commitinfo c
     ,project p 
 where c.idproject = p.id
 group by p.id, p.naam, c.idproject
+order by commit_aantal asc  
+
+update verwerk_project 
+set resultaat = 'geblokt'
+where resultaat = 'verwerkt'
+and id != 184823;
+update verwerk_project
+set processtap = 'extractie'
+   ,resultaat = 'verwerkt'
+where id = 184823;
 
 
 select 
@@ -111,4 +121,7 @@ b.id,
 from bestandswijziging b
 
 
+-- zet testdata in 
 
+insert into bestandswijziging_zoekterm (idbestandswijziging, zoekterm)
+select b.id, 'synchronized' from bestandswijziging b;

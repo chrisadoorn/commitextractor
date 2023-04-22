@@ -20,42 +20,53 @@ def analyze_by_project(projectname, project_id):
     commitinfo_lijst = CommitInfo.select(CommitInfo.id).where(CommitInfo.idproject == project_id)
     for commitInfo in commitinfo_lijst:
 
-        bestandswijzigingen_lijst = BestandsWijziging.select(BestandsWijziging.id).where(BestandsWijziging.idcommit == commitInfo.id)
+        bestandswijzigingen_lijst = BestandsWijziging.select(BestandsWijziging.id).where(
+            BestandsWijziging.idcommit == commitInfo.id)
         for bestandswijziging in bestandswijzigingen_lijst:
 
             # haal de gevonden zoektermen voor deze diff op
-            lijst = BestandsWijzigingZoekterm.select().where(BestandsWijzigingZoekterm.idbestandswijziging == bestandswijziging.id)
-            if len(lijst) == 0:
+            bwz_lijst = BestandsWijzigingZoekterm.get_voor_bestandswijziging(bestandswijziging.id)
+            if len(bwz_lijst) == 0:
                 # geen zoekterm, dan door naar de volgende
                 continue
 
             # haal zoektermen uit de lijst
             zoektermlijst = []
-            for item in lijst:
-                zoektermlijst.append(item.zoekterm)
+            for (id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
+                zoektermlijst.append(zoekterm)
 
             # haal de diff op
-            difftekst_houder = BestandsWijziging.select(BestandsWijziging.difftext).where(BestandsWijziging.id == bestandswijziging.id)
+            (difftekst, ) = BestandsWijziging.select(BestandsWijziging.difftext).where(
+                BestandsWijziging.id == bestandswijziging.id)
 
             # doorzoek de diff op de eerder gevonden zoektermen
             read_diff = ReadDiff(language=Language.JAVA, zoeklijst=zoektermlijst)
-            (new_lines, old_lines) = read_diff.read_diff_text(difftekst_houder.difftext)
+            (new_lines, old_lines) = read_diff.read_diff_text(difftekst.difftext)
 
             # sla gevonden resultaten op per bestandswijziging
-            bestands_wijziging_info = BestandsWijzigingInfo()
-            bestands_wijziging_info.id = bestandswijziging.id
-            bestands_wijziging_info.regels_nieuw = len(new_lines)
-            bestands_wijziging_info.regels_oud = len(old_lines)
-            bestands_wijziging_info.save(force_insert=True)
+            bestandswijziging_info = BestandsWijzigingInfo()
+            bestandswijziging_info.id = bestandswijziging.id
+            bestandswijziging_info.regels_nieuw = len(new_lines)
+            bestandswijziging_info.regels_oud = len(old_lines)
+            bestandswijziging_info.save(force_insert=True)
 
             # sla gevonden resultaten op per zoekterm in bestandswijziging
+            # dit overschrijft eerdere versies, dus als de
+            for (id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
+                zoekterm = zoekterm
+                regelnrs = []
+                for (regelnr, line, keywords) in new_lines:
+                    if zoekterm in keywords:
+                        regelnrs.append(regelnr)
 
-
-
-
-
-
-
+                bestandswijziging_zoekterm = BestandsWijzigingZoekterm()
+                bestandswijziging_zoekterm.id = id
+                bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
+                bestandswijziging_zoekterm.zoekterm = zoekterm
+                bestandswijziging_zoekterm.falsepositive = (len(regelnrs) == 0)
+                bestandswijziging_zoekterm.regelnummers = regelnrs
+                bestandswijziging_zoekterm.aantalgevonden = len(regelnrs)
+                bestandswijziging_zoekterm.save()
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectname + str(eind))
