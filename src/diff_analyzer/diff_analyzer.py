@@ -2,14 +2,10 @@ import logging
 
 from datetime import datetime
 
-import peewee
-
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo
 from src.utils import db_postgresql
-from src.models.analyzed_data_models import pg_db, pg_db_schema, BestandsWijzigingInfo, BestandsWijzigingZoekterm
+from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
 from src.utils.read_diff import ReadDiff, Language
-
-global db_connectie
 
 
 def analyze_by_project(projectname, project_id):
@@ -25,34 +21,32 @@ def analyze_by_project(projectname, project_id):
         for bestandswijziging in bestandswijzigingen_lijst:
 
             # haal de gevonden zoektermen voor deze diff op
-            bwz_lijst = BestandsWijzigingZoekterm.get_voor_bestandswijziging(bestandswijziging.id)
+            bestandswijziging_id = bestandswijziging.id
+            bwz_lijst = BestandsWijzigingZoekterm.get_voor_bestandswijziging(bestandswijziging_id)
             if len(bwz_lijst) == 0:
                 # geen zoekterm, dan door naar de volgende
                 continue
 
             # haal zoektermen uit de lijst
             zoektermlijst = []
-            for (id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
+            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
                 zoektermlijst.append(zoekterm)
 
             # haal de diff op
-            (difftekst, ) = BestandsWijziging.select(BestandsWijziging.difftext).where(
-                BestandsWijziging.id == bestandswijziging.id)
+            (difftekst,) = BestandsWijziging.select(BestandsWijziging.difftext).where(
+                BestandsWijziging.id == bestandswijziging_id)
 
             # doorzoek de diff op de eerder gevonden zoektermen
             read_diff = ReadDiff(language=Language.JAVA, zoeklijst=zoektermlijst)
             (new_lines, old_lines) = read_diff.read_diff_text(difftekst.difftext)
 
             # sla gevonden resultaten op per bestandswijziging
-            bestandswijziging_info = BestandsWijzigingInfo()
-            bestandswijziging_info.id = bestandswijziging.id
-            bestandswijziging_info.regels_nieuw = len(new_lines)
-            bestandswijziging_info.regels_oud = len(old_lines)
-            bestandswijziging_info.save(force_insert=True)
+            BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging_id, regels_oud=len(old_lines),
+                                                   regels_nieuw=len(new_lines))
 
             # sla gevonden resultaten op per zoekterm in bestandswijziging
             # dit overschrijft eerdere versies, dus als de
-            for (id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
+            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
                 zoekterm = zoekterm
                 regelnrs = []
                 for (regelnr, line, keywords) in new_lines:
@@ -60,7 +54,7 @@ def analyze_by_project(projectname, project_id):
                         regelnrs.append(regelnr)
 
                 bestandswijziging_zoekterm = BestandsWijzigingZoekterm()
-                bestandswijziging_zoekterm.id = id
+                bestandswijziging_zoekterm.id = bwz_id
                 bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
                 bestandswijziging_zoekterm.zoekterm = zoekterm
                 bestandswijziging_zoekterm.falsepositive = (len(regelnrs) == 0)
@@ -77,12 +71,11 @@ def analyze_by_project(projectname, project_id):
 
 
 def analyze(process_identifier):
-    global db_connectie
     oude_processtap = 'extractie'
     nieuwe_processtap = 'zoekterm_controleren'
 
     try:
-        db_connectie = db_postgresql.open_connection()
+        db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
 
         volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)

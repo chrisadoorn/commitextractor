@@ -1,9 +1,7 @@
 import playhouse
-from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, BigIntegerField, \
-    IntegerField, ForeignKeyField, BooleanField
+from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
-from src.models.extracted_data_models import BestandsWijziging
 from src.utils import configurator
 
 params = configurator.get_database_configuration()
@@ -27,8 +25,18 @@ class BestandsWijzigingInfo(BaseModel):
     regels_oud = IntegerField(default=0)
     regels_nieuw = IntegerField(default=0)
 
+    # de constructie die hier gebruikt voor om een insert,
+    # dan wel een update uit te voeren is speciefiek voor gebruik in combinatie met postgresql
+    # zie https://docs.peewee-orm.com/en/latest/peewee/querying.html ,zoek hier naar on_conflict
+    def insert_or_update(parameter_id, regels_oud, regels_nieuw):
+        BestandsWijzigingInfo.insert(id=parameter_id, regels_oud=regels_oud, regels_nieuw=regels_nieuw).on_conflict(
+            conflict_target=[BestandsWijzigingInfo.id],  # Which constraint?
+            preserve=[BestandsWijzigingInfo.id],  # Use the value we would have inserted.
+            update={BestandsWijzigingInfo.regels_oud: regels_oud, BestandsWijzigingInfo.regels_nieuw: regels_nieuw}).execute()
 
-# voor gebruik van het integer field zie https://docs.peewee-orm.com/en/latest/peewee/playhouse.html#postgres-ext-api-notes
+
+# voor gebruik van het integer array field zie
+# https://docs.peewee-orm.com/en/latest/peewee/playhouse.html#postgres-ext-api-notes
 class BestandsWijzigingZoekterm(BaseModel):
     class Meta:
         table_name = 'bestandswijziging_zoekterm'
