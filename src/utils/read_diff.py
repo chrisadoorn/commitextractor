@@ -54,7 +54,7 @@ class ReadDiff:
         self.new_lines = None
         self.filepath = ""
         self.lines = ""
-        self.mc_indicators =  zoeklijst
+        self.mc_indicators = zoeklijst
         match language:
             case Language.JAVA:
                 self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
