@@ -10,7 +10,7 @@ from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijz
     ManualChecking, pg_db_schema, TempDiffTextAnalysis
 from src.repo_extractor.commitextractor import extract_repository
 from src.utils import configurator
-from src.utils.read_diff import ReadDiff, Language
+from src.utils.read_diff import ReadDiff
 
 dt = datetime.now()
 filename = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', 'log', 'main.' + str(dt) + '.log'))
@@ -109,7 +109,7 @@ def __list_to_string(s):
 def __analyse_diffs(thread_id, idva_from, idva_to):
     print("cpu nr" + str(psutil.Process().cpu_num()))
     params_for_db = configurator.get_database_configuration()
-    read_diff = ReadDiff(language=Language.ELIXIR)
+    read_diff = ReadDiff(language="ELIXIR")
     sql = "select bw.id, bw.idcommit, bw.locatie, bw.filename, bw.difftext, ci.author_id, pr.naam,ci.commitdatumtijd " \
           "from {sch}.bestandswijziging as bw " \
           "join {sch}.commitinfo as ci on bw.idcommit = ci.id " \

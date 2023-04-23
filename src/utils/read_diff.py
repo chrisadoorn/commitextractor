@@ -1,5 +1,4 @@
 import re
-from enum import Enum
 
 JAVA_SINGLE_LINE_COMMENT = '//'  # Java single line comment
 ELIXIR_SINGLE_LINE_COMMENT = '#'  # Elixir single line comment
@@ -13,15 +12,9 @@ JAVA_MC_INDICATOR = ["Thread"]
 RUST_MC_INDICATOR = ["Thread"]
 
 
-class Language(Enum):
-    JAVA = 1
-    ELIXIR = 2
-    RUST = 3
-
-
 class ReadDiff:
 
-    def __init__(self, language: Language = Language.JAVA):
+    def __init__(self, language: str = "JAVA", zoeklijst: list[str] = None):
         """
         Constructor
         :param language: the language of the code in the diff
@@ -31,38 +24,16 @@ class ReadDiff:
         self.new_lines = None
         self.filepath = ""
         self.lines = ""
-        match language:
-            case Language.JAVA:
-                self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
-                self.mc_indicators = JAVA_MC_INDICATOR
-            case Language.ELIXIR:
-                self.single_line_comment = ELIXIR_SINGLE_LINE_COMMENT
-                self.mc_indicators = ELIXIR_MC_INDICATOR
-            case Language.RUST:
-                self.single_line_comment = RUST_SINGLE_LINE_COMMENT
-                self.mc_indicators = RUST_MC_INDICATOR
-
-    def __init__(self, language: Language = Language.JAVA, zoeklijst=None):
-        """
-        Constructor
-        :param language: the language of the code in the diff
-        """
-        if zoeklijst is None:
-            zoeklijst = ['Thread']
-        self.linecounter = None
-        self.removed_lines = None
-        self.new_lines = None
-        self.filepath = ""
-        self.lines = ""
-        self.mc_indicators = zoeklijst
         match language.upper():
-            case 'JAVA':
+            case "JAVA":
                 self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
-            case 'ELIXIR':
+                self.mc_indicators = JAVA_MC_INDICATOR if zoeklijst is None else zoeklijst
+            case "ELIXIR":
                 self.single_line_comment = ELIXIR_SINGLE_LINE_COMMENT
-            case 'RUST':
+                self.mc_indicators = ELIXIR_MC_INDICATOR if zoeklijst is None else zoeklijst
+            case "RUST":
                 self.single_line_comment = RUST_SINGLE_LINE_COMMENT
-
+                self.mc_indicators = RUST_MC_INDICATOR if zoeklijst is None else zoeklijst
 
     def read_diff_text(self, chunk=''):
         """
