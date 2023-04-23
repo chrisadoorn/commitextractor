@@ -2,13 +2,13 @@ from flask import Flask, render_template, request, jsonify
 
 from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking
 from src.utils import configurator
-from src.utils.read_diff import ReadDiff, Language
+from src.utils.read_diff import ReadDiff
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 language = configurator.get_main_language()[0]
+readDiff = ReadDiff(language=language)
 
-readDiff = ReadDiff(language=Language[language.upper()])
 
 @app.route("/")
 def home():
