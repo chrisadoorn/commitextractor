@@ -1,9 +1,9 @@
-SELECT v.naam, v.einde_extractie - v.start_extractie as tijdsduur, p.project_size, v.status, v.resultaat, v.start_extractie, v.einde_extractie, v.processor
+SELECT v.naam, v.processtap,  v.einde_verwerking - v.start_verwerking  as tijdsduur, p.project_size, v.status, v.resultaat, v.start_verwerking , v.einde_verwerking , v.processor
 	FROM test.verwerk_project v
 	
 	join test.project p on v.id = p.id
-	where v.einde_extractie is not null
-	order by p.project_size DESC, start_extractie DESC;
+--	where v.einde_verwerking is not null
+	order by p.project_size DESC, start_verwerking DESC;
 
 select v.status, v.resultaat
 , count(v.status), count(v.resultaat)

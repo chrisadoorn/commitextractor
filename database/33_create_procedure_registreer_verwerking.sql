@@ -12,6 +12,12 @@ AS $BODY$
 
 BEGIN
 
+insert into verwerking_geschiedenis (project_id, project_naam, start_verwerking, einde_verwerking, processor, resultaat, processtap)
+  select p_projectid, v.naam, v.start_verwerking, now(), v.processor, p_resultaat, v.processtap
+  from verwerk_project v
+  where id = p_projectid;
+
+
 update verwerk_project
 set einde_verwerking = now()
    ,status = 'gereed'
