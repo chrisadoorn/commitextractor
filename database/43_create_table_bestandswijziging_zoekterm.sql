@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS bestandswijziging_zoekterm
 TABLESPACE pg_default;
 
 ALTER TABLE bestandswijziging_zoekterm ADD CONSTRAINT bestandswijziging_fk FOREIGN KEY (idbestandswijziging) REFERENCES bestandswijziging(id) ON DELETE CASCADE;
+CREATE INDEX bestandswijziging_zoekterm_idbestandswijziging_idx ON bestandswijziging_zoekterm (idbestandswijziging);
+CREATE INDEX bestandswijziging_zoekterm_zoekterm_idx ON bestandswijziging_zoekterm (zoekterm);
 
 
 ALTER TABLE IF EXISTS bestandswijziging_zoekterm

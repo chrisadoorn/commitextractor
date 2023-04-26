@@ -5,7 +5,7 @@ from datetime import datetime
 from multiprocessing import freeze_support
 
 from src.utils import db_postgresql, sanitychecker
-from src.repo_extractor import parallelizer
+from src.diff_analyzer import parallelizer
 
 
 #####################################
@@ -17,7 +17,7 @@ def start_processing():
     try:
         # connect to database
         db_postgresql.open_connection()
-        parallelizer.start_extractie_processen()
+        parallelizer.start_diff_analysis_processen()
     except Exception as e:
         # stop processing
         logging.info(

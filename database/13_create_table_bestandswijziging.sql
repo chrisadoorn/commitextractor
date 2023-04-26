@@ -22,6 +22,7 @@ ALTER TABLE IF EXISTS bestandswijziging
     OWNER to postgres;
    
 ALTER TABLE bestandswijziging ADD CONSTRAINT bestandswijziging_fk FOREIGN KEY (idcommit) REFERENCES commitinfo(id) ON DELETE CASCADE;
+CREATE INDEX bestandswijziging_idcommit_idx ON bestandswijziging USING btree (idcommit);
 
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE bestandswijziging TO appl;

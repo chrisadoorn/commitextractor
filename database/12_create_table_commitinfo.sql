@@ -23,7 +23,8 @@ ALTER TABLE IF EXISTS commitinfo
     OWNER to postgres;
    
 ALTER TABLE commitinfo ADD CONSTRAINT commitinfo_fk FOREIGN KEY (idproject) REFERENCES project(id) ON DELETE CASCADE;
-
+CREATE INDEX commitinfo_idproject_idx ON commitinfo USING btree (idproject);
+CREATE INDEX commitinfo_idauthor_idx ON commitinfo USING btree (author_id);
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE commitinfo TO appl;
 

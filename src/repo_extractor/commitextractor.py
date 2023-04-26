@@ -87,12 +87,14 @@ def file_selector(file):
 # extract repositories while there are repositories to be processed
 def extract_repositories(process_identifier):
     global db_connectie
+    oude_processtap = 'selectie'
+    nieuwe_processtap = 'extractie'
 
     try:
         db_connectie = db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
 
-        volgend_project = db_postgresql.volgend_project(process_identifier)
+        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
         rowcount = volgend_project[2]
         while rowcount == 1:
             projectnaam = volgend_project[1]
@@ -112,7 +114,7 @@ def extract_repositories(process_identifier):
 
             db_postgresql.registreer_verwerking(projectnaam=projectnaam, processor=process_identifier,
                                                 verwerking_status=verwerking_status, projectid=projectid)
-            volgend_project = db_postgresql.volgend_project(process_identifier)
+            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
             rowcount = volgend_project[2]
 
         # na de loop
