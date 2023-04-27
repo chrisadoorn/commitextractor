@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 
-from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking
+from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking, pg_db_schema, pg_db
 from src.utils import configurator
 from src.utils.read_diff import ReadDiff
 
@@ -23,42 +23,47 @@ def form_gh_search():
 
 @app.route("/showgithub/<select_id>/detail/")
 def form_commits_for_projects(select_id):
-    commits = CommitInfo.select().where(CommitInfo.idproject == select_id)
+    sql = "select ci.id, ci.commitdatumtijd, ci.author_id, ci.remark  " \
+          "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
+          "and ci.id in " \
+          "(select bw.idcommit from {sch}.bestandswijziging as bw " \
+          "where bw.extensie != '.md') " \
+          "limit {li} offset {os};".format(sch=pg_db_schema, li=10, os=0, idproject=select_id)
+    cursor = pg_db.execute_sql(sql)
     ghs: Project = Project.select().where(Project.id == select_id)
-    for commit in commits[0:10]:
-        commit.selections_with_mc = analyse_diff(commit.id)
-    return render_template("detail.html",
-                           commits=commits[0:10],
-                           selection=ghs[0],
-                           from_int=10,
-                           to_int=20,
-                           back_from_int=-10,
-                           back_to_int=0)
+    commits: list[any] = []
+    for (id1, commitdatumtijd, author_id, remark) in cursor.fetchall():
+        selections_with_mc = analyse_diff(id1)
+        commits.append((id1, commitdatumtijd, author_id, remark, selections_with_mc))
+    return render_template("detail.html", commits=commits, selection=ghs[0], from_int=10, to_int=20,
+                           back_from_int=-10, back_to_int=0)
 
 
 @app.route("/showgithub/<select_id>/commitsonly/")
 def form_commits_only__for_projects(select_id):
     commits = CommitInfo.select().where(CommitInfo.idproject == select_id)
     ghs: Project = Project.select().where(Project.id == select_id)
-    return render_template("detail_commits.html",
-                           commits=commits,
-                           selection=ghs[0])
+    return render_template("detail_commits.html", commits=commits, selection=ghs[0])
 
 
 @app.route("/showgithub/<select_id>/detail/<int:from_int>/<int:to_int>/")
 def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
-    commits = CommitInfo.select().where(CommitInfo.idproject == select_id)
-    project: Project = Project.select().where(Project.id == select_id)
-    for commit in commits[from_int:to_int]:
-        commit.selections_with_mc = analyse_diff(commit.id)
-    return \
-        render_template("detail.html",
-                        commits=commits[from_int:to_int],
-                        selection=project[0],
-                        from_int=from_int + 10,
-                        to_int=to_int + 10,
-                        back_from_int=from_int - 10,
-                        back_to_int=to_int - 10)
+    sql = "select ci.id, ci.commitdatumtijd, ci.author_id, ci.remark  " \
+          "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
+          "and ci.id in " \
+          "(select bw.idcommit from {sch}.bestandswijziging as bw " \
+          "where bw.extensie != '.md') " \
+          "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int, idproject=select_id)
+    cursor = pg_db.execute_sql(sql)
+    ghs: Project = Project.select().where(Project.id == select_id)
+    commits: list[any] = []
+    for (id1, commitdatumtijd, author_id, remark) in cursor.fetchall():
+        selections_with_mc = analyse_diff(id1)
+        commits.append((id1, commitdatumtijd, author_id, remark, selections_with_mc))
+
+    return render_template("detail.html", commits=commits, selection=ghs[0],
+                           from_int=from_int + 10, to_int=to_int + 10, back_from_int=from_int - 10,
+                           back_to_int=to_int - 10)
 
 
 @app.route('/manual_comments/save/', methods=['POST', 'GET'])
@@ -100,13 +105,9 @@ def manual_comments():
         else:
             manual_checking = existing_manual_checking[0]
 
-        return jsonify(
-            idproject=manual_checking.idproject_id,
-            comment=manual_checking.comment,
-            type_of_project=manual_checking.type_of_project,
-            exclude=manual_checking.exclude,
-            exclude_reason=manual_checking.exclude_reason
-        )
+        return jsonify(idproject=manual_checking.idproject_id, comment=manual_checking.comment,
+            type_of_project=manual_checking.type_of_project, exclude=manual_checking.exclude,
+            exclude_reason=manual_checking.exclude_reason)
 
 
 def analyse_diff(commit_id):
@@ -123,18 +124,5 @@ def analyse_diff(commit_id):
 
 def create_string(input_list: list[tuple[int, str, [str]]]) -> str:
     string = ''
-    return string.join([str(ln) + ':' + l + ':' + str(k) + '\n' for (ln, l, k) in input_list])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return string.join(['Op regel ' + str(ln) + ', gevonden mc words:' + ('geen' if len(k) == 0 else str(k)) +
+                        '\n' for (ln, l, k) in input_list])
