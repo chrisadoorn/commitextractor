@@ -42,8 +42,8 @@ class BestandsWijzigingZoekterm(BaseModel):
         table_name = 'bestandswijziging_zoekterm'
 
     id = AutoField(primary_key=True)
-    idbestandswijziging = BigIntegerField(null=False),
-    zoekterm = CharField(null=False),
+    idbestandswijziging = BigIntegerField(null=False)
+    zoekterm = CharField(null=False)
     falsepositive = BooleanField(default=False)
     regelnummers = playhouse.postgres_ext.ArrayField(field_class=IntegerField)
     aantalgevonden = IntegerField(default=0)

@@ -14,7 +14,8 @@ def start_fill_analysis_table():
     for z in Zoekterm.select():
         print(datetime.now())
         a = 0
-        for t in BestandsWijziging.select(BestandsWijziging.id).where(BestandsWijziging.extensie == z.extensie and BestandsWijziging.difftext.contains(z.zoekwoord)):
+        for t in BestandsWijziging.select().where(BestandsWijziging.extensie == z.extensie,
+                                                                      BestandsWijziging.difftext.contains(z.zoekwoord)):
                 print("z.zoekwoord")
                 print(z.zoekwoord)
                 print("t.id")
@@ -35,3 +36,7 @@ pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params
 pg_db.connect()
 start_fill_analysis_table()
 
+if __name__ == '__main__':
+    pg_db.create_tables(
+        [BestandsWijzigingZoekterm],
+        safe=True)
