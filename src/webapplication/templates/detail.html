@@ -17,12 +17,12 @@
     <tbody>
     {% for commit in commits %}
     <tr>
-        <td>{{ commit.commitdatumtijd }}</td>
-        <td>{{ commit.author_id }}</td>
-        <td>{{ commit.remark }}</td>
+        <td>{{ commit[1] }}</td>
+        <td>{{ commit[2] }}</td>
+        <td>{{ commit[3] }}</td>
     </tr>
     <tr >
-        <td colspan="3"> {% for selection in commit.selections_with_mc %}
+        <td colspan="3"> {% for selection in commit[4] %}
             <div style="display: flex">
                 <div>
                     <div><b>{{ selection.filename }} after update</b></div>
@@ -35,8 +35,12 @@
                     <div class="box">
                         <pre>{{ selection.difftext }}</pre>
                     </div>
+                    <div><b>diff new lines</b></div>
                     <div class="box">
                         <pre>{{ selection.diff_nl }}</pre>
+                    </div>
+                    <div><b>diff old lines</b></div>
+                    <div class="box">
                         <pre>{{ selection.diff_ol }}</pre>
                     </div>
                 </div>
