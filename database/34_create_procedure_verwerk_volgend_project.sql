@@ -33,7 +33,7 @@ select id, naam, 0 INTO p_new_id, p_projectnaam, p_rowcount
 from verwerk_project
 where processor is null
 and processtap = p_vorige_stap
-and status = 'verwerkt'
+and resultaat = 'verwerkt'
 LIMIT 1 ;
 
 if not found then
@@ -51,7 +51,7 @@ set start_verwerking = now()
    ,processtap = p_nieuwe_stap
 where processor is null
 and processtap = p_vorige_stap
-and status = 'verwerkt'
+and resultaat = 'verwerkt'
 and id =  p_new_id;
 
 -- update de rowcount van default 0 naar aantal geupdate rijen.

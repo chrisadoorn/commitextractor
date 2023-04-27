@@ -11,16 +11,6 @@ class BaseModel(Model):
         database = pg_db
         schema = params.get('schema')
 
-
-class Analyse(BaseModel):
-    idproject = ForeignKeyField(Project, backref='id')
-    idcommit = ForeignKeyField(CommitInfo, unique = False,  backref="analysis")
-    idbestand = ForeignKeyField(BestandsWijziging, backref="analysis")
-    committer_name = CharField(null=True)
-    committer_emailaddress = CharField(null=True)
-    keyword = TextField(null=True)
-    loc = IntegerField(null=True)
-
 class Zoekterm(BaseModel):
     extensie = CharField(null=True, max_length=20)
     zoekwoord = CharField(null=True)

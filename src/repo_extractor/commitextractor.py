@@ -16,7 +16,6 @@ files = configurator.get_files()
 def extract_repository(projectname, project_id):
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
-
     full_repository = Repository(GITHUB + projectname)
     for commit in full_repository.traverse_commits():
 
@@ -51,10 +50,7 @@ def save_bestandswijziging(file, commit_id):
         # sla op in database
         file_changes = BestandsWijziging()
         file_changes.filename = file.filename
-        if fs[1] == '.toml':
-            file_changes.difftext = read_diff_rust(file.diff)
-        else:
-            file_changes.difftext = file.diff
+        file_changes.difftext = file.diff
         file_changes.tekstachteraf = file.content
         file_changes.idcommit = commit_id
         file_changes.locatie = file.new_path
@@ -89,7 +85,6 @@ def extract_repositories(process_identifier):
     global db_connectie
     oude_processtap = 'selectie'
     nieuwe_processtap = 'extractie'
-
     try:
         db_connectie = db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
