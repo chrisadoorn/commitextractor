@@ -10,6 +10,18 @@ pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params
 pg_db_schema = params.get('schema')
 
 
+from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, BigIntegerField, ForeignKeyField
+
+from src.models.models import Project, CommitInfo, BestandsWijziging
+
+from src.utils import configurator
+
+params = configurator.get_database_configuration()
+pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
+                           host='localhost', port=params.get('port'))
+pg_db_schema = params.get('schema')
+
+
 class BaseModel(Model):
     class Meta:
         database = pg_db
