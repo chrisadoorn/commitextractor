@@ -33,6 +33,8 @@ def clean_rust_toml(text):
     pos_comment = text.find('dependencies')
     if pos_comment > -1:
         text = text[pos_comment:]
+    else:
+        text = ""
     return text
 
 def cleanupTableDifftext(extensie):
