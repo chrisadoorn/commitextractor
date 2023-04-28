@@ -5,7 +5,7 @@ from datetime import datetime
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo
 from src.utils import db_postgresql, configurator
 from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
-from src.utils.read_diff import ReadDiff, Language
+from src.utils.read_diff import ReadDiff
 
 
 def analyze_by_project(projectname, project_id):
