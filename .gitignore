@@ -157,3 +157,7 @@ cython_debug/
 
 /var/config.ini
 /var/commitextractor.ini
+/src/db_analysis/test.py
+/var/commitextractor.seed
+/src/db_analysis/fill_analysis_table2.py
+/src/utils/read_diff_rust.py
