@@ -4,7 +4,7 @@ from src.models.models import BestandsWijziging
 from src.models.analysis_models import Zoekterm
 from src.models.analyzed_data_models import BestandsWijzigingZoekterm
 from datetime import datetime
-
+from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
 
 global db_connectie
@@ -56,6 +56,9 @@ if __name__ == '__main__':
 
 
     pg_db.connect()
+    params = get_database_configuration()
+    schema = params.get('schema')
+    connection = db_postgresql._get_connection()
     #cleanupTableDifftext()
     start_fill_analysis_table()
 
