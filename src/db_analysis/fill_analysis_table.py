@@ -9,6 +9,7 @@ from src.utils.configurator import get_database_configuration
 
 global db_connectie
 
+# update table bestandswijziging_zoekterm when keyword is found
 def start_fill_analysis_table():
 
     for z in Zoekterm.select():
@@ -37,9 +38,7 @@ def clean_rust_toml(text):
 def cleanupTableDifftext(extensie):
     connection = db_postgresql._get_connection()
     cursor1 = connection.cursor()
-
     sql_querydifftext = "select id, difftext from " + schema + ".bestandswijziging where extensie = '" + extensie + "'"
-    print(sql_querydifftext)
     cursor1.execute(sql_querydifftext)
 
     cursor2 = connection.cursor()
@@ -59,7 +58,7 @@ if __name__ == '__main__':
     params = get_database_configuration()
     schema = params.get('schema')
     connection = db_postgresql._get_connection()
-    #cleanupTableDifftext()
+    cleanupTableDifftext('.toml')
     start_fill_analysis_table()
 
 
