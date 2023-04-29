@@ -5,7 +5,7 @@ from datetime import datetime
 from pydriller import Repository
 from src.repo_extractor import hashing
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
-from src.utils import configurator, db_postgresql
+from src.utils import configurator, db_postgresql, read_diff_rust
 
 global db_connectie
 
@@ -13,15 +13,9 @@ GITHUB = 'https://github.com/'
 extensions = configurator.get_extensions()
 files = configurator.get_files()
 
-
-# pip install package pydriller
-# pip install package mysql-connector-python
-
-
 def extract_repository(projectname, project_id):
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
-
     full_repository = Repository(GITHUB + projectname)
     for commit in full_repository.traverse_commits():
 
@@ -91,7 +85,6 @@ def extract_repositories(process_identifier):
     global db_connectie
     oude_processtap = 'selectie'
     nieuwe_processtap = 'extractie'
-
     try:
         db_connectie = db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)

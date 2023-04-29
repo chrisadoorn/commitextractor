@@ -1,3 +1,4 @@
+
 import playhouse
 from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField
 from playhouse.postgres_ext import PostgresqlExtDatabase
@@ -42,8 +43,8 @@ class BestandsWijzigingZoekterm(BaseModel):
         table_name = 'bestandswijziging_zoekterm'
 
     id = AutoField(primary_key=True)
-    idbestandswijziging = BigIntegerField(null=False),
-    zoekterm = CharField(null=False),
+    idbestandswijziging = BigIntegerField(null=False)
+    zoekterm = CharField(null=False)
     falsepositive = BooleanField(default=False)
     regelnummers = playhouse.postgres_ext.ArrayField(field_class=IntegerField)
     aantalgevonden = IntegerField(default=0)
@@ -55,3 +56,4 @@ class BestandsWijzigingZoekterm(BaseModel):
 
 
 pg_db.connect()
+
