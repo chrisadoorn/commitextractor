@@ -56,7 +56,7 @@ def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
           "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
           "and ci.id in " \
           "(select bw.idcommit from {sch}.bestandswijziging as bw " \
-          "where bw.extensie != '.md') " \
+          "where (bw.extensie == '.java' or bw.extensie == '.exs' or bw.extensie == '.ex' or bw.extensie == '.rs') " \
           "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int, idproject=select_id)
     cursor = pg_db.execute_sql(sql)
     ghs: Project = Project.select().where(Project.id == select_id)
@@ -132,5 +132,5 @@ def create_string(input_list: list[tuple[int, str, [str]]]) -> str:
     string = ''
     for (ln, l, k) in input_list:
         if len(k) > 0:
-            string += 'Regel ' + str(ln) + ', mc words:' + str(k) + '\n'
+            string += 'Line ' + str(ln) + ', mc words:' + str(k) + '\n'
     return string
