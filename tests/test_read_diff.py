@@ -89,6 +89,24 @@ class Test(unittest.TestCase):
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
+    def test_elixir(self):
+        diff_text = self.read_diff_file(filepath='data/read_diff_elixir.txt')
+        keywords = ["use", "Mix.Project", "def", "project", "do", "app", "plug_server", "server", "elixir",
+                    "build_embedded", "application", "applications", "cowboy", "plug", "mod", "App", "env",
+                    "cowboy_port", "end"]
+        read_diff = ReadDiff("ELIXIR", keywords)
+        (new_lines, old_lines) = read_diff.read_diff_text(diff_text)
+        x = new_lines
+        y = old_lines
+        expected_nl = [(5, '[app: :server,', ['app', 'server']),
+                       (17, '[applications: [:cowboy, :plug],', ['applications', 'cowboy', 'plug']),
+                       (18, 'mod: {App, []},', ['mod', 'App']),
+                       (19, 'env: [cowboy_port: 9292]]', ['env', 'cowboy_port'])]
+        expected_ol = [(5, '[app: :plug_server,', ['app', 'plug_server']),
+                       (17, '[applications: [:cowboy, :plug]]', ['applications', 'cowboy', 'plug'])]
+        self.assertEqual(x, expected_nl)
+        self.assertEqual(y, expected_ol)
+
     def test_text_starts_with_an_expected_chunk_header_and_has_keywords(self):
         keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "Hoi.dag_Hoi"]
         read_diff = ReadDiff("JAVA", keywords)
@@ -138,7 +156,7 @@ class Test(unittest.TestCase):
 
         try:
             text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+ Hoi \"/* Hallo Hoi" + "\n"
+            text = text + "+Hoi \"/* Hallo Hoi" + "\n"
             x = read_diff.read_diff_text(text)
             unittest.TestCase.assertEqual(self, [(3, ['Hoi'])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:
@@ -170,8 +188,8 @@ class Test(unittest.TestCase):
 
         try:
             text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+ Anders bla = 12, c=2; string=\"Hallo Hoi\",  " \
-                          "Hallo \"Hallo Doeidag\"_Hoi\"*/\" Hoi.dag_Hoi \n"
+            text = text + "+Anders bla = 12, c=2; string=\"Hallo Hoi\",  " \
+                          "Hallo(\"Hallo Doeidag\"_Hoi\"*/\" Hoi.dag_Hoi \n"
             x = read_diff.read_diff_text(text)
             unittest.TestCase.assertEqual(self, [(3, ["Hallo", "Hoi.dag_Hoi"])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:

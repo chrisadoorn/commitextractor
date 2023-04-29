@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS commitinfo
 
 ALTER TABLE commitinfo ADD CONSTRAINT commitinfo_fk FOREIGN KEY (idproject) REFERENCES project(id) ON DELETE CASCADE;
 CREATE INDEX commitinfo_idproject_idx ON commitinfo USING btree (idproject);
-
+CREATE INDEX commitinfo_idauthor_idx ON commitinfo USING btree (author_id);
 
 --13
 CREATE TABLE IF NOT EXISTS bestandswijziging
@@ -113,12 +113,26 @@ CREATE TABLE IF NOT EXISTS verwerk_project
 
 ALTER TABLE verwerk_project ADD CONSTRAINT verwerk_project_fk FOREIGN KEY (processor) REFERENCES processor(identifier);
 
+--23
+CREATE TABLE IF NOT EXISTS verwerking_geschiedenis
+(
+    id BIGSERIAL PRIMARY KEY,
+    project_id bigint NOT NULL,
+    project_naam character varying COLLATE pg_catalog."default" NOT NULL,
+    start_verwerking timestamp without time zone,
+    einde_verwerking timestamp without time zone,
+    processor character(36) COLLATE pg_catalog."default",
+    status character varying COLLATE pg_catalog."default" NOT NULL DEFAULT 'nieuw'::character varying,
+    resultaat character varying COLLATE pg_catalog."default",
+    processtap character varying COLLATE pg_catalog."default"
+);
 
 
 --41
 CREATE TABLE IF NOT EXISTS zoekterm
 (
     id BIGSERIAL PRIMARY KEY,
+    extensie character varying NOT NULL,
     zoekwoord character varying NOT NULL
 );
 

@@ -10,9 +10,9 @@ RUST_MULTI_LINE_COMMENT_STOP = r'\*/'  # Rust single line comment
 STRING_QUOTE = '"'  # String quote, luckily same for all languages,
 CHAR_QUOTE = '\''  # Char quote, luckily same for all 3 languages,
 
-ELIXIR_MC_INDICATOR = ["spawn", "spawn_link", "spawn_monitor", "self", "send", "receive", "Agent", "Application",
+ELIXIR_MC_INDICATOR = ["defmodule", "spawn", "spawn_link", "spawn_monitor", "self", "send", "receive", "Agent", "Application",
                        "Config", "Config.Provider", "Config.Reader", "DynamicSupervisor", "GenServer", "Node",
-                       "Process", "Registry", "Supervisor", "Task", "Task.Supervisor", "Mix.Config", "do"]
+                       "Process", "Registry", "Supervisor", "Task", "Task.Supervisor", "Mix.Config"]
 
 JAVA_MC_INDICATOR = ["Thread"]
 RUST_MC_INDICATOR = ["Thread"]
@@ -35,9 +35,8 @@ class ReadDiff:
         self.new_lines = None
         self.filepath = ""
         self.lines = ""
-        exclude_multiline_regex = ""
-        self.multi_line_comment_start = ""
-        self.multi_line_comment_end = ""
+        self.multi_line_comment_start = None
+        self.multi_line_comment_end = None
         match language.upper():
             case "JAVA":
                 self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
@@ -68,7 +67,7 @@ class ReadDiff:
             return None
         self.lines = chunk.splitlines()
         if len(self.lines) == 0:
-            return None
+            return [], []
         if not self.lines[0].startswith('@@'):
             raise InvalidDiffText('Text no valid diff text')
         self.new_lines = []
@@ -149,8 +148,10 @@ class ReadDiff:
         mc_found = []
         temp_line = re.sub(STRING_QUOTE, " " + STRING_QUOTE + " ", line)
         temp_line = re.sub(CHAR_QUOTE, " " + CHAR_QUOTE + " ", temp_line)
-        temp_line = re.sub(self.multi_line_comment_start, " " + self.multi_line_comment_start + " ", temp_line)
-        temp_line = re.sub(self.multi_line_comment_end, " " + self.multi_line_comment_end + " ", temp_line)
+        if self.multi_line_comment_start is not None:
+            temp_line = re.sub(self.multi_line_comment_start, " " + self.multi_line_comment_start + " ", temp_line)
+        if self.multi_line_comment_end is not None:
+            temp_line = re.sub(self.multi_line_comment_end, " " + self.multi_line_comment_end + " ", temp_line)
         temp_line = re.sub(self.single_line_comment, " " + self.single_line_comment + " ", temp_line)
         # vervang alles dat niet een letter, punt of underscore is door een spatie
         # en split vervolgens op spaties

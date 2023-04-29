@@ -252,3 +252,10 @@ a:hover {
     color: #5fba54;
     border: 2px solid #ccc;
 }
+
+.content > div {
+    border: #00000012 1px solid;
+    padding: 10px;
+    border-radius: 5px;
+
+}

@@ -23,20 +23,24 @@ def form_gh_search():
 
 @app.route("/showgithub/<select_id>/detail/")
 def form_commits_for_projects(select_id):
-    sql = "select ci.id, ci.commitdatumtijd, ci.author_id, ci.remark  " \
-          "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
-          "and ci.id in " \
-          "(select bw.idcommit from {sch}.bestandswijziging as bw " \
-          "where bw.extensie != '.md') " \
-          "limit {li} offset {os};".format(sch=pg_db_schema, li=10, os=0, idproject=select_id)
-    cursor = pg_db.execute_sql(sql)
-    ghs: Project = Project.select().where(Project.id == select_id)
-    commits: list[any] = []
-    for (id1, commitdatumtijd, author_id, remark) in cursor.fetchall():
-        selections_with_mc = analyse_diff(id1)
-        commits.append((id1, commitdatumtijd, author_id, remark, selections_with_mc))
-    return render_template("detail.html", commits=commits, selection=ghs[0], from_int=10, to_int=20,
-                           back_from_int=-10, back_to_int=0)
+    try:
+        sql = "select ci.id, ci.commitdatumtijd, ci.author_id, ci.remark  " \
+              "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
+              "and ci.id in " \
+              "(select bw.idcommit from {sch}.bestandswijziging as bw " \
+              "where bw.extensie != '.md') " \
+              "limit {li} offset {os};".format(sch=pg_db_schema, li=10, os=0, idproject=select_id)
+        cursor = pg_db.execute_sql(sql)
+        ghs: Project = Project.select().where(Project.id == select_id)
+        commits: list[any] = []
+        for (id1, commitdatumtijd, author_id, remark) in cursor.fetchall():
+            selections_with_mc = analyse_diff(id1)
+            print(selections_with_mc)
+            commits.append((id1, commitdatumtijd, author_id, remark, selections_with_mc))
+        return render_template("detail.html", commits=commits, selection=ghs[0], from_int=10, to_int=20,
+                               back_from_int=-10, back_to_int=0)
+    except Exception as e:
+        print(e)
 
 
 @app.route("/showgithub/<select_id>/commitsonly/")
@@ -52,7 +56,7 @@ def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
           "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
           "and ci.id in " \
           "(select bw.idcommit from {sch}.bestandswijziging as bw " \
-          "where bw.extensie != '.md') " \
+          "where (bw.extensie == '.java' or bw.extensie == '.exs' or bw.extensie == '.ex' or bw.extensie == '.rs') " \
           "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int, idproject=select_id)
     cursor = pg_db.execute_sql(sql)
     ghs: Project = Project.select().where(Project.id == select_id)
@@ -61,9 +65,8 @@ def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
         selections_with_mc = analyse_diff(id1)
         commits.append((id1, commitdatumtijd, author_id, remark, selections_with_mc))
 
-    return render_template("detail.html", commits=commits, selection=ghs[0],
-                           from_int=from_int + 10, to_int=to_int + 10, back_from_int=from_int - 10,
-                           back_to_int=to_int - 10)
+    return render_template("detail.html", commits=commits, selection=ghs[0], from_int=from_int + 10, to_int=to_int + 10,
+                           back_from_int=from_int - 10, back_to_int=to_int - 10)
 
 
 @app.route('/manual_comments/save/', methods=['POST', 'GET'])
@@ -106,23 +109,28 @@ def manual_comments():
             manual_checking = existing_manual_checking[0]
 
         return jsonify(idproject=manual_checking.idproject_id, comment=manual_checking.comment,
-            type_of_project=manual_checking.type_of_project, exclude=manual_checking.exclude,
-            exclude_reason=manual_checking.exclude_reason)
+                       type_of_project=manual_checking.type_of_project, exclude=manual_checking.exclude,
+                       exclude_reason=manual_checking.exclude_reason)
 
 
 def analyse_diff(commit_id):
     selections = BestandsWijziging.select().where(BestandsWijziging.idcommit == commit_id,
                                                   BestandsWijziging.extensie != '.md')
     selections_with_mc_temp = []
-    for sel in selections:
-        dif = readDiff.read_diff_text(sel.difftext)
-        sel.diff_nl = create_string(dif[0])
-        sel.diff_ol = create_string(dif[1])
-        selections_with_mc_temp.append(sel)
-    return selections_with_mc_temp
+    try:
+        for sel in selections:
+            dif = readDiff.read_diff_text(sel.difftext)
+            sel.diff_nl = create_string(dif[0])
+            sel.diff_ol = create_string(dif[1])
+            selections_with_mc_temp.append(sel)
+        return selections_with_mc_temp
+    except Exception as e:
+        print(e)
 
 
 def create_string(input_list: list[tuple[int, str, [str]]]) -> str:
     string = ''
-    return string.join(['Op regel ' + str(ln) + ', gevonden mc words:' + ('geen' if len(k) == 0 else str(k)) +
-                        '\n' for (ln, l, k) in input_list])
+    for (ln, l, k) in input_list:
+        if len(k) > 0:
+            string += 'Line ' + str(ln) + ', mc words:' + str(k) + '\n'
+    return string
