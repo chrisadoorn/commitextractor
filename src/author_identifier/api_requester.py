@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from datetime import datetime, timedelta
 
@@ -35,9 +36,13 @@ class ApiCommitRequester:
             response = requests.get(githubapi, headers=HEADERS, timeout=(10, 20))
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            raise SystemExit(err)
+            logging.exception(err)
+            return None
+
         except ConnectTimeout:
-            raise SystemExit("Timeout on " + githubapi)
+            logging.error("Timeout on " + githubapi)
+            return None
+
         return response.json(), response.headers
 
 
@@ -88,6 +93,7 @@ def __get_json_one_commit(project, sha) -> tuple[tuple[str, str, int], str]:
     :return:
     """
     result = ApiCommitRequester.get_github_commit_info(project, sha)
+
     Extractor.get_and_set_ratelimit_remaining(result[1])
     return Extractor.get_content(result[0])
 
@@ -100,7 +106,7 @@ def __get_author_data_one_commit(project_name, sha) -> tuple[tuple[str, str, int
     :param sha: sha of the commit
     :return: tuple, with a tuple with the commit sha, the author login and the author id, and possibly an error message.
     """
-    print("processing: " + project_name + ", commit-sha:" + sha)
+    logging.debug("processing: " + project_name + ", commit-sha:" + sha)
     global current_ratelimit_remaining
     global reset_date_time
     if current_ratelimit_remaining < 10:
@@ -111,8 +117,8 @@ def __get_author_data_one_commit(project_name, sha) -> tuple[tuple[str, str, int
             print('Process continues')
 
     data = __get_json_one_commit(project_name, sha)
-    print("Number requests remaining: " + str(current_ratelimit_remaining))
-    print("processing: " + project_name + ", commit-sha:" + sha + " finished")
+    logging.debug("Number requests remaining: " + str(current_ratelimit_remaining))
+    logging.debug("processing: " + project_name + ", commit-sha:" + sha + " finished")
     return data
 
 
@@ -126,10 +132,11 @@ def __update_commit_info(id_project, sha, author_id) -> None:
     to_update_commit_info.save()
 
 
-def fetch_authors_per_commit(limit=None) -> None:
+def fetch_authors_by_project(projectid, limit=None) -> None:
     """
     Fetch the authors for the commits in the commitInfo table.
     If the commit info is already present in the commitInfo table, it is not fetched again.
+    :param projectid:
     :param limit:
     :return:
     """
@@ -140,31 +147,32 @@ def fetch_authors_per_commit(limit=None) -> None:
         "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
         "FROM " + schema + ".commitinfo AS ci " + \
         "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
-        "WHERE author_id is null;" \
-        if limit is None else \
-        "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
-        "FROM " + schema + ".commitinfo AS ci " + \
-        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
-        "WHERE author_id is null limit({});".format(limit)
+        "WHERE ci.idproject = " + str(projectid) + \
+        " AND author_id is null;" \
+            if limit is None else \
+            "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
+            "FROM " + schema + ".commitinfo AS ci " + \
+            "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
+            "WHERE ci.idproject = " + str(projectid) + \
+            " AND author_id is null limit({});".format(limit)
 
     cursor = pg_db.execute_sql(sql)
     counter = 1
     for (commit_info_id, id_project, email_address_hashed, username_hashed, sha, project_name) in cursor.fetchall():
-        print("Processing " + str(counter) + " of (max) " + str(limit))
+        logging.info("Processing " + str(counter) + " of (max) " + str(limit))
         try:
             existing_commit_info = CommitInfo().select().where(
                 CommitInfo.idproject == id_project,
                 CommitInfo.username == username_hashed,
                 CommitInfo.emailaddress == email_address_hashed,
                 CommitInfo.author_id.is_null(False)).get()
-            print(
-                "[update] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
+            logging.info("[update] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
             __update_commit_info(id_project, sha, existing_commit_info.author_id)
         except CommitInfo.DoesNotExist:
-            print("[New] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
+            logging.warning("[New] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
             (commit_sha, author_login, author_id), error = __get_author_data_one_commit(project_name, sha)
             if author_id < 0:
                 author_id = (NO_AUTHOR_FOUND_START_ID + commit_info_id)
-                print("No author found in GitHub, new author id created:" + str(author_id))
+                logging.info("No author found in GitHub, new author id created:" + str(author_id))
             __update_commit_info(id_project, sha, author_id)
         counter += 1

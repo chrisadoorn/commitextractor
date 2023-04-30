@@ -1,5 +1,6 @@
 import logging
 
+from src.author_identifier.api_requester import ApiCommitRequester
 from src.utils import configurator, db_postgresql
 from src.repo_extractor import hashing
 
@@ -37,6 +38,18 @@ def _check_parallelization() -> bool:
     return number_of_processes > 0
 
 
+# gecontroleerd wordt of er een geldige accesstoken aanwwezig is.
+# om dit te controleren wordt de eerste commit van dit project opgevraagd.
+def _check_gh_token() -> bool:
+    try:
+        json_result = ApiCommitRequester.get_github_commit_info(project='chrisadoorn/commitextractor',
+                                                                commit_sha='51e3ea731fa6967231566562a7af532f7c6ffc1d')
+        return json_result[0]['committer']['login'] == 'chrisadoorn'
+    except Exception as e:
+        logging.exception(e)
+        return False
+
+
 # check_dependencies runs all checks, and logs their results.
 # return true if all checks succeed, false otherwise.
 def check_dependencies() -> bool:
@@ -53,6 +66,10 @@ def check_dependencies() -> bool:
     # controle of parallelization is geconfigureerd
     check_value = _check_parallelization()
     logging.info('Checking: check parallelization...............[' + str(check_value) + ']')
+    checkall = checkall and check_value
+    # controle of github personal access token is geconfigureerd
+    check_value = _check_gh_token()
+    logging.info('Checking: check pgithub access token..........[' + str(check_value) + ']')
     checkall = checkall and check_value
 
     return checkall

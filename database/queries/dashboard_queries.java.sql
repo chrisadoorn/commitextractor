@@ -67,6 +67,28 @@ set processtap = 'extractie'
    ,resultaat = 'verwerkt'
 where id = 184823;
 
+-- opnieuw uitvoeren van uitgevallen stap
+update verwerk_project 
+set processtap = 'extractie'
+   ,resultaat = 'verwerkt'
+where processtap = 'identificatie'
+and resultaat = 'mislukt';
+
+update verwerk_project 
+set processtap = 'extractie'
+   ,resultaat = 'verwerkt'
+where id in (184852, 184840, 184844);   
+
+
+-- blok iedere verdere verwerking
+update processor 
+set status = 'geblokt';
+
+-- gooi autor info weer leeg voor herstest
+update commitinfo 
+set author_id = null 
+where idproject in (184852, 184840, 184844);   
+
 
 select 
 c.id, count(b.idcommit) as bestandswijzing_aantal
