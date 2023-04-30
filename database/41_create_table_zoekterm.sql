@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS zoekterm;
 CREATE TABLE IF NOT EXISTS zoekterm
 (
     id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
+    extensie character varying NOT NULL,
     zoekwoord character varying NOT NULL,
     CONSTRAINT zoekterm_pkey PRIMARY KEY (id)
 )

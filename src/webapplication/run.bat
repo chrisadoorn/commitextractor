@@ -1,1 +1,1 @@
-set PYTHONPATH=%PYTHONPATH%;C:\you path\to\python\lib\site-packages
+set PYTHONPATH=%PYTHONPATH%;C:\Python310\lib\site-packages
