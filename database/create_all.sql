@@ -1,7 +1,7 @@
 -- Deze file bevat de SQL statements om de database te initialiseren
 -- De statements zijn in de juiste volgorde geplaatst
 -- Er moet al een schema aanwezig zijn, de naam kan met set schema worden aangepast
-set schema 'test_mc';
+set schema 'test_sample';
 
 -- Tabellen
 --10
@@ -135,12 +135,6 @@ CREATE TABLE IF NOT EXISTS zoekterm
     extensie character varying NOT NULL,
     zoekwoord character varying NOT NULL
 );
-
-
-ALTER TABLE IF EXISTS zoekterm
-    ADD CONSTRAINT uc_zoekwoord UNIQUE (zoekwoord);
-
-
 
 --42
 CREATE TABLE IF NOT EXISTS bestandswijziging_info

@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 from datetime import datetime
 from multiprocessing import Process
@@ -6,8 +7,8 @@ from multiprocessing import Process
 import psutil as psutil
 from peewee import *
 
-from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, \
-    ManualChecking, pg_db_schema, TempDiffTextAnalysis
+from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, pg_db_schema, \
+    TempDiffTextAnalysis
 from src.repo_extractor.commitextractor import extract_repository
 from src.utils import configurator
 from src.utils.read_diff import ReadDiff
@@ -23,7 +24,7 @@ def initialize():
 
 def create_tables():
     pg_db.create_tables(
-        [GhSearchSelection, Selectie, Project, CommitInfo, BestandsWijziging, ManualChecking, TempDiffTextAnalysis],
+        [TempDiffTextAnalysis],
         safe=True)
 
 
@@ -31,7 +32,6 @@ def process_repos(subproject):
     ghs = GhSearchSelection.select().where(GhSearchSelection.sub_study == subproject,
                                            GhSearchSelection.meta_import_started_at.is_null(),
                                            GhSearchSelection.meta_import_ready_at.is_null())
-
     selection = Selectie()
     selection.language = subproject
     selection.save()
@@ -154,7 +154,8 @@ def __analyse_diffs(thread_id, idva_from, idva_to):
 
 NUMBER_OF_PROCESSES = 32
 
-if __name__ == '__main__':
+
+def analyse_b_wijzigingen(language):
     try:
         print(psutil.cpu_count())
         initialize()
@@ -163,22 +164,20 @@ if __name__ == '__main__':
         # GhSearchSampleRequester.get_sample('Elixir')
         # process_repos('Elixir')
         # fetch_authors_per_commit()
-        for z in range(0, 100):
+        for z in range(0, 1):
             print("run: " + str(z))
-            nr_of_commits = BestandsWijziging.select(fn.MAX(BestandsWijziging.id)).scalar()
-            result = TempDiffTextAnalysis.select(fn.MAX(TempDiffTextAnalysis.idbestandswijziging)).scalar()
-            if result is None:
-                result = 0
-            if result >= nr_of_commits:
-                break
-
+            hoogste_bw_id = BestandsWijziging.select(fn.MAX(BestandsWijziging.id)).scalar()
+            laagste_bw_id = BestandsWijziging.select(fn.MIN(BestandsWijziging.id)).scalar()
+            verschil = hoogste_bw_id - laagste_bw_id
+            stap_grootte = math.ceil(verschil / NUMBER_OF_PROCESSES)
             processes = []
-            step = 1000
+            step = stap_grootte
+            start_id = laagste_bw_id
             c = 0
             for i in range(0, NUMBER_OF_PROCESSES):
-                t = Process(target=__analyse_diffs, args=(c, result, result + step))
+                t = Process(target=__analyse_diffs, args=(c, start_id, start_id + step))
                 processes.append(t)
-                result += step
+                start_id += step
                 c += 1
 
             for p in processes:
@@ -192,3 +191,92 @@ if __name__ == '__main__':
     except Exception as e:
         logging.error('Crashed at:' + str(datetime.now()))
         logging.exception(e)
+
+
+def copy_bestands_wijziging():
+    # take_sample()
+    setattr(CommitInfo._meta, "schema", "test_sample")
+    commit_info = CommitInfo.select()  # neem alle projecten van de test_sample schema
+    bestandwijziging = []
+    setattr(BestandsWijziging._meta, "schema", "prod")
+    for ci in commit_info:
+        bw = BestandsWijziging.select().where(BestandsWijziging.idcommit == ci.id)
+        bestandwijziging.extend(bw)
+    setattr(BestandsWijziging._meta, "schema", "test_sample")
+    for b in bestandwijziging:
+        bw = BestandsWijziging()
+        bw.id = b.id
+        bw.idcommit = b.idcommit
+        bw.locatie = b.locatie
+        bw.filename = b.filename
+        bw.extensie = b.extensie
+        bw.difftext = b.difftext
+        bw.tekstachteraf = b.tekstachteraf
+        bw.save(force_insert=True)
+
+
+def copy_commit_info_schema():
+    # take_sample()
+    setattr(Project._meta, "schema", "test_sample")
+    test_sample_schema_projecten = Project.select()  # neem alle projecten van de test_sample schema
+
+    commit_info = []
+    setattr(CommitInfo._meta, "schema", "prod")
+
+    for p in test_sample_schema_projecten:
+        ci = CommitInfo.select().where(CommitInfo.idproject == p.id)
+        commit_info.extend(ci)
+
+    setattr(CommitInfo._meta, "schema", "test_sample")
+    for c in commit_info:
+        ci = CommitInfo()
+        ci.id = c.id
+        ci.idproject = c.idproject
+        ci.commitdatumtijd = c.commitdatumtijd
+        ci.hashvalue = c.hashvalue
+        ci.username = c.username
+        ci.emailaddress = c.emailaddress
+        ci.remark = c.remark
+        ci.author_id = c.author_id
+        ci.save(force_insert=True)
+
+
+def take_sample():
+    # schema = 'prod'
+    setattr(Project._meta, "schema", "prod")
+    prod_schema = Project.select().order_by(fn.Random())
+    projectsList = []
+    for s in prod_schema.limit(100):
+        print(s.naam)
+        projectsList.append(s)
+
+    # schema = 'test_sample
+    setattr(Project._meta, "schema", "test_sample")
+
+    for p in projectsList:
+        pr = Project()
+        pr.id = p.id
+        pr.naam = p.naam
+        pr.idselectie = p.idselectie
+        pr.main_language = p.main_language
+        pr.is_fork = p.is_fork
+        pr.license = p.license
+        pr.forks = p.forks
+        pr.contributors = p.contributors
+        pr.project_size = p.project_size
+        pr.create_date = p.create_date
+        pr.last_commit = p.last_commit
+        pr.number_of_languages = p.number_of_languages
+        pr.languages = p.languages
+        pr.aantal_commits = p.aantal_commits
+        pr.save(force_insert=True)
+
+
+def copy_sample():
+    take_sample()
+    copy_commit_info_schema()
+    copy_bestands_wijziging()
+
+
+if __name__ == '__main__':
+    analyse_b_wijzigingen('Elixir')
