@@ -1,6 +1,6 @@
 import logging
 
-from src.requester.api_requester import ApiCommitRequester
+from src.author_identifier.api_requester import ApiCommitRequester
 from src.utils import configurator, db_postgresql
 from src.repo_extractor import hashing
 

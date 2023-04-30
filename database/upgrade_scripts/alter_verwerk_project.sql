@@ -6,7 +6,7 @@ ALTER TABLE IF EXISTS verwerk_project
 ALTER TABLE IF EXISTS verwerk_project
     RENAME einde_extractie TO einde_verwerking;
 
-ALTER TABLE IF EXISTS test.verwerk_project
+ALTER TABLE IF EXISTS verwerk_project
     ADD COLUMN processtap character varying;
 
 DROP PROCEDURE IF EXISTS verwerk_volgend_project(character, bigint, character varying, integer);
