@@ -10,9 +10,8 @@ RUST_MULTI_LINE_COMMENT_STOP = r'\*/'  # Rust single line comment
 STRING_QUOTE = '"'  # String quote, luckily same for all languages,
 CHAR_QUOTE = '\''  # Char quote, luckily same for all 3 languages,
 
-ELIXIR_MC_INDICATOR = ["defmodule", "spawn", "spawn_link", "spawn_monitor", "self", "send", "receive", "Agent", "Application",
-                       "Config", "Config.Provider", "Config.Reader", "DynamicSupervisor", "GenServer", "Node",
-                       "Process", "Registry", "Supervisor", "Task", "Task.Supervisor", "Mix.Config"]
+ELIXIR_MC_INDICATOR = ["spawn", "spawn_link", "spawn_monitor", "send", "self", "receive", "flush" "Agent.",
+                       "GenServer", "Node", "Process", "Supervisor", "Task"]
 
 JAVA_MC_INDICATOR = ["Thread"]
 RUST_MC_INDICATOR = ["Thread"]
@@ -52,7 +51,7 @@ class ReadDiff:
                 self.multi_line_comment_start = JAVA_MULTI_LINE_COMMENT_START
                 self.multi_line_comment_end = JAVA_MULTI_LINE_COMMENT_END
 
-        self.KEEP_CHARS = r"[^a-zA-Z._/\*#\\'\"]"
+        self.KEEP_CHARS = r"[^a-zA-Z_/\*#\\'\"]"
 
     def read_diff_text(self, chunk=''):
         """
