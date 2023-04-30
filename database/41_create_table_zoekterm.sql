@@ -25,7 +25,7 @@ COMMENT ON TABLE zoekterm
     IS 'basale zoektermen';
 
 ALTER TABLE IF EXISTS zoekterm
-    ADD CONSTRAINT uc_zoekwoord UNIQUE (zoekwoord);
+    ADD CONSTRAINT uc_zoekwoord UNIQUE (zoekwoord, extensie);
 
 COMMENT ON CONSTRAINT uc_zoekwoord ON zoekterm
     IS 'zoekwoorden moeten uniek zijn';
