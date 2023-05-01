@@ -74,7 +74,7 @@ def analyze_by_project(projectname, project_id):
 
 
 def analyze(process_identifier):
-    oude_processtap = 'extractie'
+    oude_processtap = 'identificatie'
     nieuwe_processtap = 'zoekterm_controleren'
 
     try:

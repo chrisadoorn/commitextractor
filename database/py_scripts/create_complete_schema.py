@@ -25,7 +25,7 @@ file_names = ['10_create_table_selectie.sql'
     , '34_create_procedure_verwerk_volgend_project.sql'
     , '41_create_table_zoekterm.sql'
     , '42_create_table_bestandswijziging_info.sql'
-    , '42_create_table_bestandswijziging_info.sql'
+    , '43_create_table_bestandswijziging_zoekterm.sql'
     , '51_create_table_java_zoekterm.sql'
               ]
 

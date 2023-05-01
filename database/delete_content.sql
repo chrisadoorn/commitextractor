@@ -1,15 +1,15 @@
 set schema 'test';
 
---voor load projecten
-delete from  test.selectie;
-delete from  test.project;
-
 --na load projecten
-delete from  test.verwerk_project;
-delete from  test.verwerking_geschiedenis;
-delete from  test.processor;
-delete from  test.bestandswijziging_zoekterm;
-delete from  test.bestandswijziging_info;
-delete from  test.bestandswijziging;
-delete from  test.commitinfo;
+delete from  verwerk_project;
+delete from  verwerking_geschiedenis;
+delete from  processor;
+delete from  bestandswijziging_zoekterm;
+delete from  bestandswijziging_info;
+delete from  bestandswijziging;
+delete from  commitinfo;
+
+--voor load projecten
+delete from  project;
+delete from  selectie;
 

@@ -161,3 +161,4 @@ cython_debug/
 /var/commitextractor.seed
 /src/db_analysis/fill_analysis_table2.py
 /src/utils/read_diff_rust.py
+/database/temp/
