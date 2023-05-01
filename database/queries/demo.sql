@@ -5,10 +5,10 @@ select p.naam from project p;
 select vg.project_naam, vg.processtap, vg.resultaat, vg.start_verwerking, vg.einde_verwerking from verwerking_geschiedenis vg;
 
 -- aantal commits 
-select count(id) from commitinfo; -- 265
+select count(id) from commitinfo; -- 266
 
 -- aantal bestandswijzigingen
-select count(id) from bestandswijziging; -- 651
+select count(id) from bestandswijziging; -- 655
 
 -- aantal programmeurs per project
 select count(distinct author_id) as aantal_programmeurs, idproject  
@@ -42,7 +42,7 @@ select bz.zoekterm, b.difftext, b.tekstachteraf
 from bestandswijziging b
     ,bestandswijziging_zoekterm bz 
 where bz.idbestandswijziging = b.id 
-and bz.falsepositive = true 
+and bz.falsepositive = false 
 limit 1;
 
 
