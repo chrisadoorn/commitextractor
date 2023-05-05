@@ -25,10 +25,10 @@ order by status;
 
 select * from test.processor;
 
-SELECT max(einde_extractie) - min(start_extractie) as tijdsduur
-     , min(start_extractie)as begintijd
-	 , max(einde_extractie) as eindtijd
-	FROM prod.verwerk_project
+SELECT max(einde_verwerking) - min(start_verwerking) as tijdsduur
+     , min(start_verwerking)as begintijd
+	 , max(einde_verwerking) as eindtijd
+	FROM verwerk_project
 where einde_extractie > '2023-04-05 17:59:00';
 
 select count(1) from test.commit;
@@ -69,9 +69,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'extractie'
+set processtap = 'identificatie'
    ,resultaat = 'verwerkt'
-where processtap = 'identificatie'
+   ,processor = null
+   ,status = 'gereed'
+where processtap = 'zoekterm_vinden'
 and resultaat = 'mislukt';
 
 update verwerk_project 
