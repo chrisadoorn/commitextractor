@@ -1,20 +1,15 @@
-import re
+import string
 
-JAVA_SINGLE_LINE_COMMENT = '//'  # Java single line comment
-JAVA_MULTI_LINE_COMMENT_START = r'/\*'  # Java single line comment
-JAVA_MULTI_LINE_COMMENT_END = r'\*/'  # Java single line comment
-ELIXIR_SINGLE_LINE_COMMENT = '#'  # Elixir single line comment
-RUST_SINGLE_LINE_COMMENT = '//'  # Rust single line comment
-RUST_MULTI_LINE_COMMENT_START = r'/\*'  # Rust single line comment
-RUST_MULTI_LINE_COMMENT_STOP = r'\*/'  # Rust single line comment
-STRING_QUOTE = '"'  # String quote, luckily same for all languages,
-CHAR_QUOTE = '\''  # Char quote, luckily same for all 3 languages,
 
-ELIXIR_MC_INDICATOR = ["spawn", "spawn_link", "spawn_monitor", "send", "self", "receive", "flush" "Agent.",
-                       "GenServer", "Node", "Process", "Supervisor", "Task"]
+ELIXIR_MC_INDICATOR = ["spawn", "spawn_link", "spawn_monitor", "send", "self", "receive", "flush" "Agent", "GenServer",
+                       "Node", "Process", "Supervisor", "Task"]
 
 JAVA_MC_INDICATOR = ["Thread"]
 RUST_MC_INDICATOR = ["Thread"]
+
+JAVA_IDENTIFIER_GRAMMAR = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '$'] + [str(i) for i in
+                                                                                                      list(
+                                                                                                          range(0, 10))]
 
 
 class InvalidDiffText(Exception):
@@ -36,22 +31,14 @@ class ReadDiff:
         self.lines = ""
         self.multi_line_comment_start = None
         self.multi_line_comment_end = None
+        self.language = language.upper()
         match language.upper():
             case "JAVA":
-                self.single_line_comment = JAVA_SINGLE_LINE_COMMENT
                 self.mc_indicators = JAVA_MC_INDICATOR if zoeklijst is None else zoeklijst
-                self.multi_line_comment_start = JAVA_MULTI_LINE_COMMENT_START
-                self.multi_line_comment_end = JAVA_MULTI_LINE_COMMENT_END
             case "ELIXIR":
-                self.single_line_comment = ELIXIR_SINGLE_LINE_COMMENT
                 self.mc_indicators = ELIXIR_MC_INDICATOR if zoeklijst is None else zoeklijst
             case "RUST":
-                self.single_line_comment = RUST_SINGLE_LINE_COMMENT
                 self.mc_indicators = RUST_MC_INDICATOR if zoeklijst is None else zoeklijst
-                self.multi_line_comment_start = JAVA_MULTI_LINE_COMMENT_START
-                self.multi_line_comment_end = JAVA_MULTI_LINE_COMMENT_END
-
-        self.KEEP_CHARS = r"[^a-zA-Z_/\*#\\'\"]"
 
     def read_diff_text(self, chunk=''):
         """
@@ -130,45 +117,102 @@ class ReadDiff:
         if line.startswith('-') or line.startswith('+'):
             line = line[1:].strip()
             if len(line) > 0:
-                mc_found = self.__find_all_primitives(line)
+                if self.language == "JAVA" or self.language == "RUST":
+                    mc_found = self.__find_all_identifiers_java(line)
+                else:
+                    mc_found = self.__find_all_identifiers_elixir(line)
             else:
                 mc_found = []  # empty line, no code
             return line, mc_found
         else:
             return line, []
 
-    def __find_all_primitives(self, line):
+    def __find_all_identifiers_java(self, text: str):
         """
-        Find all primitives in a line of code, also excludes text within string literals
-        Per line of text.
-        :param line: a line stripped of comments and first character
-        :return: array containing all primitives found in the line
+        Find all identifiers in a line of java text
+        :param text: 
+        :return:
         """
+        start_word = False
+        word = ""
         mc_found = []
-        temp_line = re.sub(STRING_QUOTE, " " + STRING_QUOTE + " ", line)
-        temp_line = re.sub(CHAR_QUOTE, " " + CHAR_QUOTE + " ", temp_line)
-        if self.multi_line_comment_start is not None:
-            temp_line = re.sub(self.multi_line_comment_start, " " + self.multi_line_comment_start + " ", temp_line)
-        if self.multi_line_comment_end is not None:
-            temp_line = re.sub(self.multi_line_comment_end, " " + self.multi_line_comment_end + " ", temp_line)
-        temp_line = re.sub(self.single_line_comment, " " + self.single_line_comment + " ", temp_line)
-        # vervang alles dat niet een letter, punt of underscore is door een spatie
-        # en split vervolgens op spaties
-        temp_line = re.sub(self.KEEP_CHARS, " ", temp_line)
-        start_quote_found = False
-        for word in temp_line.split():
-            stripped_word = word.strip()
-            if not start_quote_found and (stripped_word == STRING_QUOTE or stripped_word == CHAR_QUOTE):
-                start_quote_found = True
-                continue  # begin string literal, volgende woorden kunnen geen keywords zijn
-            if start_quote_found and (stripped_word == STRING_QUOTE or stripped_word == CHAR_QUOTE):
-                start_quote_found = False  # einde string literal, volgende woorden kunnen weer keywords zijn
-            if start_quote_found:
-                continue  # binnen string literal
-            if stripped_word == self.single_line_comment or stripped_word == self.multi_line_comment_start:
-                break  # alles hierna is commentaar, verder zoeken is niet nodig
-            if stripped_word == self.multi_line_comment_end:
-                mc_found = []  # alles hiervoor stond in een multiline comment, dus geen mc's gevonden, hierna  # kunnen wel weer keywords voorkomen
-            if stripped_word not in mc_found and stripped_word in self.mc_indicators:
-                mc_found.append(stripped_word)
+        string_literal_found = False
+        start_comment_found = False
+        end_comment_found = False
+        for c in list(text):
+            if c == '"':
+                if string_literal_found:
+                    string_literal_found = False
+                else:
+                    string_literal_found = True
+            if string_literal_found:
+                continue
+
+            if c == '/':
+                if start_comment_found:
+                    break
+                elif end_comment_found:
+                    end_comment_found = False
+                    identifiers = []
+                    continue
+                else:
+                    start_comment_found = True
+                    continue
+
+            if c == '*':
+                if start_comment_found:
+                    break
+                else:
+                    end_comment_found = True
+                    continue
+
+            start_comment_found = False
+            if c in JAVA_IDENTIFIER_GRAMMAR:
+                word += c
+                start_word = True
+            else:
+                if start_word:
+                    start_word = False
+                    if word not in mc_found and word in self.mc_indicators:
+                        mc_found.append(word)
+                    word = ""
+        if start_word:
+            if word not in mc_found and word in self.mc_indicators:
+                mc_found.append(word)
+        return mc_found
+
+    def __find_all_identifiers_elixir(self, text: str):
+        """
+        Find all identifiers in a line of elixir text
+        :param text:
+        :return:
+        """
+        start_word = False
+        word = ""
+        mc_found = []
+        string_literal_found = False
+        for c in list(text):
+            if c == '"':
+                if string_literal_found:
+                    string_literal_found = False
+                else:
+                    string_literal_found = True
+            if string_literal_found:
+                continue
+
+            if c == '#':
+                break
+
+            if c in JAVA_IDENTIFIER_GRAMMAR:
+                word += c
+                start_word = True
+            else:
+                if start_word:
+                    start_word = False
+                    if word not in mc_found and word in self.mc_indicators:
+                        mc_found.append(word)
+                    word = ""
+        if start_word:
+            if word not in mc_found and word in self.mc_indicators:
+                mc_found.append(word)
         return mc_found
