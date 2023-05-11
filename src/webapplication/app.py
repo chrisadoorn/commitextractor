@@ -59,7 +59,7 @@ def form_changes_for_projects(select_id, false_positive):
         ghs: Project = Project.select().where(Project.id == select_id)
         commits: list[any] = []
         for (bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-             hashvalue, remark) in cursor.fetchall():
+             remark, hashvalue) in cursor.fetchall():
             selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
             print(selections_with_mc)
             commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
