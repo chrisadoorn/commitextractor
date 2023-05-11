@@ -163,7 +163,7 @@ class ReadDiff:
                     break
                 elif end_comment_found:
                     end_comment_found = False
-                    identifiers = []
+                    mc_found = []
                     continue
                 else:
                     start_comment_found = True
