@@ -17,19 +17,20 @@ WHERE status='';
 
 
 
-	
-select status, resultaat, count(status) as c_status, count(resultaat) as c_resultaat
-from test.verwerk_project
-group by status, resultaat
-order by status;
+-- kijk hoever de verwerking van een bepaalde processtap is. 	
+select processtap, status, resultaat, count(status) as c_status, count(resultaat) as c_resultaat
+from verwerk_project
+group by processtap, status, resultaat
+order by processtap, status;
 
 select * from test.processor;
 
+-- hoelang heeft een bepaalde stap geduurd? 
 SELECT max(einde_verwerking) - min(start_verwerking) as tijdsduur
      , min(start_verwerking)as begintijd
 	 , max(einde_verwerking) as eindtijd
 	FROM verwerk_project
-where einde_extractie > '2023-04-05 17:59:00';
+where processtap = 'zoekterm_vinden';
 
 select count(1) from test.commit;
 select count(1) from test.bestandswijziging;
@@ -81,6 +82,16 @@ set processtap = 'extractie'
    ,resultaat = 'verwerkt'
 where id in (184852, 184840, 184844);   
 
+--opnieuw uitvoeren van zoeken_fijn
+update verwerk_project 
+set processtap = 'zoekterm_vinden'
+   ,resultaat = 'verwerkt'
+   ,processor = null
+   ,status = 'gereed'
+where processtap = 'zoekterm_controleren'
+and resultaat = 'verwerkt';
+
+
 
 -- blok iedere verdere verwerking
 update processor 
@@ -109,6 +120,7 @@ p.id, p.naam,
 from project p
 order by commit_aantal asc;
 
+-- aantal commits en bestandswijzigingen per project
 select 
 p.id, p.naam, 
 ( select   count(c.idproject) as commit_aantal
@@ -122,7 +134,8 @@ p.id, p.naam,
                       where c.idproject = p.id)
 )
 from project p
-order by commit_aantal asc;
+where p.id in ( select distinct(c1.idproject) from commitinfo c1)
+order by bestandswijzing_aantal asc;
 
 select 
 b.id,
@@ -144,8 +157,38 @@ b.id,
 		and zoekterm = '-')) as aantal_oude_regels		
 from bestandswijziging b
 
+-- aantal bestanden met gevonden zoektermen per project
+select p.naam, count(p.naam) as aantal
+from bestandswijziging_zoekterm bz,
+     bestandswijziging b,
+     commitinfo c,
+     project p 
+where bz.idbestandswijziging = b.id
+and   b.idcommit = c.id 
+and   c.idproject = p.id 
+group by p.naam
+order by 2 DESC;   
+
 
 -- zet testdata in 
 
 insert into bestandswijziging_zoekterm (idbestandswijziging, zoekterm)
 select b.id, 'synchronized' from bestandswijziging b;
+
+
+-- select text van bestandswijziging
+select 
+bz.zoekterm, bz.falsepositive , bz.regelnummers, 
+b.difftext, b.tekstachteraf  
+from bestandswijziging_zoekterm bz 
+    ,bestandswijziging b
+    ,commitinfo c
+    ,project p 
+where bz.idbestandswijziging = b.id
+and   b.idcommit = c.id
+and   c.idproject = p.id 
+and   p.naam = 'dockstore/dockstore'
+limit 1;
+
+
+
