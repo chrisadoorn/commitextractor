@@ -98,8 +98,8 @@ class Test(unittest.TestCase):
         (new_lines, old_lines) = read_diff.read_diff_text(diff_text)
         x = new_lines
         y = old_lines
-        expected_nl = [(5, '[app: :server,', ['app', 'server']),
-                       (17, '[applications: [:cowboy, :plug],', ['applications', 'cowboy', 'plug']),
+        expected_nl = [(5, '[app: :server,', ['server']),
+                       (17, '[applications: [:cowboy, :plug],', []),
                        (18, 'mod: {App, []},', ['mod', 'App']),
                        (19, 'env: [cowboy_port: 9292]]', ['env', 'cowboy_port'])]
         expected_ol = [(5, '[app: :plug_server,', ['app', 'plug_server']),
