@@ -82,6 +82,16 @@ set processtap = 'extractie'
    ,resultaat = 'verwerkt'
 where id in (184852, 184840, 184844);   
 
+--opnieuw uitvoeren van zoeken_fijn
+update verwerk_project 
+set processtap = 'zoekterm_vinden'
+   ,resultaat = 'verwerkt'
+   ,processor = null
+   ,status = 'gereed'
+where processtap = 'zoekterm_controleren'
+and resultaat = 'verwerkt';
+
+
 
 -- blok iedere verdere verwerking
 update processor 
@@ -164,3 +174,21 @@ order by 2 DESC;
 
 insert into bestandswijziging_zoekterm (idbestandswijziging, zoekterm)
 select b.id, 'synchronized' from bestandswijziging b;
+
+
+-- select text van bestandswijziging
+select 
+bz.zoekterm, bz.falsepositive , bz.regelnummers, 
+b.difftext, b.tekstachteraf  
+from bestandswijziging_zoekterm bz 
+    ,bestandswijziging b
+    ,commitinfo c
+    ,project p 
+where bz.idbestandswijziging = b.id
+and   b.idcommit = c.id
+and   c.idproject = p.id 
+and   p.naam = 'dockstore/dockstore'
+limit 1;
+
+
+
