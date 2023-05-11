@@ -25,7 +25,9 @@
                 <td><a href="https://github.com/{{ project.naam }}" target="_blank">github.com/{{
                     project.naam }}</a></td>
                 <td><a href="/showgithub/{{ project.id }}/commitsonly/">show imported commits</a><br>
-                <a href="/showgithub/{{ project.id }}/detail/">show imported detail</a></td>
+                    <a href="/showgithub/{{ project.id }}/detail/">show imported detail</a><br>
+                    <a href="/showgithub/{{ project.id }}/change/false/">show found changes</a><br>
+                    <a href="/showgithub/{{ project.id }}/change/true/">show false positives</a></td>
                 <td>
                     <a onClick="newSrc({{project.id}}); return false;">opmerkingen
                     </a>

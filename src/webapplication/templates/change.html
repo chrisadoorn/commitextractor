@@ -1,0 +1,72 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h1><a href="/">{{ selection.naam }}</a></h1>
+{% if back_from_int >= 0: %}
+<a href="/showgithub/{{ selection.id }}/change/{{ back_from_int }}/{{ back_to_int }}/{{false_positive}}/"> previous </a><br>
+{% endif %}
+<a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">id bw zoekterm</th>
+        <th scope="col">zoekterm</th>
+        <th scope="col">falsepositive</th>
+        <th scope="col">regelnummers</th>
+        <th scope="col">id bestandswijziging</th>
+        <th scope="col">remark</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for commit in commits %}
+    <tr>
+        <td>{{ commit[0] }}</td>
+        <td>{{ commit[1] }}</td>
+        <td>{{ commit[2] }}</td>
+        <td>{{ commit[3] }}</td>
+        <td>{{ commit[4] }}</td>
+        <td>{{ commit[6] }}</td>
+    </tr>
+    <tr>
+        <td colspan="6"> {% for selection in commit[7] %}
+            <div class="content" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: stretch; margin: 5px">
+                <div style="margin: 5px">
+                    <div><b>difftext</b></div>
+                    {% if selection.difftext %}
+                    <div class="box">
+                        <pre>{{ selection.difftext }}</pre>
+                    </div>
+                    {% else %}
+                    <div>
+                        <pre>geen difftext, file verplaatst</pre>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <div style="margin: 5px">
+                    <div><b>{{ selection.filename }} after update</b></div>
+                    {% if selection.tekstachteraf %}
+                    <div class="box">
+                        <pre>{{ selection.tekstachteraf }}</pre>
+                    </div>
+                    {% else %}
+                    <div>
+                        <pre>file verwijderd of verplaatst</pre>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+            <hr>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% if back_from_int >= 0: %}
+<a href="/showgithub/{{ selection.id }}/change/{{ back_from_int }}/{{ back_to_int }}/{{false_positive}}/"> previous </a> <br>
+{% endif %}
+<a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
+
+{% endblock %}
