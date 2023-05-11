@@ -47,7 +47,7 @@ def form_commits_for_projects(select_id):
 def form_changes_for_projects(select_id, false_positive):
     try:
         sql = "select bz.id, bz.zoekterm, bz.falsepositive, bz.regelnummers, bz.idbestandswijziging, " \
-              "c.commitdatumtijd, c.remark  " \
+              "c.commitdatumtijd, c.remark, c.hashvalue  " \
               "from {sch}.bestandswijziging_zoekterm bz, {sch}.bestandswijziging b, {sch}.commitinfo c " \
               "where  bz.idbestandswijziging = b.id " \
               "and bz.falsepositive = {false_positive} " \
@@ -59,11 +59,11 @@ def form_changes_for_projects(select_id, false_positive):
         ghs: Project = Project.select().where(Project.id == select_id)
         commits: list[any] = []
         for (bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-             remark) in cursor.fetchall():
+             hashvalue, remark) in cursor.fetchall():
             selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
             print(selections_with_mc)
             commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
-                            selections_with_mc))
+                            hashvalue, selections_with_mc))
         return render_template("change.html", commits=commits, selection=ghs[0], from_int=1, to_int=2,
                                back_from_int=-1, back_to_int=0, false_positive=false_positive)
     except Exception as e:
@@ -73,7 +73,7 @@ def form_changes_for_projects(select_id, false_positive):
 @app.route("/showgithub/<select_id>/change/<int:from_int>/<int:to_int>/<false_positive>/")
 def form_changes_for_projects_paging(select_id, from_int=0, to_int=1, false_positive='false'):
     sql = sql = "select bz.id, bz.zoekterm, bz.falsepositive, bz.regelnummers, bz.idbestandswijziging, " \
-                "c.commitdatumtijd, c.remark  " \
+                "c.commitdatumtijd, c.remark, c.hashvalue  " \
                 "from {sch}.bestandswijziging_zoekterm bz, {sch}.bestandswijziging b, {sch}.commitinfo c " \
                 "where  bz.idbestandswijziging = b.id " \
                 "and bz.falsepositive = {false_positive} " \
@@ -86,11 +86,11 @@ def form_changes_for_projects_paging(select_id, from_int=0, to_int=1, false_posi
     commits: list[any] = []
     for (
             bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-            remark) in cursor.fetchall():
+            remark, hashvalue) in cursor.fetchall():
         selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
         print(selections_with_mc)
         commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
-                        selections_with_mc))
+                        hashvalue, selections_with_mc))
     return render_template("change.html", commits=commits, selection=ghs[0], from_int=from_int + 1, to_int=to_int + 1,
                            back_from_int=from_int - 1, back_to_int=to_int - 1, false_positive=false_positive)
 
@@ -165,23 +165,7 @@ def manual_comments():
                        exclude_reason=manual_checking.exclude_reason)
 
 
-def analyse_diff(commit_id):
-    selections = BestandsWijziging.select().where(BestandsWijziging.idcommit == commit_id,
-                                                  BestandsWijziging.extensie != '.md')
-    selections_with_mc_temp = []
-    try:
-        for sel in selections:
-            dif = readDiff.read_diff_text(sel.difftext)
-            sel.diff_nl = create_string(dif[0])
-            sel.diff_ol = create_string(dif[1])
-            selections_with_mc_temp.append(sel)
-        return selections_with_mc_temp
-    except Exception as e:
-        print(e)
-
-
-def analyse_diff_by_bwid(bestandswijziging_id):
-    selections = BestandsWijziging.select().where(BestandsWijziging.id == bestandswijziging_id)
+def bestandswijzigingen_to_list(selections):
     selections_list = []
     try:
         for sel in selections:
@@ -192,6 +176,17 @@ def analyse_diff_by_bwid(bestandswijziging_id):
         return selections_list
     except Exception as e:
         print(e)
+
+
+def analyse_diff(commit_id):
+    selections = BestandsWijziging.select().where(BestandsWijziging.idcommit == commit_id,
+                                                  BestandsWijziging.extensie != '.md')
+    return bestandswijzigingen_to_list(selections)
+
+
+def analyse_diff_by_bwid(bestandswijziging_id):
+    selections = BestandsWijziging.select().where(BestandsWijziging.id == bestandswijziging_id)
+    return bestandswijzigingen_to_list(selections)
 
 
 def create_string(input_list: list[tuple[int, str, [str]]]) -> str:
