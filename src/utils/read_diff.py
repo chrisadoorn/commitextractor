@@ -61,7 +61,17 @@ class ReadDiff:
         self.linecounter = (0, 0)
         for line in self.lines:
             self.__process_line(line)
+        self.__check_with_removed_lines()
         return self.new_lines, self.removed_lines
+
+    def __check_with_removed_lines(self):
+        for new_lnr, new_line, new_keys in self.new_lines:
+            for rem_lnr, rem_line, rem_keys in self.removed_lines:
+                if new_lnr == rem_lnr:
+                    new_temp_keys = new_keys.copy()
+                    for key in new_temp_keys:
+                        if key in rem_keys:
+                            new_keys.remove(key)
 
     def __process_line(self, line) -> None:
         """
@@ -153,7 +163,7 @@ class ReadDiff:
                     break
                 elif end_comment_found:
                     end_comment_found = False
-                    identifiers = []
+                    mc_found = []
                     continue
                 else:
                     start_comment_found = True
