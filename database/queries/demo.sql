@@ -47,6 +47,7 @@ limit 1;
 
 
 
+
 select distinct b.extensie 
 from bestandswijziging b ;
 

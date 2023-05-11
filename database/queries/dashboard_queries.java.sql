@@ -17,19 +17,20 @@ WHERE status='';
 
 
 
-	
-select status, resultaat, count(status) as c_status, count(resultaat) as c_resultaat
-from test.verwerk_project
-group by status, resultaat
-order by status;
+-- kijk hoever de verwerking van een bepaalde processtap is. 	
+select processtap, status, resultaat, count(status) as c_status, count(resultaat) as c_resultaat
+from verwerk_project
+group by processtap, status, resultaat
+order by processtap, status;
 
 select * from test.processor;
 
-SELECT max(einde_extractie) - min(start_extractie) as tijdsduur
-     , min(start_extractie)as begintijd
-	 , max(einde_extractie) as eindtijd
-	FROM prod.verwerk_project
-where einde_extractie > '2023-04-05 17:59:00';
+-- hoelang heeft een bepaalde stap geduurd? 
+SELECT max(einde_verwerking) - min(start_verwerking) as tijdsduur
+     , min(start_verwerking)as begintijd
+	 , max(einde_verwerking) as eindtijd
+	FROM verwerk_project
+where processtap = 'zoekterm_vinden';
 
 select count(1) from test.commit;
 select count(1) from test.bestandswijziging;
@@ -69,9 +70,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'extractie'
+set processtap = 'identificatie'
    ,resultaat = 'verwerkt'
-where processtap = 'identificatie'
+   ,processor = null
+   ,status = 'gereed'
+where processtap = 'zoekterm_vinden'
 and resultaat = 'mislukt';
 
 update verwerk_project 
@@ -107,6 +110,7 @@ p.id, p.naam,
 from project p
 order by commit_aantal asc;
 
+-- aantal commits en bestandswijzigingen per project
 select 
 p.id, p.naam, 
 ( select   count(c.idproject) as commit_aantal
@@ -120,7 +124,8 @@ p.id, p.naam,
                       where c.idproject = p.id)
 )
 from project p
-order by commit_aantal asc;
+where p.id in ( select distinct(c1.idproject) from commitinfo c1)
+order by bestandswijzing_aantal asc;
 
 select 
 b.id,
@@ -141,6 +146,18 @@ b.id,
 		where zoekwijze = 'telling diff regel'
 		and zoekterm = '-')) as aantal_oude_regels		
 from bestandswijziging b
+
+-- aantal bestanden met gevonden zoektermen per project
+select p.naam, count(p.naam) as aantal
+from bestandswijziging_zoekterm bz,
+     bestandswijziging b,
+     commitinfo c,
+     project p 
+where bz.idbestandswijziging = b.id
+and   b.idcommit = c.id 
+and   c.idproject = p.id 
+group by p.naam
+order by 2 DESC;   
 
 
 -- zet testdata in 
