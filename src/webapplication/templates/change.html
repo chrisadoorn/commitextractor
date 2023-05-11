@@ -1,11 +1,21 @@
 {% extends "master.html" %}
 
 {% block content %}
-<h1><a href="/">{{ selection.naam }}</a></h1>
-{% if back_from_int >= 0: %}
-<a href="/showgithub/{{ selection.id }}/change/{{ back_from_int }}/{{ back_to_int }}/{{false_positive}}/"> previous </a><br>
-{% endif %}
-<a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
+<h1> <a href="https://github.com/{{ selection.naam }}/">{{ selection.naam }}</a></h1>
+
+<table class="table">
+    <tbody>
+        <td>{% if back_from_int >= 0: %}
+            <a href="/showgithub/{{ selection.id }}/change/{{ back_from_int }}/{{ back_to_int }}/{{false_positive}}/"> previous </a><br></td>
+            {% endif %}
+        <td>
+            <a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
+        </td>
+    <td>
+        <td><a href="https://github.com/{{ selection.naam }}/commit/{{ commits[0][7] }}" target="_blank">commit op github </a></td>
+    </td>
+    </tbody>
+</table>
 <table class="table">
     <thead>
     <tr>
@@ -26,9 +36,8 @@
         <td>{{ commit[3] }}</td>
         <td>{{ commit[4] }}</td>
         <td>{{ commit[6] }}</td>
-    </tr>
     <tr>
-        <td colspan="6"> {% for selection in commit[7] %}
+        <td colspan="6"> {% for selection in commit[8] %}
             <div class="content" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: stretch; margin: 5px">
                 <div style="margin: 5px">
                     <div><b>difftext</b></div>
