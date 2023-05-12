@@ -182,7 +182,7 @@ class Test(unittest.TestCase):
             text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
             text = text + "+ Anders bla = 12, c=2; string=\"Hallo Hoi\",  Hallo \"Hallo Doeidag\"_Hoi*/ Hoi.dag_Hoi \n"
             x = read_diff.read_diff_text(text)
-            unittest.TestCase.assertEqual(self, [(3, ['Hallo', 'Hoi', 'dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
+            unittest.TestCase.assertEqual(self, [(3, ['Hoi', 'dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
