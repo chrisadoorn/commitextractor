@@ -4,7 +4,7 @@ from src.utils import configurator
 
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
-                           host='localhost', port=params.get('port'))
+                           host=params.get('host'), port=params.get('port'))
 
 
 class BaseModel(Model):
