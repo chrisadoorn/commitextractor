@@ -128,13 +128,13 @@ class ReadDiff:
         if line.startswith('@@'):
             self.linecounter = self.__process_chunk_line(line)
         elif line.startswith('-'):
-            (line, is_mc) = self.__clean_and_analyse_line(line)
+            (line, is_mc) = self.__clean_and_analyse_line_word(line, word)
             if len(line) > 0:
                 item = (self.linecounter[0], line, is_mc)
                 self.removed_lines.append(item)
             self.linecounter = (self.linecounter[0] + 1, self.linecounter[1])
         elif line.startswith('+'):
-            (line, is_mc) = self.__clean_and_analyse_line(line)
+            (line, is_mc) = self.__clean_and_analyse_line_word(line, word)
             if len(line) > 0:
                 item = (self.linecounter[1], line, is_mc)
                 self.new_lines.append(item)
