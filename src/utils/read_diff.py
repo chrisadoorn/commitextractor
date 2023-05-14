@@ -69,9 +69,11 @@ class ReadDiff:
             for rem_lnr, rem_line, rem_keys in self.removed_lines:
                 if new_lnr == rem_lnr:
                     new_temp_keys = new_keys.copy()
+                    rem_temp_keys = rem_keys.copy()
                     for key in new_temp_keys:
-                        if key in rem_keys:
+                        if key in rem_temp_keys:
                             new_keys.remove(key)
+                            rem_temp_keys.remove(key)
 
     def check_diff_text_on_word(self, chunk='', word=''):
         """
@@ -295,36 +297,57 @@ class ReadDiff:
         return mc_found
 
     def __find_key_word(self, text: str, text_to_find: str):
-        if not text or not text_to_find:
-            return False
-        if text_to_find not in text:
-            return False
+        if not text or not text_to_find or text_to_find not in text:
+            return []
         line_list = deque(text)
         text_to_find_deque = deque(text_to_find)
-        text_found = False
+        text_found_list = []
+        skip_until_next_word = False
         while line_list:
             c = line_list.popleft() if line_list else None
-            c_next = line_list[0] if line_list else ''
+            c_next = line_list[0] if line_list else None
             if c == '"':
                 self.__handle_string_literal(line_list)
                 continue
-            if c + c_next == '//' or c + c_next == '/*':
-                break  # comment, stop searching
-            if c + c_next == '*/':
+            action = self.__check_and_handle_comment(c, c_next)
+            if action == "BREAK":
+                break
+            if action == "CONTINUE":
                 text_to_find_deque = deque(text_to_find)
-                text_found = False
-                continue  # end of comment, continue searching
-            if not text_found:
-                c_to_compare = text_to_find_deque.popleft()
-                if c == c_to_compare and (
-                        c_next == '' or c_next not in JAVA_IDENTIFIER_GRAMMAR) and not text_to_find_deque:
-                    text_found = True
-                    continue
-                if c != c_to_compare or (
-                        c == c_to_compare and c_next in JAVA_IDENTIFIER_GRAMMAR and not text_to_find_deque):
-                    text_to_find_deque = deque(text_to_find)
+                text_found_list = []
+                continue
 
-        return text_found
+            if skip_until_next_word and c in JAVA_IDENTIFIER_GRAMMAR:
+                continue
+            else:
+                skip_until_next_word = False
+
+            c_to_compare = text_to_find_deque.popleft()
+
+            if c == c_to_compare and (
+                    c_next is None or c_next not in JAVA_IDENTIFIER_GRAMMAR) and not text_to_find_deque:
+                text_found_list.append(text_to_find)
+                text_to_find_deque = deque(text_to_find)
+                if c_next is not None and c_next in JAVA_IDENTIFIER_GRAMMAR:
+                    skip_until_next_word = True
+                continue
+            if c != c_to_compare or (
+                    c == c_to_compare and c_next in JAVA_IDENTIFIER_GRAMMAR and not text_to_find_deque):
+                text_to_find_deque = deque(text_to_find)
+                if c in JAVA_IDENTIFIER_GRAMMAR and c_next is not None and c_next in JAVA_IDENTIFIER_GRAMMAR:
+                    skip_until_next_word = True
+        return text_found_list
+
+    def __check_and_handle_comment(self, c: str, c_next: str):
+        if self.language == "ELIXIR":
+            if c == '#':
+                return "BREAK"
+            return None
+        if c_next is not None and (c + c_next == '//' or c + c_next == '/*'):
+            return "BREAK"
+        if c_next is not None and c + c_next == '*/':
+            return "CONTINUE"
+        return None
 
     @staticmethod
     def __handle_string_literal(line: deque):
