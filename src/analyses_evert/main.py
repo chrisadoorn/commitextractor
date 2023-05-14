@@ -279,4 +279,24 @@ def copy_sample():
 
 
 if __name__ == '__main__':
-    analyse_b_wijzigingen('Elixir')
+    '''
+    print(__find_key_word('Elixir', 'Elixir') == True)
+    print(__find_key_word(' Elixir ', 'Elixir') == True)
+    print(__find_key_word(' Elixira ', 'Elixir') == False)
+    print(__find_key_word(' Elixir a ', 'Elixir') == True)
+    print(__find_key_word('s b ! elixi Elixir a ', 'Elixir')== True)
+    print(__find_key_word('s b ! elixi /Elixir a ', 'Elixir')== True)
+    print(__find_key_word('s b ! elixi //Elixir a ', 'Elixir')== False)
+    print(__find_key_word('s b ! elixie //Elixir a ', 'Elixir')== False)
+    print(__find_key_word('s b ! Elixir //Elixir a ', 'Elixir') == True)
+    print(__find_key_word('s b ! Elixir /*Elixir a ', 'Elixir') == True)
+    print(__find_key_word('s b ! /*Elixir Elixir a ', 'Elixir') == False)
+    print(__find_key_word('s b ! Elixir Elixir a */', '') == False)
+    print(__find_key_word('s b ! Elixir Elixir a */', 'Elixir') == False)
+    print(__find_key_word('s b ! Elixir Elixir a */Elixir', 'Elixir') == True)
+    print(__find_key_word('s b ! Elixir Elixir a */Elixir', 'Elixir') == True)
+    print(__find_key_word('s b ! Elixir Elixir a "*"/', 'Elixir') == True)
+    print(__find_key_word('s b ! Elixir Elixir a *"/"', 'Elixir') == True)
+    print(__find_key_word('s b ! "Elixir Elixir a */E"lixir', 'Elixir') == False)
+    print(__find_key_word('s b ! "Elixir Elixir a *"/Elixir', 'Elixir') == True)
+    '''
