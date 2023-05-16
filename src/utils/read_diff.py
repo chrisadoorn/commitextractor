@@ -1,11 +1,6 @@
 import string
 from collections import deque
 
-ELIXIR_MC_INDICATOR = ["spawn", "spawn_link", "spawn_monitor", "send", "self", "receive", "flush" "Agent", "GenServer",
-                       "Node", "Process", "Supervisor", "Task"]
-
-JAVA_MC_INDICATOR = ["Thread"]
-RUST_MC_INDICATOR = ["Thread"]
 
 JAVA_IDENTIFIER_GRAMMAR = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '$'] + [str(i) for i in
                                                                                                       list(
@@ -19,7 +14,7 @@ class InvalidDiffText(Exception):
 
 class ReadDiff:
 
-    def __init__(self, language: str = "JAVA", zoeklijst: list[str] = None):
+    def __init__(self, language: str = "JAVA"):
         """
         Constructor
         :param language: the language of the code in the diff
@@ -27,30 +22,24 @@ class ReadDiff:
         self.linecounter = None
         self.removed_lines = None
         self.new_lines = None
-        self.filepath = ""
         self.lines = ""
-        self.multi_line_comment_start = None
-        self.multi_line_comment_end = None
         self.language = language.upper()
-        match language.upper():
-            case "JAVA":
-                self.mc_indicators = JAVA_MC_INDICATOR if zoeklijst is None else zoeklijst
-            case "ELIXIR":
-                self.mc_indicators = ELIXIR_MC_INDICATOR if zoeklijst is None else zoeklijst
-            case "RUST":
-                self.mc_indicators = RUST_MC_INDICATOR if zoeklijst is None else zoeklijst
 
-    def read_diff_text(self, chunk=''):
+    def check_diff_text(self, chunk: str = '', words: list[str] = None) -> \
+            tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
+        :param words:
         :param chunk: diff text
         :return: tuple of two lists. The first list contains tuples of (line number, line, [keywords]) of
             (un-empty) new lines. The second list contains tuples of (line number, line, [keywords]) of (un-empty)
             removed lines.
         """
-        if chunk is None:
-            return None
+        if words is None or len(words) == 0:
+            return [], []
+        if chunk is None or len(chunk) == 0:
+            return [], []
         self.lines = chunk.splitlines()
         if len(self.lines) == 0:
             return [], []
@@ -60,47 +49,32 @@ class ReadDiff:
         self.removed_lines = []
         self.linecounter = (0, 0)
         for line in self.lines:
-            self.__process_line(line)
+            self.__process_line(line, words)
         self.__check_with_removed_lines()
         return self.new_lines, self.removed_lines
 
-    def __check_with_removed_lines(self):
+    def __check_with_removed_lines(self) -> None:
+        temp_lines = []
         for new_lnr, new_line, new_keys in self.new_lines:
-            for rem_lnr, rem_line, rem_keys in self.removed_lines:
-                if new_lnr == rem_lnr:
-                    new_temp_keys = new_keys.copy()
-                    rem_temp_keys = rem_keys.copy()
-                    for key in new_temp_keys:
-                        if key in rem_temp_keys:
-                            new_keys.remove(key)
-                            rem_temp_keys.remove(key)
+            self.__loop_through_removed_line(new_lnr, new_keys)
+            temp_lines.append((new_lnr, new_line, set(new_keys)))
+        self.new_lines = temp_lines
+        temp_lines = []
+        for rem_lnr, rem_line, rem_keys in self.removed_lines:
+            temp_lines.append((rem_lnr, rem_line, set(rem_keys)))
+        self.removed_lines = temp_lines
 
-    def check_diff_text_on_word(self, chunk='', word=''):
-        """
-        Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
-        an array of found keywords.
-        :param word:
-        :param chunk: diff text
-        :return: tuple of two lists. The first list contains tuples of (line number, line, [keywords]) of
-            (un-empty) new lines. The second list contains tuples of (line number, line, [keywords]) of (un-empty)
-            removed lines.
-        """
-        if chunk is None:
-            return None
-        self.lines = chunk.splitlines()
-        if len(self.lines) == 0:
-            return [], []
-        if not self.lines[0].startswith('@@'):
-            raise InvalidDiffText('Text no valid diff text')
-        self.new_lines = []
-        self.removed_lines = []
-        self.linecounter = (0, 0)
-        for line in self.lines:
-            self.__process_line_word(line, word)
-        self.__check_with_removed_lines()
-        return self.new_lines, self.removed_lines
+    def __loop_through_removed_line(self, l_nr: int, new_keys: list[str]):
+        for rem_lnr, rem_line, rem_keys in self.removed_lines:
+            if rem_lnr == l_nr:
+                new_temp_keys = new_keys.copy()
+                rem_temp_keys = rem_keys.copy()
+                for key in new_temp_keys:
+                    if key in rem_temp_keys:
+                        new_keys.remove(key)
+                        rem_temp_keys.remove(key)
 
-    def __process_line(self, line) -> None:
+    def __process_line(self, line: str, words: list[str]) -> None:
         """
         Process one line of the diff text
         :param line: the line to process
@@ -108,44 +82,22 @@ class ReadDiff:
         if line.startswith('@@'):
             self.linecounter = self.__process_chunk_line(line)
         elif line.startswith('-'):
-            (line, is_mc) = self.__clean_and_analyse_line(line)
+            (line, mc_count) = self.__clean_and_analyse_line(line, words)
             if len(line) > 0:
-                item = (self.linecounter[0], line, is_mc)
+                item = (self.linecounter[0], line, mc_count)
                 self.removed_lines.append(item)
             self.linecounter = (self.linecounter[0] + 1, self.linecounter[1])
         elif line.startswith('+'):
-            (line, is_mc) = self.__clean_and_analyse_line(line)
+            (line, mc_count) = self.__clean_and_analyse_line(line, words)
             if len(line) > 0:
-                item = (self.linecounter[1], line, is_mc)
-                self.new_lines.append(item)
-            self.linecounter = (self.linecounter[0], self.linecounter[1] + 1)
-        else:
-            self.linecounter = (self.linecounter[0] + 1, self.linecounter[1] + 1)
-
-    def __process_line_word(self, line, word) -> None:
-        """
-        Process one line of the diff text
-        :param line: the line to process
-        """
-        if line.startswith('@@'):
-            self.linecounter = self.__process_chunk_line(line)
-        elif line.startswith('-'):
-            (line, is_mc) = self.__clean_and_analyse_line_word(line, word)
-            if len(line) > 0:
-                item = (self.linecounter[0], line, is_mc)
-                self.removed_lines.append(item)
-            self.linecounter = (self.linecounter[0] + 1, self.linecounter[1])
-        elif line.startswith('+'):
-            (line, is_mc) = self.__clean_and_analyse_line_word(line, word)
-            if len(line) > 0:
-                item = (self.linecounter[1], line, is_mc)
+                item = (self.linecounter[1], line, mc_count)
                 self.new_lines.append(item)
             self.linecounter = (self.linecounter[0], self.linecounter[1] + 1)
         else:
             self.linecounter = (self.linecounter[0] + 1, self.linecounter[1] + 1)
 
     @staticmethod
-    def __process_chunk_line(line):
+    def __process_chunk_line(line: str) -> tuple[int, int]:
         """
         Process a chunk line (a line starting with '@@')
         :param line: a line starting with '@@'
@@ -166,192 +118,88 @@ class ReadDiff:
         except IndexError or ValueError:
             raise InvalidDiffText('Text no valid diff text, could not determine line numbers')
 
-    def __clean_and_analyse_line(self, line):
+    def __clean_and_analyse_line(self, line: str, words: list[str] = None) -> tuple[str, list[str]]:
         """
         Clean a line of the diff text, and analyse it for keywords
         Removes first character (either + or -), and removes comments.
         :param line: line to clean and analyse
         :return: the line stripped of comments, and first character
         """
+        mc_list = []
         if line.startswith('-') or line.startswith('+'):
             line = line[1:].strip()
             if len(line) > 0:
-                if self.language == "JAVA" or self.language == "RUST":
-                    mc_found = self.__find_all_identifiers_java(line)
-                else:
-                    mc_found = self.__find_all_identifiers_elixir(line)
-            else:
-                mc_found = []  # empty line, no code
-            return line, mc_found
-        else:
-            return line, []
+                mc_list = self.__find_key_words(line, words)
+        return line, mc_list
 
-    def __clean_and_analyse_line_word(self, line, word):
-        """
-        Clean a line of the diff text, and analyse it for keywords
-        Removes first character (either + or -), and removes comments.
-        :param line: line to clean and analyse
-        :return: the line stripped of comments, and first character
-        """
-        if line.startswith('-') or line.startswith('+'):
-            line = line[1:].strip()
-            if len(line) > 0:
-                if self.language == "JAVA" or self.language == "RUST":
-                    mc_found = self.__find_key_word(line, word)
-                else:
-                    mc_found = self.__find_key_word(line, word)
-            else:
-                mc_found = []  # empty line, no code
-            return line, mc_found
-        else:
-            return line, []
-
-    def __find_all_identifiers_java(self, text: str):
-        """
-        Find all identifiers in a line of java text
-        :param text: 
-        :return:
-        """
-        start_word = False
-        word = ""
-        mc_found = []
-        string_literal_found = False
-        start_comment_found = False
-        end_comment_found = False
-        for c in list(text):
-            if c == '"':
-                if string_literal_found:
-                    string_literal_found = False
-                else:
-                    string_literal_found = True
-            if string_literal_found:
-                continue
-
-            if c == '/':
-                if start_comment_found:
-                    break
-                elif end_comment_found:
-                    end_comment_found = False
-                    mc_found = []
-                    continue
-                else:
-                    start_comment_found = True
-                    continue
-
-            if c == '*':
-                if start_comment_found:
-                    break
-                else:
-                    end_comment_found = True
-                    continue
-
-            start_comment_found = False
-            if c in JAVA_IDENTIFIER_GRAMMAR:
-                word += c
-                start_word = True
-            else:
-                if start_word:
-                    start_word = False
-                    if word not in mc_found and word in self.mc_indicators:
-                        mc_found.append(word)
-                    word = ""
-        if start_word:
-            if word not in mc_found and word in self.mc_indicators:
-                mc_found.append(word)
-        return mc_found
-
-    def __find_all_identifiers_elixir(self, text: str):
-        """
-        Find all identifiers in a line of elixir text
-        :param text:
-        :return:
-        """
-        start_word = False
-        word = ""
-        mc_found = []
-        string_literal_found = False
-        for c in list(text):
-            if c == '"':
-                if string_literal_found:
-                    string_literal_found = False
-                else:
-                    string_literal_found = True
-            if string_literal_found:
-                continue
-
-            if c == '#':
-                break
-
-            if c in JAVA_IDENTIFIER_GRAMMAR:
-                word += c
-                start_word = True
-            else:
-                if start_word:
-                    start_word = False
-                    if word not in mc_found and word in self.mc_indicators:
-                        mc_found.append(word)
-                    word = ""
-        if start_word:
-            if word not in mc_found and word in self.mc_indicators:
-                mc_found.append(word)
-        return mc_found
-
-    def __find_key_word(self, text: str, text_to_find: str):
-        if not text or not text_to_find or text_to_find not in text:
-            return []
+    def __find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
         line_list = deque(text)
-        text_to_find_deque = deque(text_to_find)
-        text_found_list = []
-        skip_until_next_word = False
+        instances_found = []
         while line_list:
-            c = line_list.popleft() if line_list else None
-            c_next = line_list[0] if line_list else None
-            if c == '"':
-                self.__handle_string_literal(line_list)
-                continue
-            action = self.__check_and_handle_comment(c, c_next)
-            if action == "BREAK":
+            c = line_list.popleft() if line_list else ''
+            if c == '':
                 break
-            if action == "CONTINUE":
-                text_to_find_deque = deque(text_to_find)
-                text_found_list = []
-                continue
 
-            if skip_until_next_word and c in JAVA_IDENTIFIER_GRAMMAR:
-                continue
+            if c == '#' and self.language == "ELIXIR":
+                break
             else:
-                skip_until_next_word = False
+                if c == '/':
+                    c = self.__line_comment(line_list)
+                    if c is None:
+                        break
 
-            c_to_compare = text_to_find_deque.popleft()
+                if c == '*':
+                    c = self.__end_block_comment(line_list)
+                    if c is None:
+                        break
+                    if c == '/':
+                        instances_found = []
 
-            if c == c_to_compare and (
-                    c_next is None or c_next not in JAVA_IDENTIFIER_GRAMMAR) and not text_to_find_deque:
-                text_found_list.append(text_to_find)
-                text_to_find_deque = deque(text_to_find)
-                if c_next is not None and c_next in JAVA_IDENTIFIER_GRAMMAR:
-                    skip_until_next_word = True
-                continue
-            if c != c_to_compare or (
-                    c == c_to_compare and c_next in JAVA_IDENTIFIER_GRAMMAR and not text_to_find_deque):
-                text_to_find_deque = deque(text_to_find)
-                if c in JAVA_IDENTIFIER_GRAMMAR and c_next is not None and c_next in JAVA_IDENTIFIER_GRAMMAR:
-                    skip_until_next_word = True
-        return text_found_list
+                if c == '"':
+                    c = self.__string_literal(line_list)
 
-    def __check_and_handle_comment(self, c: str, c_next: str):
-        if self.language == "ELIXIR":
-            if c == '#':
-                return "BREAK"
-            return None
-        if c_next is not None and (c + c_next == '//' or c + c_next == '/*'):
-            return "BREAK"
-        if c_next is not None and c + c_next == '*/':
-            return "CONTINUE"
-        return None
+            if c is None:
+                break
+
+            if c in JAVA_IDENTIFIER_GRAMMAR:
+                w = self.__concat(line_list, c)
+                if w in text_to_find:
+                    instances_found.append(w)
+        return instances_found
+
+    def __line_comment(self, line_list: deque) -> str | None:
+        c = line_list.popleft() if line_list else ''
+        if c == '' or c == '/' or c == '*':
+            return self.__stop()
+        else:
+            return c
+
+    def __end_block_comment(self, line_list: deque) -> str | None:
+        c = line_list.popleft() if line_list else ''
+        if c == '':
+            return self.__stop()
+        else:
+            return c
+
+    def __string_literal(self, line_list: deque) -> str | None:
+        while line_list:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return self.__stop()
+            if c == '"':
+                return c
 
     @staticmethod
-    def __handle_string_literal(line: deque):
-        while line:
-            c = line.popleft()
-            if c == '"':
-                break
+    def __concat(line_list: deque, w: str) -> str:
+        while True:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return w
+            if c not in JAVA_IDENTIFIER_GRAMMAR:
+                line_list.appendleft(c)
+                return w
+            w += c
+
+    @staticmethod
+    def __stop() -> None:
+        return None

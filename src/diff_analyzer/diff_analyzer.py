@@ -14,7 +14,7 @@ def analyze_by_project(projectname, project_id):
 
     # bepaal taal waarvoor gezocht moet worden
     language = configurator.get_main_language()[0]
-
+    read_diff = ReadDiff(language=language)
     # haal voor deze commit de lijst bestandswijzig id's op.
     commitinfo_lijst = CommitInfo.select(CommitInfo.id).where(CommitInfo.idproject == project_id)
     for commitInfo in commitinfo_lijst:
@@ -40,8 +40,8 @@ def analyze_by_project(projectname, project_id):
                 BestandsWijziging.id == bestandswijziging_id)
 
             # doorzoek de diff op de eerder gevonden zoektermen
-            read_diff = ReadDiff(language=language, zoeklijst=zoektermlijst)
-            (new_lines, old_lines) = read_diff.read_diff_text(difftekst.difftext)
+
+            (new_lines, old_lines) = read_diff.check_diff_text(difftekst.difftext, zoektermlijst)
 
             # sla gevonden resultaten op per bestandswijziging
             BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging_id, regels_oud=len(old_lines),
