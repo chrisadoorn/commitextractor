@@ -7,6 +7,7 @@ from multiprocessing import Process
 import psutil as psutil
 from peewee import *
 
+from src.analyses_evert.read_diff_evert import ReadDiffEvert
 from src.models.models import GhSearchSelection, pg_db, CommitInfo, BestandsWijziging, Selectie, Project, pg_db_schema, \
     TempDiffTextAnalysis
 from src.repo_extractor.commitextractor import extract_repository
@@ -122,13 +123,15 @@ def __analyse_diffs(thread_id, idva_from, idva_to):
 
     cursor = connection.execute_sql(sql)
     counter = 1
+    ELIXIR_MC_INDICATOR = ["spawn", "spawn_link", "spawn_monitor", "send", "self", "receive", "flush" "Agent", "GenServer",
+                           "Node", "Process", "Supervisor", "Task"]
     for (bestandswijziging_id, id_commit, locatie, filename, diff_text, author_id, pr_name,
          commitdatumtijd) in cursor.fetchall():
         print("thread id: " + str(thread_id))
         print("counter: " + str(counter))
         print("id: " + str(bestandswijziging_id))
         print("filename: " + filename)
-        (new_lines, old_lines) = read_diff.read_diff_text(diff_text)
+        (new_lines, old_lines) = read_diff.check_diff_text(diff_text, ELIXIR_MC_INDICATOR)
         if len(new_lines) > 0:
             print("new lines: " + str(len(new_lines)))
             print(new_lines)
@@ -279,24 +282,25 @@ def copy_sample():
 
 
 if __name__ == '__main__':
-    '''
-    print(__find_key_word('Elixir', 'Elixir') == True)
-    print(__find_key_word(' Elixir ', 'Elixir') == True)
-    print(__find_key_word(' Elixira ', 'Elixir') == False)
-    print(__find_key_word(' Elixir a ', 'Elixir') == True)
-    print(__find_key_word('s b ! elixi Elixir a ', 'Elixir')== True)
-    print(__find_key_word('s b ! elixi /Elixir a ', 'Elixir')== True)
-    print(__find_key_word('s b ! elixi //Elixir a ', 'Elixir')== False)
-    print(__find_key_word('s b ! elixie //Elixir a ', 'Elixir')== False)
-    print(__find_key_word('s b ! Elixir //Elixir a ', 'Elixir') == True)
-    print(__find_key_word('s b ! Elixir /*Elixir a ', 'Elixir') == True)
-    print(__find_key_word('s b ! /*Elixir Elixir a ', 'Elixir') == False)
-    print(__find_key_word('s b ! Elixir Elixir a */', '') == False)
-    print(__find_key_word('s b ! Elixir Elixir a */', 'Elixir') == False)
-    print(__find_key_word('s b ! Elixir Elixir a */Elixir', 'Elixir') == True)
-    print(__find_key_word('s b ! Elixir Elixir a */Elixir', 'Elixir') == True)
-    print(__find_key_word('s b ! Elixir Elixir a "*"/', 'Elixir') == True)
-    print(__find_key_word('s b ! Elixir Elixir a *"/"', 'Elixir') == True)
-    print(__find_key_word('s b ! "Elixir Elixir a */E"lixir', 'Elixir') == False)
-    print(__find_key_word('s b ! "Elixir Elixir a *"/Elixir', 'Elixir') == True)
-    '''
+    rdt = ReadDiffEvert()
+    print(rdt.find_key_words('Elixir', 'Elixir') == 1)
+    print(rdt.find_key_words(' Elixir ', 'Elixir') == 1)
+    print(rdt.find_key_words(' Elixira ', 'Elixir') == 0)
+    print(rdt.find_key_words(' Elixir a ', 'Elixir') == 1)
+    print(rdt.find_key_words(' ElixirE ElixirElixir a Elixir', 'Elixir') == 1)
+    print(rdt.find_key_words('s b ! elixi Elixir a ', 'Elixir') == 1)
+    print(rdt.find_key_words('s b ! elixi /Elixir a ', 'Elixir') == 1)
+    print(rdt.find_key_words('s b ! elixi //Elixir a ', 'Elixir') == 0)
+    print(rdt.find_key_words('s b ! elixie //Elixir a ', 'Elixir') ==0)
+    print(rdt.find_key_words('s b ! Elixir //Elixir a ', 'Elixir') == 1)
+    print(rdt.find_key_words('s b ! Elixir /*Elixir a ', 'Elixir') == 1)
+    print(rdt.find_key_words('s b ! /*Elixir Elixir a ', 'Elixir') == 0)
+    print(rdt.find_key_words('s b ! Elixir Elixir a */', '') == 0)
+    print(rdt.find_key_words('s b ! Elixir Elixir a */', 'Elixir') == 0)
+
+    print(rdt.find_key_words('s b ! Elixir Elixir a */Elixir', 'Elixir') == 1)
+    print(rdt.find_key_words('s b ! Elixir Elixir a "*"/', 'Elixir') == 2)
+    print(rdt.find_key_words('s b ! Elixir Elixir a *"/"', 'Elixir') == 2)
+
+    print(rdt.find_key_words('s b ! "Elixir Elixir a */E"lixir', 'Elixir') == 0)
+    print(rdt.find_key_words('s b ! "Elixir Elixir a *"/Elixir', 'Elixir') == 1)
