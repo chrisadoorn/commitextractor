@@ -73,6 +73,20 @@
                     </div>
                     {% endif %}
                 </div>
+
+                <div style="margin: 5px">
+                    <div><b>simple search tekstachteraf</b></div>
+                    {% if selection.simple_search %}
+                    <div class="box">
+                        <pre>{{ selection.simple_search }}</pre>
+                    </div>
+                    {% else %}
+                    <div>
+                        <pre>geen simple search results</pre>
+                    </div>
+                    {% endif %}
+
+                </div>
             </div>
             <hr>
             {% endfor %}
