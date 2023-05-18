@@ -174,10 +174,35 @@ def bestandswijzigingen_to_list(selections):
             dif = readDiff.check_diff_text(sel.difftext, zoektermen)
             sel.diff_nl = create_string(dif[0])
             sel.diff_ol = create_string(dif[1])
+            sel.simple_search = simple_search(sel.tekstachteraf)
+            sel.tekstachteraf = add_line_numbers(sel.tekstachteraf)
             selections_list.append(sel)
         return selections_list
     except Exception as e:
         print(e)
+
+
+def add_line_numbers(text: str):
+    if text is None:
+        return ''
+    lines = text.splitlines()
+    for i in range(len(lines)):
+        lines[i] = str(i+1) + ' :' + lines[i]
+    return '\n'.join(lines)
+
+
+def simple_search(text: str):
+    if text is None:
+        return []
+    lines = text.splitlines()
+    result = []
+    for i in range(len(lines)):
+        regel = lines[i]
+        for z in zoektermen:
+            if z in regel:
+                result.append((i+1, z))
+
+    return result
 
 
 def analyse_diff(commit_id):
