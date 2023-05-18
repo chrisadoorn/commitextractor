@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 
+from src.models.analysis_models import Zoekterm
 from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking, pg_db_schema, pg_db
 from src.utils import configurator
 from src.utils.read_diff import ReadDiff
@@ -9,6 +10,7 @@ app.config.from_object(__name__)
 language = configurator.get_main_language()[0]
 readDiff = ReadDiff(language=language)
 
+zoektermen = [x.zoekwoord for x in Zoekterm.select(Zoekterm.zoekwoord).distinct()]
 
 @app.route("/")
 def home():
@@ -169,7 +171,7 @@ def bestandswijzigingen_to_list(selections):
     selections_list = []
     try:
         for sel in selections:
-            dif = readDiff.read_diff_text(sel.difftext)
+            dif = readDiff.check_diff_text(sel.difftext, zoektermen)
             sel.diff_nl = create_string(dif[0])
             sel.diff_ol = create_string(dif[1])
             selections_list.append(sel)
