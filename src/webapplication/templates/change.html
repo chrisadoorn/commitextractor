@@ -11,8 +11,9 @@
         <td>
             <a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
         </td>
-    <td>
+    <td>{% if commits is defined and commits|length: %}
         <td><a href="https://github.com/{{ selection.naam }}/commit/{{ commits[0][7] }}" target="_blank">commit op github </a></td>
+        {% endif %}
     </td>
     </tbody>
 </table>
@@ -73,9 +74,15 @@
     {% endfor %}
     </tbody>
 </table>
-{% if back_from_int >= 0: %}
-<a href="/showgithub/{{ selection.id }}/change/{{ back_from_int }}/{{ back_to_int }}/{{false_positive}}/"> previous </a> <br>
-{% endif %}
-<a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
+<table class="table">
+    <tbody>
+        <td>{% if back_from_int >= 0: %}
+            <a href="/showgithub/{{ selection.id }}/change/{{ back_from_int }}/{{ back_to_int }}/{{false_positive}}/"> previous </a><br></td>
+            {% endif %}
+        <td>
+            <a href="/showgithub/{{ selection.id }}/change/{{ from_int }}/{{ to_int }}/{{false_positive}}/">next </a>
+        </td>
+    </tbody>
+</table>
 
 {% endblock %}
