@@ -158,6 +158,9 @@ class ReadDiff:
                 if c == '"':
                     c = self.__string_literal(line_list)
 
+                if c == '\'':
+                    c = self.__single_quote_literal(line_list)
+
             if c is None:
                 break
 
@@ -187,6 +190,14 @@ class ReadDiff:
             if c == '':
                 return self.__stop()
             if c == '"':
+                return c
+
+    def __single_quote_literal(self, line_list: deque) -> str | None:
+        while line_list:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return self.__stop()
+            if c == '\'':
                 return c
 
     @staticmethod
