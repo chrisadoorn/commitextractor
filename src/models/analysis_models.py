@@ -15,4 +15,5 @@ class Zoekterm(BaseModel):
     extensie = CharField(null=True, max_length=20)
     zoekwoord = CharField(null=True)
 
+
 pg_db.connect()

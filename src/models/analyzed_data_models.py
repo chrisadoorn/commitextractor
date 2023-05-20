@@ -1,6 +1,5 @@
-
 import playhouse
-from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField
+from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField, DateTimeField
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
 from src.utils import configurator
@@ -33,7 +32,8 @@ class BestandsWijzigingInfo(BaseModel):
         BestandsWijzigingInfo.insert(id=parameter_id, regels_oud=regels_oud, regels_nieuw=regels_nieuw).on_conflict(
             conflict_target=[BestandsWijzigingInfo.id],  # Which constraint?
             preserve=[BestandsWijzigingInfo.id],  # Use the value we would have inserted.
-            update={BestandsWijzigingInfo.regels_oud: regels_oud, BestandsWijzigingInfo.regels_nieuw: regels_nieuw}).execute()
+            update={BestandsWijzigingInfo.regels_oud: regels_oud,
+                    BestandsWijzigingInfo.regels_nieuw: regels_nieuw}).execute()
 
 
 # voor gebruik van het integer array field zie
@@ -50,10 +50,27 @@ class BestandsWijzigingZoekterm(BaseModel):
     aantalgevonden = IntegerField(default=0)
 
     def get_voor_bestandswijziging(bestandswijzigings_id):
-        sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(bestandswijzigings_id)
+        sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(
+            bestandswijzigings_id)
         cursor = pg_db.execute_sql(sql)
         return cursor.fetchall()
 
 
-pg_db.connect()
+class Handmatige_Check(BaseModel):
+    id = AutoField(primary_key=True)
+    projectnaam = CharField(null=False)
+    project_id = BigIntegerField
+    bwz_id = BigIntegerField(null=False)
+    zoekterm = CharField(null=False)
+    falsepositive = BooleanField(null=False)
+    regelnummers = playhouse.postgres_ext.ArrayField(field_class=IntegerField)
+    bestandswijziging_id = BigIntegerField(null=False)
+    commit_datum = DateTimeField(null=False)
+    commit_sha = CharField(null=False)
+    commit_remark = CharField(null=True)
+    gecontroleerd = BooleanField(null=True)
+    akkoord = BooleanField(null=True)
+    opmerking = CharField(null=True)
 
+
+pg_db.connect()
