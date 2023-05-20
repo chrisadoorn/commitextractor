@@ -17,6 +17,27 @@
     </td>
     </tbody>
 </table>
+
+{% if commits is defined and commits|length: %}
+<form  id="change_form" autocomplete="off">
+        <input  id="table_id" name="table_id" value={{ commits[0][11] }}>
+        <label for="gecontroleerd">gecontroleerd: </label>
+        <label style="width: 500px">
+            <input type="checkbox" id="gecontroleerd" name="gecontroleerd" val={{ commits[0][8] }}  disabled="true"  {% if commits[0][8] %} checked {% endif %}>
+            <input type="hidden"  id="gecontroleerd_val" value={{ commits[0][8] }} disabled="true">
+        </label>
+        <label for="akkoord">akkoord: </label>
+        <label style="width: 500px">
+            <input type="checkbox" id="akkoord" name="akkoord" val={{ commits[0][9] }} {% if commits[0][9] %} checked {% endif %} >
+            <input type="hidden"  id="akkoord_val" value={{ commits[0][9] }} disabled="true">
+        </label>
+        <label for="opmerking">Opmerkingen: </label>
+        <input type="text" id="opmerking" name="opmerking"
+               value={{ commits[0][10] }}>
+        <input type="submit" id="submit_change">
+    </form>
+ {% endif %}
+
 <table class="table">
     <thead>
     <tr>
@@ -38,7 +59,7 @@
         <td>{{ commit[4] }}</td>
         <td>{{ commit[6] }}</td>
     <tr>
-        <td colspan="6"> {% for selection in commit[8] %}
+        <td colspan="6"> {% for selection in commit[12] %}
             <div class="content" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: stretch; margin: 5px">
                 <div style="margin: 5px">
                     <div><b>difftext</b></div>
@@ -85,4 +106,8 @@
     </tbody>
 </table>
 
+{% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='js/change.js') }}"></script>
 {% endblock %}

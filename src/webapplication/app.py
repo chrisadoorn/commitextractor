@@ -1,7 +1,10 @@
+import builtins
+
 from flask import Flask, render_template, request, jsonify
 
 from src.models.analysis_models import Zoekterm
 from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking, pg_db_schema, pg_db
+from src.models.analyzed_data_models import Handmatige_Check
 from src.utils import configurator
 from src.utils.read_diff import ReadDiff
 
@@ -11,6 +14,7 @@ language = configurator.get_main_language()[0]
 readDiff = ReadDiff(language=language)
 
 zoektermen = [x.zoekwoord for x in Zoekterm.select(Zoekterm.zoekwoord).distinct()]
+
 
 @app.route("/")
 def home():
@@ -48,24 +52,22 @@ def form_commits_for_projects(select_id):
 @app.route("/showgithub/<select_id>/change/<false_positive>/")
 def form_changes_for_projects(select_id, false_positive):
     try:
-        sql = "select bz.id, bz.zoekterm, bz.falsepositive, bz.regelnummers, bz.idbestandswijziging, " \
-              "c.commitdatumtijd, c.remark, c.hashvalue  " \
-              "from {sch}.bestandswijziging_zoekterm bz, {sch}.bestandswijziging b, {sch}.commitinfo c " \
-              "where  bz.idbestandswijziging = b.id " \
-              "and bz.falsepositive = {false_positive} " \
-              "and b.idcommit = c.id " \
-              "and c.idproject = {idproject} " \
+        sql = "select hc.bwz_id, hc.zoekterm, hc.falsepositive, hc.regelnummers, hc.bestandswijziging_id, " \
+              "hc.commit_datum, hc.commit_remark, hc.commit_sha, hc.gecontroleerd, hc.akkoord, hc.opmerking, hc.id  " \
+              "from {sch}.handmatige_check hc " \
+              "where hc.falsepositive = {false_positive} " \
+              "and hc.project_id = {idproject} " \
               "limit {li} offset {os};".format(sch=pg_db_schema, li=1, os=0, idproject=select_id,
                                                false_positive=false_positive)
         cursor = pg_db.execute_sql(sql)
         ghs: Project = Project.select().where(Project.id == select_id)
         commits: list[any] = []
         for (bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-             remark, hashvalue) in cursor.fetchall():
+             remark, hashvalue, gecontroleerd, akkoord, opmerking, id) in cursor.fetchall():
             selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
             print(selections_with_mc)
             commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
-                            hashvalue, selections_with_mc))
+                            hashvalue, gecontroleerd, akkoord, opmerking, id, selections_with_mc))
         return render_template("change.html", commits=commits, selection=ghs[0], from_int=1, to_int=2,
                                back_from_int=-1, back_to_int=0, false_positive=false_positive)
     except Exception as e:
@@ -74,27 +76,38 @@ def form_changes_for_projects(select_id, false_positive):
 
 @app.route("/showgithub/<select_id>/change/<int:from_int>/<int:to_int>/<false_positive>/")
 def form_changes_for_projects_paging(select_id, from_int=0, to_int=1, false_positive='false'):
-    sql = sql = "select bz.id, bz.zoekterm, bz.falsepositive, bz.regelnummers, bz.idbestandswijziging, " \
-                "c.commitdatumtijd, c.remark, c.hashvalue  " \
-                "from {sch}.bestandswijziging_zoekterm bz, {sch}.bestandswijziging b, {sch}.commitinfo c " \
-                "where  bz.idbestandswijziging = b.id " \
-                "and bz.falsepositive = {false_positive} " \
-                "and b.idcommit = c.id " \
-                "and c.idproject = {idproject} " \
-                "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int,
-                                                 idproject=select_id, false_positive=false_positive)
+    sql = "select hc.bwz_id, hc.zoekterm, hc.falsepositive, hc.regelnummers, hc.bestandswijziging_id, " \
+          "hc.commit_datum, hc.commit_remark, hc.commit_sha, hc.gecontroleerd, hc.akkoord, hc.opmerking, hc.id  " \
+          "from {sch}.handmatige_check hc " \
+          "where hc.falsepositive = {false_positive} " \
+          "and hc.project_id = {idproject} " \
+          "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int,
+                                           idproject=select_id, false_positive=false_positive)
     cursor = pg_db.execute_sql(sql)
     ghs: Project = Project.select().where(Project.id == select_id)
     commits: list[any] = []
     for (
             bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-            remark, hashvalue) in cursor.fetchall():
+            remark, hashvalue, gecontroleerd, akkoord, opmerking, id) in cursor.fetchall():
         selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
         print(selections_with_mc)
         commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
-                        hashvalue, selections_with_mc))
+                        hashvalue, gecontroleerd, akkoord, opmerking, id, selections_with_mc))
     return render_template("change.html", commits=commits, selection=ghs[0], from_int=from_int + 1, to_int=to_int + 1,
                            back_from_int=from_int - 1, back_to_int=to_int - 1, false_positive=false_positive)
+
+
+@app.route('/change/save/', methods=['POST'])
+def change_check():
+    table_id = int(request.form.get('table_id', 0))
+    akkoord = bool(request.form.get('akkoord', False))
+    opmerking = request.form.get('opmerking', '')
+    handmatige_check = Handmatige_Check.select().where(Handmatige_Check.id == table_id)[0]
+    handmatige_check.gecontroleerd = True
+    handmatige_check.akkoord = akkoord
+    handmatige_check.opmerking = opmerking
+    handmatige_check.save()
+    return jsonify(status=201)
 
 
 @app.route("/showgithub/<select_id>/commitsonly/")
@@ -187,7 +200,7 @@ def add_line_numbers(text: str):
         return ''
     lines = text.splitlines()
     for i in range(len(lines)):
-        lines[i] = str(i+1) + ' :' + lines[i]
+        lines[i] = str(i + 1) + ' :' + lines[i]
     return '\n'.join(lines)
 
 
@@ -200,7 +213,7 @@ def simple_search(text: str):
         regel = lines[i]
         for z in zoektermen:
             if z in regel:
-                result.append((i+1, z))
+                result.append((i + 1, z))
 
     return result
 
