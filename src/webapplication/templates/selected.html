@@ -44,3 +44,7 @@
 </div>
 {% include "manual_comments.html" %}
 {% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='js/js.js') }}"></script>
+{% endblock %}
