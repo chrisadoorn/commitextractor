@@ -29,6 +29,7 @@ INSERT INTO java_zoekterm (zoekterm,categorie,package,opmerking) VALUES
 	 ('Condition','interfaces','java.util.concurrent',NULL),
 	 ('Lock','interfaces','java.util.concurrent',NULL),
 	 ('ReadWriteLock','interfaces','java.util.concurrent',NULL),
+	 ('Thread','classes','java.lang',NULL),
 	 ('AbstractExecutorService','classes','java.util.concurrent',NULL),
 	 ('ArrayBlockingQueue','classes','java.util.concurrent',NULL),
 	 ('CompletableFuture','classes','java.util.concurrent',NULL),

@@ -5,11 +5,11 @@ SELECT v.naam, v.processtap,  v.einde_verwerking - v.start_verwerking  as tijdsd
 --	where v.einde_verwerking is not null
 	order by p.project_size DESC, start_verwerking DESC;
 
-select v.status, v.resultaat
-, count(v.status), count(v.resultaat)
+select v.status, v.resultaat, v.processtap 
+, count(v.status), count(v.resultaat), count(v.processtap)
 from verwerk_project v
 -- where v.einde_extractie is not null
-group by v.status, v.resultaat
+group by v.status, v.resultaat, v.processtap 
 
 UPDATE processor
 SET  status='geblokt'
@@ -75,7 +75,7 @@ set processtap = 'identificatie'
    ,processor = null
    ,status = 'gereed'
 where processtap = 'zoekterm_vinden'
-and resultaat = 'mislukt';
+and resultaat = 'verwerkt';
 
 update verwerk_project 
 set processtap = 'extractie'
@@ -190,5 +190,12 @@ and   c.idproject = p.id
 and   p.naam = 'dockstore/dockstore'
 limit 1;
 
+-- kijk wat er handmatig gecontroleerd is. 
+select distinct(project_id), projectnaam 
+from handmatige_check hc 
+order by project_id
 
+select count(*) 
+from prod.handmatige_check 
+where gecontroleerd = true;
 

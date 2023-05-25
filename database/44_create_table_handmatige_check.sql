@@ -1,4 +1,4 @@
-set schema 'prod';
+set schema 'test';
 
 -- Table: handmatige_check
 
