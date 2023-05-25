@@ -190,5 +190,12 @@ and   c.idproject = p.id
 and   p.naam = 'dockstore/dockstore'
 limit 1;
 
+-- kijk wat er handmatig gecontroleerd is. 
+select distinct(project_id), projectnaam 
+from handmatige_check hc 
+order by project_id
 
+select count(*) 
+from prod.handmatige_check 
+where gecontroleerd = true;
 
