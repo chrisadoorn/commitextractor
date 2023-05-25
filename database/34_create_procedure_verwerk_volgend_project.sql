@@ -34,6 +34,7 @@ from verwerk_project
 where processor is null
 and processtap = p_vorige_stap
 and resultaat = 'verwerkt'
+and status != 'geblokt'
 LIMIT 1 ;
 
 if not found then
@@ -52,6 +53,7 @@ set start_verwerking = now()
 where processor is null
 and processtap = p_vorige_stap
 and resultaat = 'verwerkt'
+and status != 'geblokt'
 and id =  p_new_id;
 
 -- update de rowcount van default 0 naar aantal geupdate rijen.
