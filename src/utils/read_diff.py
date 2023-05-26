@@ -27,6 +27,12 @@ class ReadDiff:
 
     def check_diff_text(self, chunk: str = '', words: list[str] = None) -> \
             tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+        self.check_diff_text_no_check_with_removed(chunk, words)
+        self.__check_with_removed_lines()
+        return self.new_lines, self.removed_lines
+
+    def check_diff_text_no_check_with_removed(self, chunk: str = '', words: list[str] = None) -> \
+            tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
@@ -50,7 +56,6 @@ class ReadDiff:
         self.linecounter = (0, 0)
         for line in self.lines:
             self.__process_line(line, words)
-        self.__check_with_removed_lines()
         return self.new_lines, self.removed_lines
 
     def __check_with_removed_lines(self) -> None:
@@ -158,6 +163,9 @@ class ReadDiff:
                 if c == '"':
                     c = self.__string_literal(line_list)
 
+                if c == '\'':
+                    c = self.__single_quote_literal(line_list)
+
             if c is None:
                 break
 
@@ -187,6 +195,14 @@ class ReadDiff:
             if c == '':
                 return self.__stop()
             if c == '"':
+                return c
+
+    def __single_quote_literal(self, line_list: deque) -> str | None:
+        while line_list:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return self.__stop()
+            if c == '\'':
                 return c
 
     @staticmethod

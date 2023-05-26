@@ -56,3 +56,40 @@ pip install peewee
 pip install psycopg2-binary
 pip install pydriller
 ```
+
+Elixir embedded expressions #{}
+"Embedded expression: #{3 + 0.14}"
+Multiline strings:
+"
+This is
+a multiline string
+"
+sigils. ~s()
+iex(5)> ~s(This is also a string)
+"This is also a string"
+
+iex(6)> ~s("Do... or do not. There is no try." -Master Yoda)
+"\"Do... or do not. There is no try.\" -Master Yoda"
+heredocs syntax
+iex(9)> """
+Heredoc must end on its own line """
+"""
+
+iex(1)> 'ABC'
+'ABC'
+character list
+
+iex(2)> [65, 66, 67]
+'ABC'
+
+iex(3)> 'Interpolation: #{3 + 0.14}'
+'Interpolation: 3.14'
+iex(4)> ~c(Character list sigil)
+'Character list sigil'
+iex(5)> ~C(Unescaped sigil #{3 + 0.14})
+'Unescaped sigil \#{3 + 0.14}'
+iex(6)> '''
+Heredoc
+'''
+'Heredoc\n'
+Character lists aren’t compatible with binary strings.
