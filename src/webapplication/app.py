@@ -184,9 +184,11 @@ def bestandswijzigingen_to_list(selections):
     selections_list = []
     try:
         for sel in selections:
-            dif = readDiff.check_diff_text(sel.difftext, zoektermen)
-            sel.diff_nl = create_string(dif[0])
-            sel.diff_ol = create_string(dif[1])
+            nl_netto, ol1 = readDiff.check_diff_text(sel.difftext, zoektermen)
+            nl, ol2 = readDiff.check_diff_text_no_check_with_removed(sel.difftext, zoektermen)
+            sel.diff_netto = create_string(nl_netto)
+            sel.diff_ol = create_string(ol2)
+            sel.diff_nl = create_string(nl)
             sel.simple_search = simple_search(sel.tekstachteraf)
             sel.tekstachteraf = add_line_numbers(sel.tekstachteraf)
             selections_list.append(sel)
