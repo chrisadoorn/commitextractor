@@ -5,7 +5,7 @@ from datetime import datetime
 from pydriller import Repository
 from src.repo_extractor import hashing
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
-from src.utils import configurator, db_postgresql, read_diff_rust
+from src.utils import configurator, db_postgresql
 
 global db_connectie
 

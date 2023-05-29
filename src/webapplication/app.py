@@ -1,10 +1,9 @@
-import builtins
-
 from flask import Flask, render_template, request, jsonify
 
-from src.models.analysis_models import Zoekterm
-from src.models.models import Project, CommitInfo, BestandsWijziging, ManualChecking, pg_db_schema, pg_db
-from src.models.analyzed_data_models import Handmatige_Check
+from src.models.analyzed_data_models import Zoekterm
+from src.models.extracted_data_models import CommitInfo, BestandsWijziging
+from src.models.selection_models import Project, pg_db_schema, pg_db
+from src.models.webapp_models import ManualChecking, Handmatige_Check
 from src.utils import configurator
 from src.utils.read_diff import ReadDiff
 

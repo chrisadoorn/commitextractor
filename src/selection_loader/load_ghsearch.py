@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 
-from src.models.models import Selectie, Project
+from src.models.selection_models import Selectie, Project
 from src.models.process_management_models import Verwerk_Project
 from src.utils import configurator
 

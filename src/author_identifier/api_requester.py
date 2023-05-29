@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import requests
 from requests.exceptions import ConnectTimeout
 
-from src.models.models import pg_db_schema, pg_db, CommitInfo
+from src.models.extracted_data_models import pg_db_schema, pg_db, CommitInfo
 from src.utils import configurator
 
 GITHUB_API = 'https://api.github.com/repos/{}/commits/{}'
