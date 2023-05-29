@@ -9,8 +9,9 @@ from peewee import PostgresqlDatabase
 
 global db_connectie
 params = configurator.get_database_configuration()
-pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
-                           host='localhost', port=params.get('port'))
+pg_db = PostgresqlDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
+                           host=params.get('host'), port=params.get('port'))
+
 
 CONFIDENCE = 'confidencelevelSample'
 GHSEARCH = 'ghsearch'

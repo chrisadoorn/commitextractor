@@ -1,11 +1,11 @@
 import playhouse
-from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField, DateTimeField
+from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
 from src.utils import configurator
 
 params = configurator.get_database_configuration()
-pg_db = PostgresqlExtDatabase('multicore', user=params.get('user'), password=params.get('password'),
+pg_db = PostgresqlExtDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
                               host=params.get('host'), port=params.get('port'))
 pg_db_schema = params.get('schema')
 
@@ -26,7 +26,7 @@ class BestandsWijzigingInfo(BaseModel):
     regels_nieuw = IntegerField(default=0)
 
     # de constructie die hier gebruikt voor om een insert,
-    # dan wel een update uit te voeren is speciefiek voor gebruik in combinatie met postgresql
+    # dan wel een update uit te voeren is specifiek voor gebruik in combinatie met postgresql
     # zie https://docs.peewee-orm.com/en/latest/peewee/querying.html ,zoek hier naar on_conflict
     def insert_or_update(parameter_id, regels_oud, regels_nieuw):
         BestandsWijzigingInfo.insert(id=parameter_id, regels_oud=regels_oud, regels_nieuw=regels_nieuw).on_conflict(
@@ -50,27 +50,15 @@ class BestandsWijzigingZoekterm(BaseModel):
     aantalgevonden = IntegerField(default=0)
 
     def get_voor_bestandswijziging(bestandswijzigings_id):
-        sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(
-            bestandswijzigings_id)
+        sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + \
+              pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(bestandswijzigings_id)
         cursor = pg_db.execute_sql(sql)
         return cursor.fetchall()
 
 
-class Handmatige_Check(BaseModel):
-    id = AutoField(primary_key=True)
-    projectnaam = CharField(null=False)
-    project_id = BigIntegerField
-    bwz_id = BigIntegerField(null=False)
-    zoekterm = CharField(null=False)
-    falsepositive = BooleanField(null=False)
-    regelnummers = playhouse.postgres_ext.ArrayField(field_class=IntegerField)
-    bestandswijziging_id = BigIntegerField(null=False)
-    commit_datum = DateTimeField(null=False)
-    commit_sha = CharField(null=False)
-    commit_remark = CharField(null=True)
-    gecontroleerd = BooleanField(null=True)
-    akkoord = BooleanField(null=True)
-    opmerking = CharField(null=True)
+class Zoekterm(BaseModel):
+    extensie = CharField(null=True, max_length=20)
+    zoekwoord = CharField(null=True)
 
 
 pg_db.connect()

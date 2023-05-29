@@ -1,6 +1,5 @@
 import logging
-from src.models.analysis_models import Zoekterm
-from src.models.analyzed_data_models import BestandsWijzigingZoekterm
+from src.models.analyzed_data_models import BestandsWijzigingZoekterm, Zoekterm
 from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
 

@@ -4,7 +4,7 @@ from numpy.core._multiarray_umath import arange
 from peewee import *
 from scipy.optimize import curve_fit
 
-from src.models.models import pg_db_schema
+from src.models.selection_models import pg_db_schema
 from src.utils import configurator
 
 
@@ -36,7 +36,7 @@ sql3 = "SELECT date_trunc('month', commitdatumtijd) AS txn_month, count(*) as mo
 def create_diagram_1():
     params_for_db = configurator.get_database_configuration()
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
-                                    host='localhost', port=params_for_db.get('port'))
+                                    host=params_for_db.get('host'), port=params_for_db.get('port'))
 
     cursor = connection.execute_sql(sql1)
     line_data_1 = []

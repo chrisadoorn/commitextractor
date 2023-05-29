@@ -51,11 +51,11 @@ Onluy projects which are succesfully processed in the previous step are eligible
 
 The next table shows the processes in the sequence in which they are performed.
 
-| name of proces step  | process                                          | performed by                       | step is registered? |
-|----------------------|--------------------------------------------------|------------------------------------|---------------------|
-| selectie             | storing the list of project to be processed      | selection_loader/load_ghsearch.py  | yes                 |
-| extractie            | downloading the project and storing file changes | repo_extractor/main.py             | yes                 |
-| identificatie        | determining the author of a filechange           | requester/api_requester.py         | no                  |
-| zoekterm_vinden      | determining which file changes contain keywords  | db_analysis/fill_analysis_table.py | no                  |
-| zoekterm_controleren | checking for false positives                     | diff_analyzer/main.py              | yes                 |
+| name of proces step  | process                                          | performed by                      | step is registered? |
+|----------------------|--------------------------------------------------|-----------------------------------|---------------------|
+| selectie             | storing the list of project to be processed      | selection_loader/load_ghsearch.py | yes                 |
+| extractie            | downloading the project and storing file changes | repo_extractor/main.py            | yes                 |
+| identificatie        | determining the author of a filechange           | author_identifier/main.py         | no                  |
+| zoekterm_vinden      | determining which file changes contain keywords  | text_search/main.py               | no                  |
+| zoekterm_controleren | checking for false positives                     | diff_analyzer/main.py             | yes                 |
  

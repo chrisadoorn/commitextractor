@@ -3,7 +3,7 @@ from peewee import CharField, Model, DateTimeField, PostgresqlDatabase, TextFiel
 from src.utils import configurator
 
 params = configurator.get_database_configuration()
-pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
+pg_db = PostgresqlDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
                            host=params.get('host'), port=params.get('port'))
 
 

@@ -1,6 +1,6 @@
 import csv
 import requests
-from src.models.models import GhSearchSelection
+from src.models.selection_models import GhSearchSelection
 
 GH_SEARCH_CSV_DOWNLOAD = "https://seart-ghs.si.usi.ch/api/r/download/csv?language={}{}"
 

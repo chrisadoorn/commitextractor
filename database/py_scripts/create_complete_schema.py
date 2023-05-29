@@ -10,7 +10,7 @@ print(run_dir)
 sql_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 print(sql_dir)
 
-new_schema = 'test'
+new_schema = 'refact'
 file_names = ['10_create_table_selectie.sql'
     , '11_create_table_project.sql'
     , '12_create_table_commitinfo.sql'
@@ -27,6 +27,7 @@ file_names = ['10_create_table_selectie.sql'
     , '42_create_table_bestandswijziging_info.sql'
     , '43_create_table_bestandswijziging_zoekterm.sql'
     , '44_create_table_handmatige_check.sql'
+    , '45_create_manualchecking.sql'
     , '51_create_table_java_zoekterm.sql'
               ]
 
@@ -59,7 +60,3 @@ for sql_file in file_names:
 
 
 full.close()
-# #    os.remove(n_path)
-#
-#
-# # os.rmdir(run_dir)

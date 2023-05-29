@@ -1,24 +1,12 @@
-from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, BigIntegerField, \
-    ForeignKeyField
+from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, ForeignKeyField, \
+    IntegerField
 
-from src.models.models import Project, CommitInfo, BestandsWijziging
-
-from src.utils import configurator
-
-params = configurator.get_database_configuration()
-pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
-                           host='localhost', port=params.get('port'))
-pg_db_schema = params.get('schema')
-
-from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, BigIntegerField, \
-    ForeignKeyField
-
-from src.models.models import Project, CommitInfo, BestandsWijziging
+from src.models.selection_models import Project
 
 from src.utils import configurator
 
 params = configurator.get_database_configuration()
-pg_db = PostgresqlDatabase('multicore', user=params.get('user'), password=params.get('password'),
+pg_db = PostgresqlDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
                            host=params.get('host'), port=params.get('port'))
 pg_db_schema = params.get('schema')
 
@@ -37,6 +25,7 @@ class CommitInfo(BaseModel):
     username = CharField(null=True)
     emailaddress = CharField(null=True)
     remark = TextField(null=True)
+    author_id = IntegerField(null=True)
 
 
 class BestandsWijziging(BaseModel):
