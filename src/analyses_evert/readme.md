@@ -235,11 +235,13 @@ primitives explained in chapter 5 and fault-tolerance features explained in chap
 OTP behaviours, sort of contract, a callback function must implement them
 
 The Erlang standard library includes the following OTP behaviours:
-¡ gen_server — Generic implementation of a stateful server process
-¡ supervisor — Provides error handling and recovery in concurrent systems
-¡ application — Generic implementation of components and libraries
-¡ gen_event — Provides event-handling support
-¡ gen_statem — Runs a finite state machine in a stateful server process
+ - gen_server — Generic implementation of a stateful server process 
+ - supervisor — Provides error handling and recovery in concurrent systems
+ - supervisor — Provides error handling and recovery in concurrent systems
+ - application — Generic implementation of components and libraries
+ - gen_event — Provides event-handling support 
+ - gen_statem — Runs a finite state machine in a stateful server process
+
 Elixir provides its own wrappers for the most frequently used behaviours via the
 modules GenServer, Supervisor, and Application.
 
