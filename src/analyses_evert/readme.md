@@ -115,9 +115,29 @@ If you address these challenges, your systems can constantly provide service wit
 Parallelism and concurrency are a key parts of the solution.
 
 BEAM runs in one OS process and creates (by default) for each core a OS thread, each OS thread has a scheduler.
+Each BEAM scheduler is in reality an OS thread that manages the execution of BEAM
+processes. By default, BEAM uses only as many schedulers as there are logical processors available.
 Multiple cores are needed for parallelism.
+
 The schedulers use preemption, based on a timeslot, to ensure that all processes get a chance to run.
 BEAM processes are lightweight, a few kb, don't share memory, completely isolated.
+
+As already mentioned, processes share no memory. Thus, sending a message to another
+process results in a deep copy of the message contents.
+
+A special case where deep-copying doesn’t take place involves binaries (including
+strings) that are larger than 64 bytes. These are maintained on a special shared binary
+heap, and sending them doesn’t result in a deep copy. This can be useful when you need
+to send information to many processes, and the processes don’t need to decode the string.
+
+You may wonder about the purpose of shared-nothing concurrency. First, it simplifies
+the code of each individual process. Because processes don’t share memory, you don’t
+need complicated synchronization mechanisms such as locks and mutexes. Another
+benefit is overall stability: one process can’t compromise the memory of another. This
+in turn promotes the integrity and fault-tolerance of the system. Finally, shared-nothing
+concurrency makes it possible to implement an efficient garbage collector.
+
+
 
 Found mc primitives:
 ```
@@ -139,7 +159,10 @@ This mailbox is a queue, the messages are processed in the order they arrive.
 Limited to memory.
 
 It will process messages by pattern matching.
+A message that has another pattern will never be processed, can become a memory problem
 
+How can you resolve this problem? For each server process, you should introduce a
+match-all receive clause that deals with unexpected kinds of messages.
 
 ```
 send(pid, {:an, :arbitrary, :term})
@@ -147,6 +170,11 @@ send(pid, {:an, :arbitrary, :term})
 receive do
   pattern_1 -> do_something
   pattern_2 -> do_something_else
+end
+
+receive
+  {:message, msg} -> do_something(msg)
+  other -> log_unknown_message(other) # match all
 end
 
 ```
@@ -161,4 +189,57 @@ defp loop do
   loop()
 end
 ```
+
+You may register a pid under an atom by using local registration,
+means only in same beam instance
+
+```
+Process.register(self(), :some_name)
+```
+
+Although multiple processes may run in parallel, a single process is always sequential — it either
+runs some code or waits for a message. If many processes send messages to a single process, that single process can significantly affect overall throughput.
+
+Theoretically, a process mailbox has an unlimited size. In practice, the mailbox size
+is limited by available memory. Thus, if a process constantly falls behind, meaning
+messages arrive faster than the process can handle them, the mailbox will constantly
+grow and increasingly consume memory. Ultimately, a single slow process may cause an
+entire system to crash by consuming all the available memory.
+
+```
+GenServer, part of OTP framework
+```
+
+All code that implements a server process needs to do the following:
+
+ - Spawn a separate process
+ - Run an infinite loop in the process
+ - Maintain the process state
+ - React to messages
+ - Send a response back to the caller
+
+In the current code, we use the term call for synchronous requests. For asynchronous
+requests, we’ll use the term cast. This is the naming convention used in OTP, so it’s good
+to adopt it.
+
+
+Some of the compelling features provided by GenServer include the following:
+ - Support for calls and casts
+ - Customizable timeouts for call requests
+ - Propagation of server-process crashes to client processes waiting for a response
+ - Support for distributed systems
+
+Note that there’s no special magic behind GenServer. Its code relies on concurrency
+primitives explained in chapter 5 and fault-tolerance features explained in chapter 9.
+
+OTP behaviours, sort of contract, a callback function must implement them
+
+The Erlang standard library includes the following OTP behaviours:
+¡ gen_server — Generic implementation of a stateful server process
+¡ supervisor — Provides error handling and recovery in concurrent systems
+¡ application — Generic implementation of components and libraries
+¡ gen_event — Provides event-handling support
+¡ gen_statem — Runs a finite state machine in a stateful server process
+Elixir provides its own wrappers for the most frequently used behaviours via the
+modules GenServer, Supervisor, and Application.
 
