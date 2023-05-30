@@ -9,7 +9,7 @@ from peewee import *
 
 from src.analyses_evert.read_diff_evert import ReadDiffEvert
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
-from src.models.evert_models import GhSearchSelection, TempDiffTextAnalysis
+from evert_models import GhSearchSelection, TempDiffTextAnalysis
 from src.models.selection_models import pg_db, Selectie, Project, pg_db_schema
 from src.repo_extractor.commitextractor import extract_repository
 from src.utils import configurator
