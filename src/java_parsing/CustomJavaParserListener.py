@@ -3,6 +3,8 @@ from antlr4 import *
 
 from .JavaParserListener import JavaParserListener
 
+POINT = '.'
+
 NEWLINE = '\n'
 
 if "." in __name__:
@@ -29,6 +31,7 @@ class CustomJavaParserListener(JavaParserListener):
         #   dan moet package geïmporteerd zijn
         #   niet verder zoeken naar gebuik class names
 
+        # resultaat velden
         self.geimporteerd = False
         self.instance_declaratie = False
         self.lokale_declaratie = False
@@ -36,6 +39,12 @@ class CustomJavaParserListener(JavaParserListener):
         self.is_resultaat = False
         self.is_parameter = False
         self.gebruikt = False
+
+        # switches voor de afhandeling
+        self.import_busy = False
+        self.field_decl_busy = False
+
+
 
     def is_gevonden_in(self):
         return(self.geimporteerd, self.instance_declaratie, self.lokale_declaratie, self.is_argument, self.is_resultaat,
@@ -62,17 +71,18 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Enter a parse tree produced by JavaParser#importDeclaration.
     def enterImportDeclaration(self, ctx: JavaParser.ImportDeclarationContext):
-        pass
+        self.import_busy = True
 
     # Exit a parse tree produced by JavaParser#importDeclaration.
     def exitImportDeclaration(self, ctx: JavaParser.ImportDeclarationContext):
-        importstatement = str(ctx.getText())
-        if importstatement.__eq__('import' + self.packagenaam + '.' + self.zoekterm + ';'):
+        statement = str(ctx.getText())
+        if statement.__eq__('import' + self.packagenaam + '.' + self.zoekterm + ';'):
             self.geimporteerd = True
             self.output += 'import ' + NEWLINE
-        if importstatement.__eq__('import' + self.packagenaam + '.*;'):
+        if statement.__eq__('import' + self.packagenaam + '.*;'):
             self.geimporteerd = True
             self.output += 'import ' + NEWLINE
+        self.import_busy = False
 
     # Enter a parse tree produced by JavaParser#typeDeclaration.
     def enterTypeDeclaration(self, ctx: JavaParser.TypeDeclarationContext):
@@ -80,9 +90,7 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeDeclaration.
     def exitTypeDeclaration(self, ctx: JavaParser.TypeDeclarationContext):
-        declarationstatement = str(ctx.getText())
-        if declarationstatement.__contains__(self.zoekterm):
-            self.gebruikt = True
+        pass
 
     # Enter a parse tree produced by JavaParser#modifier.
     def enterModifier(self, ctx: JavaParser.ModifierContext):
@@ -98,7 +106,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#classOrInterfaceModifier.
     def exitClassOrInterfaceModifier(self, ctx: JavaParser.ClassOrInterfaceModifierContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ClassOrInterfaceModifier ' + NEWLINE
+#            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#variableModifier.
     def enterVariableModifier(self, ctx: JavaParser.VariableModifierContext):
@@ -106,7 +118,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#variableModifier.
     def exitVariableModifier(self, ctx: JavaParser.VariableModifierContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'VariableModifier ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#classDeclaration.
     def enterClassDeclaration(self, ctx: JavaParser.ClassDeclarationContext):
@@ -122,7 +138,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeParameters.
     def exitTypeParameters(self, ctx: JavaParser.TypeParametersContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeParameters ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#typeParameter.
     def enterTypeParameter(self, ctx: JavaParser.TypeParameterContext):
@@ -130,7 +151,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeParameter.
     def exitTypeParameter(self, ctx: JavaParser.TypeParameterContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeParameter ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeBound.
     def enterTypeBound(self, ctx: JavaParser.TypeBoundContext):
@@ -138,7 +163,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeBound.
     def exitTypeBound(self, ctx: JavaParser.TypeBoundContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeBound ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#enumDeclaration.
     def enterEnumDeclaration(self, ctx: JavaParser.EnumDeclarationContext):
@@ -178,7 +207,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceDeclaration.
     def exitInterfaceDeclaration(self, ctx: JavaParser.InterfaceDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#classBody.
     def enterClassBody(self, ctx: JavaParser.ClassBodyContext):
@@ -186,9 +219,7 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#classBody.
     def exitClassBody(self, ctx: JavaParser.ClassBodyContext):
-        declarationstatement = str(ctx.getText())
-        if declarationstatement.__contains__(self.zoekterm):
-            self.gebruikt = True
+        pass
 
     # Enter a parse tree produced by JavaParser#interfaceBody.
     def enterInterfaceBody(self, ctx: JavaParser.InterfaceBodyContext):
@@ -196,15 +227,24 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceBody.
     def exitInterfaceBody(self, ctx: JavaParser.InterfaceBodyContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceBody ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#classBodyDeclaration.
     def enterClassBodyDeclaration(self, ctx: JavaParser.ClassBodyDeclarationContext):
-        pass
+        self.field_decl_busy = True
 
     # Exit a parse tree produced by JavaParser#classBodyDeclaration.
     def exitClassBodyDeclaration(self, ctx: JavaParser.ClassBodyDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ClassBodyDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
+        self.field_decl_busy = False
 
     # Enter a parse tree produced by JavaParser#memberDeclaration.
     def enterMemberDeclaration(self, ctx: JavaParser.MemberDeclarationContext):
@@ -212,7 +252,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#memberDeclaration.
     def exitMemberDeclaration(self, ctx: JavaParser.MemberDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'MemberDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#methodDeclaration.
     def enterMethodDeclaration(self, ctx: JavaParser.MethodDeclarationContext):
@@ -220,7 +264,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#methodDeclaration.
     def exitMethodDeclaration(self, ctx: JavaParser.MethodDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'MethodDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#methodBody.
     def enterMethodBody(self, ctx: JavaParser.MethodBodyContext):
@@ -228,7 +276,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#methodBody.
     def exitMethodBody(self, ctx: JavaParser.MethodBodyContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'MethodBody ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeTypeOrVoid.
     def enterTypeTypeOrVoid(self, ctx: JavaParser.TypeTypeOrVoidContext):
@@ -236,7 +288,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeTypeOrVoid.
     def exitTypeTypeOrVoid(self, ctx: JavaParser.TypeTypeOrVoidContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeTypeOrVoid ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#genericMethodDeclaration.
     def enterGenericMethodDeclaration(self, ctx: JavaParser.GenericMethodDeclarationContext):
@@ -244,7 +300,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#genericMethodDeclaration.
     def exitGenericMethodDeclaration(self, ctx: JavaParser.GenericMethodDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'GenericMethodDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#genericConstructorDeclaration.
     def enterGenericConstructorDeclaration(self, ctx: JavaParser.GenericConstructorDeclarationContext):
@@ -252,7 +312,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#genericConstructorDeclaration.
     def exitGenericConstructorDeclaration(self, ctx: JavaParser.GenericConstructorDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'GenericConstructorDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#constructorDeclaration.
     def enterConstructorDeclaration(self, ctx: JavaParser.ConstructorDeclarationContext):
@@ -260,7 +324,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#constructorDeclaration.
     def exitConstructorDeclaration(self, ctx: JavaParser.ConstructorDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ConstructorDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#compactConstructorDeclaration.
     def enterCompactConstructorDeclaration(self, ctx: JavaParser.CompactConstructorDeclarationContext):
@@ -268,7 +336,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#compactConstructorDeclaration.
     def exitCompactConstructorDeclaration(self, ctx: JavaParser.CompactConstructorDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'CompactConstructorDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#fieldDeclaration.
     def enterFieldDeclaration(self, ctx: JavaParser.FieldDeclarationContext):
@@ -276,7 +348,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#fieldDeclaration.
     def exitFieldDeclaration(self, ctx: JavaParser.FieldDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'FieldDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#interfaceBodyDeclaration.
     def enterInterfaceBodyDeclaration(self, ctx: JavaParser.InterfaceBodyDeclarationContext):
@@ -284,7 +360,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceBodyDeclaration.
     def exitInterfaceBodyDeclaration(self, ctx: JavaParser.InterfaceBodyDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceBodyDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#interfaceMemberDeclaration.
     def enterInterfaceMemberDeclaration(self, ctx: JavaParser.InterfaceMemberDeclarationContext):
@@ -292,7 +372,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceMemberDeclaration.
     def exitInterfaceMemberDeclaration(self, ctx: JavaParser.InterfaceMemberDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceMemberDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#constDeclaration.
     def enterConstDeclaration(self, ctx: JavaParser.ConstDeclarationContext):
@@ -316,7 +400,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceMethodDeclaration.
     def exitInterfaceMethodDeclaration(self, ctx: JavaParser.InterfaceMethodDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceMethodDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#interfaceMethodModifier.
     def enterInterfaceMethodModifier(self, ctx: JavaParser.InterfaceMethodModifierContext):
@@ -324,7 +412,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceMethodModifier.
     def exitInterfaceMethodModifier(self, ctx: JavaParser.InterfaceMethodModifierContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceMethodModifier ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#genericInterfaceMethodDeclaration.
     def enterGenericInterfaceMethodDeclaration(self, ctx: JavaParser.GenericInterfaceMethodDeclarationContext):
@@ -332,7 +424,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#genericInterfaceMethodDeclaration.
     def exitGenericInterfaceMethodDeclaration(self, ctx: JavaParser.GenericInterfaceMethodDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'GenericInterfaceMethodDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#interfaceCommonBodyDeclaration.
     def enterInterfaceCommonBodyDeclaration(self, ctx: JavaParser.InterfaceCommonBodyDeclarationContext):
@@ -340,7 +436,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#interfaceCommonBodyDeclaration.
     def exitInterfaceCommonBodyDeclaration(self, ctx: JavaParser.InterfaceCommonBodyDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InterfaceCommonBodyDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#variableDeclarators.
     def enterVariableDeclarators(self, ctx: JavaParser.VariableDeclaratorsContext):
@@ -348,7 +449,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#variableDeclarators.
     def exitVariableDeclarators(self, ctx: JavaParser.VariableDeclaratorsContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'VariableDeclarators ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#variableDeclarator.
     def enterVariableDeclarator(self, ctx: JavaParser.VariableDeclaratorContext):
@@ -356,7 +462,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#variableDeclarator.
     def exitVariableDeclarator(self, ctx: JavaParser.VariableDeclaratorContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'VariableDeclarator ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#variableDeclaratorId.
     def enterVariableDeclaratorId(self, ctx: JavaParser.VariableDeclaratorIdContext):
@@ -364,7 +474,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#variableDeclaratorId.
     def exitVariableDeclaratorId(self, ctx: JavaParser.VariableDeclaratorIdContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'VariableDeclaratorid ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#variableInitializer.
     def enterVariableInitializer(self, ctx: JavaParser.VariableInitializerContext):
@@ -372,7 +486,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#variableInitializer.
     def exitVariableInitializer(self, ctx: JavaParser.VariableInitializerContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'VariableInitializer ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#arrayInitializer.
     def enterArrayInitializer(self, ctx: JavaParser.ArrayInitializerContext):
@@ -380,7 +498,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#arrayInitializer.
     def exitArrayInitializer(self, ctx: JavaParser.ArrayInitializerContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ArrayInitializer ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#classOrInterfaceType.
     def enterClassOrInterfaceType(self, ctx: JavaParser.ClassOrInterfaceTypeContext):
@@ -388,7 +510,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#classOrInterfaceType.
     def exitClassOrInterfaceType(self, ctx: JavaParser.ClassOrInterfaceTypeContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ClassOrInterfaceType ' + NEWLINE
+#            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#typeArgument.
     def enterTypeArgument(self, ctx: JavaParser.TypeArgumentContext):
@@ -396,7 +523,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeArgument.
     def exitTypeArgument(self, ctx: JavaParser.TypeArgumentContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeArgument ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#qualifiedNameList.
     def enterQualifiedNameList(self, ctx: JavaParser.QualifiedNameListContext):
@@ -404,7 +535,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#qualifiedNameList.
     def exitQualifiedNameList(self, ctx: JavaParser.QualifiedNameListContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'QualifiedNameList ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#formalParameters.
     def enterFormalParameters(self, ctx: JavaParser.FormalParametersContext):
@@ -412,7 +547,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#formalParameters.
     def exitFormalParameters(self, ctx: JavaParser.FormalParametersContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'FormalParameters ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#receiverParameter.
     def enterReceiverParameter(self, ctx: JavaParser.ReceiverParameterContext):
@@ -420,7 +559,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#receiverParameter.
     def exitReceiverParameter(self, ctx: JavaParser.ReceiverParameterContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'receiverParameter ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#formalParameterList.
     def enterFormalParameterList(self, ctx: JavaParser.FormalParameterListContext):
@@ -428,7 +571,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#formalParameterList.
     def exitFormalParameterList(self, ctx: JavaParser.FormalParameterListContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'FormalParameterList ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#formalParameter.
     def enterFormalParameter(self, ctx: JavaParser.FormalParameterContext):
@@ -436,7 +583,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#formalParameter.
     def exitFormalParameter(self, ctx: JavaParser.FormalParameterContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'FormalParameter ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#lastFormalParameter.
     def enterLastFormalParameter(self, ctx: JavaParser.LastFormalParameterContext):
@@ -444,7 +596,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#lastFormalParameter.
     def exitLastFormalParameter(self, ctx: JavaParser.LastFormalParameterContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LastFormalParameter ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#lambdaLVTIList.
     def enterLambdaLVTIList(self, ctx: JavaParser.LambdaLVTIListContext):
@@ -452,7 +608,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#lambdaLVTIList.
     def exitLambdaLVTIList(self, ctx: JavaParser.LambdaLVTIListContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LambdaLVTIList ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#lambdaLVTIParameter.
     def enterLambdaLVTIParameter(self, ctx: JavaParser.LambdaLVTIParameterContext):
@@ -460,7 +620,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#lambdaLVTIParameter.
     def exitLambdaLVTIParameter(self, ctx: JavaParser.LambdaLVTIParameterContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LambdaLVTIParameter ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#qualifiedName.
     def enterQualifiedName(self, ctx: JavaParser.QualifiedNameContext):
@@ -468,7 +632,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#qualifiedName.
     def exitQualifiedName(self, ctx: JavaParser.QualifiedNameContext):
-        pass
+        if not self.import_busy:
+            statement = str(ctx.getText())
+            if statement.__eq__(self.packagenaam + POINT + self.zoekterm):
+                self.gebruikt = True
+                self.output += 'QualifiedName ' + NEWLINE
 
     # Enter a parse tree produced by JavaParser#literal.
     def enterLiteral(self, ctx: JavaParser.LiteralContext):
@@ -500,7 +668,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#altAnnotationQualifiedName.
     def exitAltAnnotationQualifiedName(self, ctx: JavaParser.AltAnnotationQualifiedNameContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AltAnnotationQualifiedName ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#annotation.
     def enterAnnotation(self, ctx: JavaParser.AnnotationContext):
@@ -508,7 +680,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotation.
     def exitAnnotation(self, ctx: JavaParser.AnnotationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Annotation ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#elementValuePairs.
     def enterElementValuePairs(self, ctx: JavaParser.ElementValuePairsContext):
@@ -516,7 +692,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#elementValuePairs.
     def exitElementValuePairs(self, ctx: JavaParser.ElementValuePairsContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ElementValuePairs ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#elementValuePair.
     def enterElementValuePair(self, ctx: JavaParser.ElementValuePairContext):
@@ -524,7 +704,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#elementValuePair.
     def exitElementValuePair(self, ctx: JavaParser.ElementValuePairContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ElementValuePair ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#elementValue.
     def enterElementValue(self, ctx: JavaParser.ElementValueContext):
@@ -532,7 +716,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#elementValue.
     def exitElementValue(self, ctx: JavaParser.ElementValueContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ElementValue ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#elementValueArrayInitializer.
     def enterElementValueArrayInitializer(self, ctx: JavaParser.ElementValueArrayInitializerContext):
@@ -540,7 +729,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#elementValueArrayInitializer.
     def exitElementValueArrayInitializer(self, ctx: JavaParser.ElementValueArrayInitializerContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ElementValueArrayInitializer ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#annotationTypeDeclaration.
     def enterAnnotationTypeDeclaration(self, ctx: JavaParser.AnnotationTypeDeclarationContext):
@@ -548,7 +741,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotationTypeDeclaration.
     def exitAnnotationTypeDeclaration(self, ctx: JavaParser.AnnotationTypeDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationTypeDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#annotationTypeBody.
     def enterAnnotationTypeBody(self, ctx: JavaParser.AnnotationTypeBodyContext):
@@ -556,7 +753,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotationTypeBody.
     def exitAnnotationTypeBody(self, ctx: JavaParser.AnnotationTypeBodyContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationTypeBody ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#annotationTypeElementDeclaration.
     def enterAnnotationTypeElementDeclaration(self, ctx: JavaParser.AnnotationTypeElementDeclarationContext):
@@ -564,7 +765,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotationTypeElementDeclaration.
     def exitAnnotationTypeElementDeclaration(self, ctx: JavaParser.AnnotationTypeElementDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationTypeElementDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#annotationTypeElementRest.
     def enterAnnotationTypeElementRest(self, ctx: JavaParser.AnnotationTypeElementRestContext):
@@ -572,7 +778,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotationTypeElementRest.
     def exitAnnotationTypeElementRest(self, ctx: JavaParser.AnnotationTypeElementRestContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationTypeElementRest ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#annotationMethodOrConstantRest.
     def enterAnnotationMethodOrConstantRest(self, ctx: JavaParser.AnnotationMethodOrConstantRestContext):
@@ -580,7 +791,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotationMethodOrConstantRest.
     def exitAnnotationMethodOrConstantRest(self, ctx: JavaParser.AnnotationMethodOrConstantRestContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationMethodOrConstantRest ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#annotationMethodRest.
     def enterAnnotationMethodRest(self, ctx: JavaParser.AnnotationMethodRestContext):
@@ -588,23 +803,33 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#annotationMethodRest.
     def exitAnnotationMethodRest(self, ctx: JavaParser.AnnotationMethodRestContext):
-        pass
-
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationMethodRest ' + NEWLINE
+            self.output += statement + NEWLINE
     # Enter a parse tree produced by JavaParser#annotationConstantRest.
     def enterAnnotationConstantRest(self, ctx: JavaParser.AnnotationConstantRestContext):
         pass
 
     # Exit a parse tree produced by JavaParser#annotationConstantRest.
     def exitAnnotationConstantRest(self, ctx: JavaParser.AnnotationConstantRestContext):
-        pass
-
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'AnnotationConstantRest ' + NEWLINE
+            self.output += statement + NEWLINE
     # Enter a parse tree produced by JavaParser#defaultValue.
     def enterDefaultValue(self, ctx: JavaParser.DefaultValueContext):
         pass
 
     # Exit a parse tree produced by JavaParser#defaultValue.
     def exitDefaultValue(self, ctx: JavaParser.DefaultValueContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'DefaultValue ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#moduleDeclaration.
     def enterModuleDeclaration(self, ctx: JavaParser.ModuleDeclarationContext):
@@ -612,7 +837,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#moduleDeclaration.
     def exitModuleDeclaration(self, ctx: JavaParser.ModuleDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ModuleDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#moduleBody.
     def enterModuleBody(self, ctx: JavaParser.ModuleBodyContext):
@@ -620,7 +849,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#moduleBody.
     def exitModuleBody(self, ctx: JavaParser.ModuleBodyContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ModuleBody ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#moduleDirective.
     def enterModuleDirective(self, ctx: JavaParser.ModuleDirectiveContext):
@@ -628,7 +861,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#moduleDirective.
     def exitModuleDirective(self, ctx: JavaParser.ModuleDirectiveContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ModuleDirective ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#requiresModifier.
     def enterRequiresModifier(self, ctx: JavaParser.RequiresModifierContext):
@@ -636,7 +873,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#requiresModifier.
     def exitRequiresModifier(self, ctx: JavaParser.RequiresModifierContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'RequiresModifier ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#recordDeclaration.
     def enterRecordDeclaration(self, ctx: JavaParser.RecordDeclarationContext):
@@ -644,7 +885,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#recordDeclaration.
     def exitRecordDeclaration(self, ctx: JavaParser.RecordDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'RecordDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#recordHeader.
     def enterRecordHeader(self, ctx: JavaParser.RecordHeaderContext):
@@ -652,7 +897,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#recordHeader.
     def exitRecordHeader(self, ctx: JavaParser.RecordHeaderContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'RecordHeader ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#recordComponentList.
     def enterRecordComponentList(self, ctx: JavaParser.RecordComponentListContext):
@@ -660,7 +909,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#recordComponentList.
     def exitRecordComponentList(self, ctx: JavaParser.RecordComponentListContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'RecordComponentList ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#recordComponent.
     def enterRecordComponent(self, ctx: JavaParser.RecordComponentContext):
@@ -668,7 +921,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#recordComponent.
     def exitRecordComponent(self, ctx: JavaParser.RecordComponentContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'RecordComponent ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#recordBody.
     def enterRecordBody(self, ctx: JavaParser.RecordBodyContext):
@@ -676,7 +933,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#recordBody.
     def exitRecordBody(self, ctx: JavaParser.RecordBodyContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'RecordBody ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#block.
     def enterBlock(self, ctx: JavaParser.BlockContext):
@@ -684,7 +945,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#block.
     def exitBlock(self, ctx: JavaParser.BlockContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Block ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#blockStatement.
     def enterBlockStatement(self, ctx: JavaParser.BlockStatementContext):
@@ -692,7 +957,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#blockStatement.
     def exitBlockStatement(self, ctx: JavaParser.BlockStatementContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'BlockStatement ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#localVariableDeclaration.
     def enterLocalVariableDeclaration(self, ctx: JavaParser.LocalVariableDeclarationContext):
@@ -700,7 +969,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#localVariableDeclaration.
     def exitLocalVariableDeclaration(self, ctx: JavaParser.LocalVariableDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LocalVariableDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#identifier.
     def enterIdentifier(self, ctx: JavaParser.IdentifierContext):
@@ -708,7 +981,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#identifier.
     def exitIdentifier(self, ctx: JavaParser.IdentifierContext):
-        pass
+        if not self.import_busy:
+            statement = str(ctx.getText())
+            if statement.__eq__(self.zoekterm):
+                self.gebruikt = True
+                self.output += 'Identifier ' + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeIdentifier.
     def enterTypeIdentifier(self, ctx: JavaParser.TypeIdentifierContext):
@@ -716,7 +993,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeIdentifier.
     def exitTypeIdentifier(self, ctx: JavaParser.TypeIdentifierContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeIdentifier ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#localTypeDeclaration.
     def enterLocalTypeDeclaration(self, ctx: JavaParser.LocalTypeDeclarationContext):
@@ -724,7 +1005,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#localTypeDeclaration.
     def exitLocalTypeDeclaration(self, ctx: JavaParser.LocalTypeDeclarationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LocalTypeDeclaration ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#statement.
     def enterStatement(self, ctx: JavaParser.StatementContext):
@@ -732,7 +1017,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#statement.
     def exitStatement(self, ctx: JavaParser.StatementContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'statement ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#catchClause.
     def enterCatchClause(self, ctx: JavaParser.CatchClauseContext):
@@ -740,7 +1029,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#catchClause.
     def exitCatchClause(self, ctx: JavaParser.CatchClauseContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'CatchClause ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#catchType.
     def enterCatchType(self, ctx: JavaParser.CatchTypeContext):
@@ -748,7 +1041,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#catchType.
     def exitCatchType(self, ctx: JavaParser.CatchTypeContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'CatchType ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#finallyBlock.
     def enterFinallyBlock(self, ctx: JavaParser.FinallyBlockContext):
@@ -756,7 +1053,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#finallyBlock.
     def exitFinallyBlock(self, ctx: JavaParser.FinallyBlockContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'FinallyBlock ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#resourceSpecification.
     def enterResourceSpecification(self, ctx: JavaParser.ResourceSpecificationContext):
@@ -764,7 +1065,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#resourceSpecification.
     def exitResourceSpecification(self, ctx: JavaParser.ResourceSpecificationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ResourceSpecification ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#resources.
     def enterResources(self, ctx: JavaParser.ResourcesContext):
@@ -772,7 +1077,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#resources.
     def exitResources(self, ctx: JavaParser.ResourcesContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Resources ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#resource.
     def enterResource(self, ctx: JavaParser.ResourceContext):
@@ -780,7 +1089,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#resource.
     def exitResource(self, ctx: JavaParser.ResourceContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Resource ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#switchBlockStatementGroup.
     def enterSwitchBlockStatementGroup(self, ctx: JavaParser.SwitchBlockStatementGroupContext):
@@ -788,7 +1101,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#switchBlockStatementGroup.
     def exitSwitchBlockStatementGroup(self, ctx: JavaParser.SwitchBlockStatementGroupContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'SwitchBlockStatementGroup ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#switchLabel.
     def enterSwitchLabel(self, ctx: JavaParser.SwitchLabelContext):
@@ -804,7 +1121,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#forControl.
     def exitForControl(self, ctx: JavaParser.ForControlContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ForControl ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#forInit.
     def enterForInit(self, ctx: JavaParser.ForInitContext):
@@ -812,7 +1133,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#forInit.
     def exitForInit(self, ctx: JavaParser.ForInitContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ForInit ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#enhancedForControl.
     def enterEnhancedForControl(self, ctx: JavaParser.EnhancedForControlContext):
@@ -820,7 +1146,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#enhancedForControl.
     def exitEnhancedForControl(self, ctx: JavaParser.EnhancedForControlContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'EnhancedForControl ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#parExpression.
     def enterParExpression(self, ctx: JavaParser.ParExpressionContext):
@@ -828,7 +1158,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#parExpression.
     def exitParExpression(self, ctx: JavaParser.ParExpressionContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ParExpression ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#expressionList.
     def enterExpressionList(self, ctx: JavaParser.ExpressionListContext):
@@ -836,7 +1170,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#expressionList.
     def exitExpressionList(self, ctx: JavaParser.ExpressionListContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ExpressionList ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#methodCall.
     def enterMethodCall(self, ctx: JavaParser.MethodCallContext):
@@ -844,7 +1182,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#methodCall.
     def exitMethodCall(self, ctx: JavaParser.MethodCallContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'MethodCall ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#expression.
     def enterExpression(self, ctx: JavaParser.ExpressionContext):
@@ -852,7 +1195,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#expression.
     def exitExpression(self, ctx: JavaParser.ExpressionContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Expression ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#pattern.
     def enterPattern(self, ctx: JavaParser.PatternContext):
@@ -860,7 +1208,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#pattern.
     def exitPattern(self, ctx: JavaParser.PatternContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Pattern ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#lambdaExpression.
     def enterLambdaExpression(self, ctx: JavaParser.LambdaExpressionContext):
@@ -868,7 +1221,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#lambdaExpression.
     def exitLambdaExpression(self, ctx: JavaParser.LambdaExpressionContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LambdaExpression ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#lambdaParameters.
     def enterLambdaParameters(self, ctx: JavaParser.LambdaParametersContext):
@@ -876,7 +1234,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#lambdaParameters.
     def exitLambdaParameters(self, ctx: JavaParser.LambdaParametersContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LambdaParameters ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#lambdaBody.
     def enterLambdaBody(self, ctx: JavaParser.LambdaBodyContext):
@@ -884,7 +1246,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#lambdaBody.
     def exitLambdaBody(self, ctx: JavaParser.LambdaBodyContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'LambdaBody ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#primary.
     def enterPrimary(self, ctx: JavaParser.PrimaryContext):
@@ -892,7 +1258,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#primary.
     def exitPrimary(self, ctx: JavaParser.PrimaryContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Primary ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#switchExpression.
     def enterSwitchExpression(self, ctx: JavaParser.SwitchExpressionContext):
@@ -900,7 +1270,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#switchExpression.
     def exitSwitchExpression(self, ctx: JavaParser.SwitchExpressionContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'SwitchExpression ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#switchLabeledRule.
     def enterSwitchLabeledRule(self, ctx: JavaParser.SwitchLabeledRuleContext):
@@ -908,7 +1282,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#switchLabeledRule.
     def exitSwitchLabeledRule(self, ctx: JavaParser.SwitchLabeledRuleContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'SwitchLabeledRule ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#guardedPattern.
     def enterGuardedPattern(self, ctx: JavaParser.GuardedPatternContext):
@@ -916,7 +1294,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#guardedPattern.
     def exitGuardedPattern(self, ctx: JavaParser.GuardedPatternContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'GuardedPattern ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#switchRuleOutcome.
     def enterSwitchRuleOutcome(self, ctx: JavaParser.SwitchRuleOutcomeContext):
@@ -924,7 +1306,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#switchRuleOutcome.
     def exitSwitchRuleOutcome(self, ctx: JavaParser.SwitchRuleOutcomeContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'SwitchRuleOutcome ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#classType.
     def enterClassType(self, ctx: JavaParser.ClassTypeContext):
@@ -932,7 +1318,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#classType.
     def exitClassType(self, ctx: JavaParser.ClassTypeContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ClassType ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#creator.
     def enterCreator(self, ctx: JavaParser.CreatorContext):
@@ -940,7 +1330,12 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#creator.
     def exitCreator(self, ctx: JavaParser.CreatorContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'Creator ' + NEWLINE
+            self.output += statement + NEWLINE
+
 
     # Enter a parse tree produced by JavaParser#createdName.
     def enterCreatedName(self, ctx: JavaParser.CreatedNameContext):
@@ -948,7 +1343,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#createdName.
     def exitCreatedName(self, ctx: JavaParser.CreatedNameContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'CreatedName ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#innerCreator.
     def enterInnerCreator(self, ctx: JavaParser.InnerCreatorContext):
@@ -956,7 +1355,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#innerCreator.
     def exitInnerCreator(self, ctx: JavaParser.InnerCreatorContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'InnerCreator ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#arrayCreatorRest.
     def enterArrayCreatorRest(self, ctx: JavaParser.ArrayCreatorRestContext):
@@ -964,7 +1367,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#arrayCreatorRest.
     def exitArrayCreatorRest(self, ctx: JavaParser.ArrayCreatorRestContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ArrayCreatorRest ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#classCreatorRest.
     def enterClassCreatorRest(self, ctx: JavaParser.ClassCreatorRestContext):
@@ -972,7 +1379,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#classCreatorRest.
     def exitClassCreatorRest(self, ctx: JavaParser.ClassCreatorRestContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ClassCreatorRest ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#explicitGenericInvocation.
     def enterExplicitGenericInvocation(self, ctx: JavaParser.ExplicitGenericInvocationContext):
@@ -980,7 +1391,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#explicitGenericInvocation.
     def exitExplicitGenericInvocation(self, ctx: JavaParser.ExplicitGenericInvocationContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ExplicitGenericInvocation ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeArgumentsOrDiamond.
     def enterTypeArgumentsOrDiamond(self, ctx: JavaParser.TypeArgumentsOrDiamondContext):
@@ -988,7 +1403,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeArgumentsOrDiamond.
     def exitTypeArgumentsOrDiamond(self, ctx: JavaParser.TypeArgumentsOrDiamondContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeArgumentsOrDiamond ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#nonWildcardTypeArgumentsOrDiamond.
     def enterNonWildcardTypeArgumentsOrDiamond(self, ctx: JavaParser.NonWildcardTypeArgumentsOrDiamondContext):
@@ -996,7 +1415,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#nonWildcardTypeArgumentsOrDiamond.
     def exitNonWildcardTypeArgumentsOrDiamond(self, ctx: JavaParser.NonWildcardTypeArgumentsOrDiamondContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'NonWildcardTypeArgumentsOrDiamond ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#nonWildcardTypeArguments.
     def enterNonWildcardTypeArguments(self, ctx: JavaParser.NonWildcardTypeArgumentsContext):
@@ -1004,7 +1427,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#nonWildcardTypeArguments.
     def exitNonWildcardTypeArguments(self, ctx: JavaParser.NonWildcardTypeArgumentsContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'NonWildcardTypeArguments ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeList.
     def enterTypeList(self, ctx: JavaParser.TypeListContext):
@@ -1012,7 +1439,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeList.
     def exitTypeList(self, ctx: JavaParser.TypeListContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeList ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeType.
     def enterTypeType(self, ctx: JavaParser.TypeTypeContext):
@@ -1020,7 +1451,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeType.
     def exitTypeType(self, ctx: JavaParser.TypeTypeContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeType ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#primitiveType.
     def enterPrimitiveType(self, ctx: JavaParser.PrimitiveTypeContext):
@@ -1028,7 +1463,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#primitiveType.
     def exitPrimitiveType(self, ctx: JavaParser.PrimitiveTypeContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'PrimitiveType ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#typeArguments.
     def enterTypeArguments(self, ctx: JavaParser.TypeArgumentsContext):
@@ -1036,7 +1475,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#typeArguments.
     def exitTypeArguments(self, ctx: JavaParser.TypeArgumentsContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'TypeArguments ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#superSuffix.
     def enterSuperSuffix(self, ctx: JavaParser.SuperSuffixContext):
@@ -1052,7 +1495,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#explicitGenericInvocationSuffix.
     def exitExplicitGenericInvocationSuffix(self, ctx: JavaParser.ExplicitGenericInvocationSuffixContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'ExplicitGenericInvocationSuffix ' + NEWLINE
+            self.output += statement + NEWLINE
 
     # Enter a parse tree produced by JavaParser#arguments.
     def enterArguments(self, ctx: JavaParser.ArgumentsContext):
@@ -1060,7 +1507,11 @@ class CustomJavaParserListener(JavaParserListener):
 
     # Exit a parse tree produced by JavaParser#arguments.
     def exitArguments(self, ctx: JavaParser.ArgumentsContext):
-        pass
+        statement = str(ctx.getText())
+        if statement.__contains__(self.zoekterm):
+            self.gebruikt = True
+            self.output += 'arguments ' + NEWLINE
+            self.output += statement + NEWLINE
 
 
 del JavaParser

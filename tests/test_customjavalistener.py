@@ -9,6 +9,12 @@ from src.java_parsing.JavaLexer import JavaLexer
 from src.java_parsing.JavaParser import JavaParser
 
 IS_GEIMPORTEERD = 0
+IS_INSTANCE_DECL = 1
+IS_LOCAL_DECL = 2
+IS_ARGUMENT = 3
+IS_RESULT = 4
+IS_PARAM = 5
+IS_USED = 6
 
 
 class Test(unittest.TestCase):
@@ -74,3 +80,18 @@ class Test(unittest.TestCase):
         var = t_listener.is_gevonden_in()
         unittest.TestCase.assertTrue(self, var[IS_GEIMPORTEERD], 'is hetzelfde package niet gevonden')
         unittest.TestCase.assertEqual(self, expected, t_listener.output, 'verschil in resultaat ')
+
+
+    def test_class_usage(self):
+        tree = self.get_tree_from_file('data/java/TestInstanceDeclaration.java')
+        walker = ParseTreeWalker()
+        expected = 'instance_declaration \n'
+
+        t_listener = CustomJavaParserListener(zoekterm='Thread', packagenaam='java.lang',
+                                              output='')
+        walker.walk(listener=t_listener, t=tree)
+        var = t_listener.is_gevonden_in()
+        unittest.TestCase.assertEqual(self, expected, t_listener.output, 'verschil in resultaat ')
+
+
+        unittest.TestCase.assertTrue(self, var[IS_INSTANCE_DECL], 'import bij naam niet gevonden')

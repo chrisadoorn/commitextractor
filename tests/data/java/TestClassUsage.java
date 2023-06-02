@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class TestClassUsage {
+public class TestClassUsage extends Thread {
 
     //instance declaratie
     private Thread t = new Thread();
