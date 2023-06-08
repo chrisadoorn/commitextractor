@@ -10,7 +10,7 @@ def find_class_use(node: Tree, classname: str, found: bool):
         label = node.label()
         if node.label() == 'typeType':
             leaves_list = node.leaves()
-            found = leaves_list.__contains__('Thread')
+            found = leaves_list.__contains__(classname)
 
         # if False :
         #

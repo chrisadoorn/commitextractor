@@ -1,16 +1,16 @@
 // import wordt in import gecontroleerd, niet in class gebruik.
-import java.lang.Thread;
+import java.lang.Runnable;
+
 
 public class TestNotUsed {
 
     public void localDeclaration() {
-         //single line comment Thread a;
+         //single line comment Runnable a;
 
         /* multiline comment
-        Thread b;
+        Runnable b;
         */
         // literal
-        String c = "Thread";
-
+        String c = "Runnable";
     }
 }
