@@ -4,8 +4,6 @@ import pyparsing
 import logging
 from datetime import datetime
 
-import sys
-
 from antlr4 import ParseTreeWalker
 
 from src.java_parsing.CustomJavaParserListener import CustomJavaParserListener
@@ -56,8 +54,6 @@ def __analyze_by_project(projectnaam, projectid):
         # is zoekterm daadwerkelijk gebruikt? (afhankelijk van soort zoekwoord hoe dit bepaald wordt. kijk naar indicatie booleans. )
         # is zoekterm anders gebruikt dan in textvooraf? vergelijk listener outputs
         # vergelijk resultaat pre en after
-
-
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectnaam + str(eind))
