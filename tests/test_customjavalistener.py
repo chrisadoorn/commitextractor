@@ -67,7 +67,7 @@ class Test(unittest.TestCase):
         return tree.toStringTree(recog=parser)
 
     def test_import(self):
-        tree = self.get_tree_from_file('data/java/TestImport.java')
+        tree = self.get_tree_from_file('data/java/import/TestImport.java')
         walker = ParseTreeWalker()
         expected = 'import \n'
 
