@@ -2,11 +2,6 @@ import string
 from collections import deque
 
 
-JAVA_IDENTIFIER_GRAMMAR = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '$'] + [str(i) for i in
-                                                                                                      list(
-                                                                                                          range(0, 10))]
-
-
 class InvalidDiffText(Exception):
     """Raised when the diff text is not valid"""
     pass
@@ -14,7 +9,7 @@ class InvalidDiffText(Exception):
 
 class ReadDiff:
 
-    def __init__(self, language: str = "JAVA"):
+    def __init__(self, language: str, identifier_grammar: list[str]):
         """
         Constructor
         :param language: the language of the code in the diff
@@ -24,15 +19,16 @@ class ReadDiff:
         self.new_lines = None
         self.lines = ""
         self.language = language.upper()
+        self.identifier_grammar = identifier_grammar
 
-    def check_diff_text(self, chunk: str = '', words: list[str] = None) -> \
-            tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+    def check_diff_text(self, chunk: str = '', words: list[str] = None) -> tuple[
+        list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
         self.check_diff_text_no_check_with_removed(chunk, words)
         self.__check_with_removed_lines()
         return self.new_lines, self.removed_lines
 
-    def check_diff_text_no_check_with_removed(self, chunk: str = '', words: list[str] = None) -> \
-            tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+    def check_diff_text_no_check_with_removed(self, chunk: str = '', words: list[str] = None) -> tuple[
+        list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
@@ -169,7 +165,7 @@ class ReadDiff:
             if c is None:
                 break
 
-            if c in JAVA_IDENTIFIER_GRAMMAR:
+            if c in self.identifier_grammar:
                 w = self.__concat(line_list, c)
                 if w in text_to_find:
                     instances_found.append(w)
@@ -205,13 +201,12 @@ class ReadDiff:
             if c == '\'':
                 return c
 
-    @staticmethod
-    def __concat(line_list: deque, w: str) -> str:
+    def __concat(self, line_list: deque, w: str) -> str:
         while True:
             c = line_list.popleft() if line_list else ''
             if c == '':
                 return w
-            if c not in JAVA_IDENTIFIER_GRAMMAR:
+            if c not in self.identifier_grammar:
                 line_list.appendleft(c)
                 return w
             w += c
@@ -219,3 +214,15 @@ class ReadDiff:
     @staticmethod
     def __stop() -> None:
         return None
+
+
+class ReadDiffJava(ReadDiff):
+    def __init__(self):
+        super().__init__("Java",
+                         list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_', '$'])
+
+
+class ReadDiffElixir(ReadDiff):
+    def __init__(self):
+        super().__init__("Elixir", list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.'])
+

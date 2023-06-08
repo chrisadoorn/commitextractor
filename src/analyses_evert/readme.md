@@ -267,3 +267,40 @@ for back-pressure and load control. The Phoenix.Channel module, which is part of
 Phoenix web framework (http://phoenixframework.org/), is used to facilitate bidirec-
 tional communication between a client and a web server over protocols such as WebSocket
 or HTTP.
+
+spawn
+send
+receive
+Process.register
+Process.link
+Process.flag
+Process.monitor
+GenServer
+spawn_link
+Supervisor
+
+
+use GenServer .functions
+ - start_link
+ - call
+ - cast
+ - stop
+ - reply
+ - handle_call
+ - handle_cast
+ - handle_info
+ - init
+ - terminate
+ - code_change
+
+Supervisor.start_link
+spawn_link
+use Supervisor .functions
+ - start_link
+ - start_child
+ - restart_child
+ - stop_child
+ - stop
+ - terminate
+ - init
+ - code_change

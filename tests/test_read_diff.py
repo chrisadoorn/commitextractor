@@ -1,12 +1,13 @@
 import unittest
-from src.utils.read_diff import ReadDiff, InvalidDiffText
+
+from src.utils.read_diff import InvalidDiffText, ReadDiffJava, ReadDiffElixir
 
 
 class Test(unittest.TestCase):
 
     def test_java_text_geen_keywords(self):
         diff_text = self.read_diff_file(filepath='data/read_diff_java_zonder_keywords.txt')
-        read_diff = ReadDiff(language="JAVA")
+        read_diff = ReadDiffJava()
         (new_lines, old_lines) = read_diff.check_diff_text(diff_text, ['Thread'])
 
         unittest.TestCase.assertEqual(self, 10, len(new_lines), 'onjuist aantal nieuwe regels gevonden')
@@ -25,7 +26,7 @@ class Test(unittest.TestCase):
     def test_java_text_met_keywords(self):
         diff_text = self.read_diff_file(filepath='data/read_diff_java_met_keywords.txt')
         keywords = ["Thread"]
-        read_diff = ReadDiff("JAVA")
+        read_diff = ReadDiffJava()
         (new_lines, old_lines) = read_diff.check_diff_text(diff_text, keywords)
         unittest.TestCase.assertEqual(self, 11, len(new_lines), 'onjuist aantal nieuwe regels gevonden')
         unittest.TestCase.assertEqual(self, 6, len(old_lines), 'onjuist aantal gewijzigde regels gevonden')
@@ -53,7 +54,7 @@ class Test(unittest.TestCase):
 
     def test_text_starts_with_not_an_expected_chunk_header(self):
         keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi"]
-        read_diff = ReadDiff("JAVA")
+        read_diff = ReadDiffJava()
         text = "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi"
         self.assertRaises(InvalidDiffText, read_diff.check_diff_text, text, keywords)
         text = "@@Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi"
@@ -81,7 +82,7 @@ class Test(unittest.TestCase):
 
     def test_text_starts_with_an_expected_chunk_header(self):
         keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi"]
-        read_diff = ReadDiff("JAVA")
+        read_diff = ReadDiffJava()
         try:
             text = "@@ -1,1 +2,1 @@Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi"
             x = read_diff.check_diff_text(text, keywords)
@@ -94,7 +95,7 @@ class Test(unittest.TestCase):
         keywords = ["use", "Mix.Project", "def", "project", "do", "app", "plug_server", "server", "elixir",
                     "build_embedded", "application", "applications", "cowboy", "plug", "mod", "App", "env",
                     "cowboy_port", "end"]
-        read_diff = ReadDiff("ELIXIR")
+        read_diff = ReadDiffElixir()
         (new_lines, old_lines) = read_diff.check_diff_text(diff_text, keywords)
         x = new_lines
         y = old_lines
@@ -108,7 +109,7 @@ class Test(unittest.TestCase):
 
     def test_text_starts_with_an_expected_chunk_header_and_has_keywords(self):
         keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi"]
-        read_diff = ReadDiff("JAVA")
+        read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +2,1 @@" + "\n"
 
         try:
@@ -195,7 +196,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
     def test_text_starts_with_an_expected_chunk_header_and_has_keywords_single_word(self):
-        read_diff = ReadDiff("JAVA")
+        read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +2,1 @@" + "\n"
 
         try:
@@ -298,7 +299,7 @@ class Test(unittest.TestCase):
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
-        read_diff = ReadDiff("ELIXIR")
+        read_diff = ReadDiffElixir()
         try:
             text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
             text = text + "+Hoi/*Hallo\"Hoi"
@@ -340,7 +341,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
     def test_text_starts_with_an_expected_chunk_header_netto_added_keyword(self):
-        read_diff = ReadDiff("JAVA")
+        read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +1,1 @@" + "\n"
         try:
             text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
