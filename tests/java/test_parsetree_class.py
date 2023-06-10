@@ -1,8 +1,7 @@
 import unittest
 
-from src.java_parsing.java_tree_analyzer import determine_class_usage
-from src.java_parsing.parsetree_searcher import find_class_use, to_nltk_tree, leaves_with_path
-from tests.java.test_java_shared import get_treestring_from_file, get_usage
+from src.java_parsing.parsetree_searcher import find_class_use, to_nltk_tree
+from tests.java.test_java_shared import get_treestring_from_file, get_class_usage
 
 ZOEKTERM = 'Thread'
 
@@ -17,7 +16,7 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertFalse(self, found, 'onterecht gebruik gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         unittest.TestCase.assertTrue(self, len(results) == 0, 'onverwachte resultaten gevonden')
 
     def test_instance_declaration(self):
@@ -26,9 +25,9 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertTrue(self, found, 'gebruik instance declaration niet gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         expected_results = ['instance_variable', 'instantation']
-        unittest.TestCase.assertEquals(self, expected_results, results, 'onverwachte resultaten gevonden')
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
     def test_local_declaration(self):
         tree_string = get_treestring_from_file(RELATIVE_PATH, 'TestLocalDeclaration.java')
@@ -36,7 +35,7 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertTrue(self, found, 'gebruik local declaration niet gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         expected_results = ['local_variable', 'instantation']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
@@ -46,7 +45,7 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertTrue(self, found, 'gebruik local variable niet gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         expected_results = ['local_variable']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
@@ -56,7 +55,7 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertTrue(self, found, 'gebruik als parameter niet gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         expected_results = ['method_argument']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
@@ -66,7 +65,7 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertTrue(self, found, 'gebruik als generic niet gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         expected_results = ['method_typeargument']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
@@ -76,6 +75,6 @@ class Test(unittest.TestCase):
         found = find_class_use(ntlr_tree, ZOEKTERM, False)
         unittest.TestCase.assertTrue(self, found, 'gebruik door extends niet gevonden')
 
-        results = get_usage(ntlr_tree, ZOEKTERM)
+        results = get_class_usage(ntlr_tree, ZOEKTERM)
         expected_results = ['extends']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')

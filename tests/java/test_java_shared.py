@@ -6,7 +6,7 @@ from nltk import Tree
 
 from src.java_parsing.JavaLexer import JavaLexer
 from src.java_parsing.JavaParser import JavaParser
-from src.java_parsing.java_tree_analyzer import determine_class_usage
+from src.java_parsing.java_tree_analyzer import determine_searchword_usage
 from src.java_parsing.parsetree_searcher import leaves_with_path
 
 
@@ -41,7 +41,7 @@ def get_treestring_from_file(relative_path: str, filepath: str) -> str:
     return tree.toStringTree(recog=parser)
 
 
-def get_usage(ntlr_tree: Tree, zoekterm: str) -> list[str]:
+def get_class_usage(ntlr_tree: Tree, zoekterm: str) -> list[str]:
     leaves_path = leaves_with_path(ntlr_tree, ['complilationUnit'])
     usage_paths = []
     for path in leaves_path:
@@ -49,5 +49,5 @@ def get_usage(ntlr_tree: Tree, zoekterm: str) -> list[str]:
         if path[0] == zoekterm:
             usage_paths.append(path)
             print(str(path))
-    results = determine_class_usage(usage_paths, zoekterm)
+    results = determine_searchword_usage(usage_paths, zoekterm)
     return results

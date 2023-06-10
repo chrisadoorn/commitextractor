@@ -1,6 +1,3 @@
-// import wordt in import gecontroleerd, niet in class gebruik.
-import java.lang.Runnable;
-
 
 public class TestNotUsed {
 
