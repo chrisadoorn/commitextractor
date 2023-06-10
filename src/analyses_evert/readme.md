@@ -245,3 +245,62 @@ The Erlang standard library includes the following OTP behaviours:
 Elixir provides its own wrappers for the most frequently used behaviours via the
 modules GenServer, Supervisor, and Application.
 
+For various reasons, once you start building production systems, you should avoid using
+plain processes started with spawn. Instead, all of your processes should be so-called
+OTP-compliant processes. Such processes adhere to OTP conventions, they can be used
+in supervision trees (described in chapter 9), and errors in those processes are logged
+with more details.
+
+
+Elixir also includes other modules that can be used to run OTP-compliant
+processes.
+
+For example, the Task module (https://hexdocs.pm/elixir/Task.html) is
+perfect to run one-off jobs that process some input and then stop. The Agent module
+(https://hexdocs.pm/elixir/Agent.html) is a simpler (but less powerful) alternative to
+GenServer-based processes and is appropriate if the single purpose of the process is to
+manage and expose state.
+
+In addition, there are various other OTP-compliant abstractions available via third-party
+libraries. For example, GenStage (https://github.com/elixir-lang/gen_stage) can be used
+for back-pressure and load control. The Phoenix.Channel module, which is part of the
+Phoenix web framework (http://phoenixframework.org/), is used to facilitate bidirec-
+tional communication between a client and a web server over protocols such as WebSocket
+or HTTP.
+
+spawn
+send
+receive
+Process.register
+Process.link
+Process.flag
+Process.monitor
+GenServer
+spawn_link
+Supervisor
+
+
+use GenServer .functions
+ - start_link
+ - call
+ - cast
+ - stop
+ - reply
+ - handle_call
+ - handle_cast
+ - handle_info
+ - init
+ - terminate
+ - code_change
+
+Supervisor.start_link
+spawn_link
+use Supervisor .functions
+ - start_link
+ - start_child
+ - restart_child
+ - stop_child
+ - stop
+ - terminate
+ - init
+ - code_change

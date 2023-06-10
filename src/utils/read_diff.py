@@ -2,37 +2,83 @@ import string
 from collections import deque
 
 
-JAVA_IDENTIFIER_GRAMMAR = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '$'] + [str(i) for i in
-                                                                                                      list(
-                                                                                                          range(0, 10))]
-
-
 class InvalidDiffText(Exception):
     """Raised when the diff text is not valid"""
     pass
 
 
-class ReadDiff:
+class _FindKeyWordsInterface:
+    language = ""
+    identifier_grammar = ""
 
-    def __init__(self, language: str = "JAVA"):
+    def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
+        pass
+
+    def line_comment(self, line_list: deque) -> str | None:
+        c = line_list.popleft() if line_list else ''
+        if c == '' or c == '/' or c == '*':
+            return self.stop()
+        else:
+            return c
+
+    def end_block_comment(self, line_list: deque) -> str | None:
+        c = line_list.popleft() if line_list else ''
+        if c == '':
+            return self.stop()
+        else:
+            return c
+
+    def double_quote_literal(self, line_list: deque) -> str | None:
+        while line_list:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return self.stop()
+            if c == '"':
+                return c
+
+    def single_quote_literal(self, line_list: deque) -> str | None:
+        while line_list:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return self.stop()
+            if c == '\'':
+                return c
+
+    def concat(self, line_list: deque, w: str) -> str:
+        while True:
+            c = line_list.popleft() if line_list else ''
+            if c == '':
+                return w
+            if c not in self.identifier_grammar:
+                line_list.appendleft(c)  # put back the character for the next iteration
+                return w
+            w += c
+
+    @staticmethod
+    def stop() -> None:
+        return None
+
+
+class _ReadDiff(object):
+
+    def __init__(self, find_key_words_interface: _FindKeyWordsInterface):
         """
         Constructor
-        :param language: the language of the code in the diff
         """
         self.linecounter = None
         self.removed_lines = None
         self.new_lines = None
         self.lines = ""
-        self.language = language.upper()
+        self.find_key_words = find_key_words_interface
 
-    def check_diff_text(self, chunk: str = '', words: list[str] = None) -> \
-            tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+    def check_diff_text(self, chunk: str = '', words: list[str] = None) -> tuple[
+        list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
         self.check_diff_text_no_check_with_removed(chunk, words)
         self.__check_with_removed_lines()
         return self.new_lines, self.removed_lines
 
-    def check_diff_text_no_check_with_removed(self, chunk: str = '', words: list[str] = None) -> \
-            tuple[list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+    def check_diff_text_no_check_with_removed(self, chunk: str = '', words: list[str] = None) -> tuple[
+        list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
@@ -134,88 +180,123 @@ class ReadDiff:
         if line.startswith('-') or line.startswith('+'):
             line = line[1:].strip()
             if len(line) > 0:
-                mc_list = self.__find_key_words(line, words)
+                mc_list = self.find_key_words.find_key_words(line, words)
         return line, mc_list
 
-    def __find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
-        line_list = deque(text)
-        instances_found = []
-        while line_list:
-            c = line_list.popleft() if line_list else ''
-            if c == '':
-                break
 
-            if c == '#' and self.language == "ELIXIR":
-                break
-            else:
+class ReadDiffJava(_ReadDiff):
+
+    def __init__(self):
+        super().__init__(self.__FindKeyWords())
+
+    class __FindKeyWords(_FindKeyWordsInterface):
+        # This list consist of characters allowed in the words we wou are looking for.
+        identifier_grammar = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
+                                                                                                                  '$']
+
+        language = "Java"
+
+        def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
+            line_list = deque(text)
+            instances_found = []
+            while line_list:
+                c = line_list.popleft() if line_list else ''
+                if c == '':
+                    break
+
                 if c == '/':
-                    c = self.__line_comment(line_list)
+                    c = self.line_comment(line_list)
                     if c is None:
                         break
 
                 if c == '*':
-                    c = self.__end_block_comment(line_list)
+                    c = self.end_block_comment(line_list)
                     if c is None:
                         break
                     if c == '/':
                         instances_found = []
 
                 if c == '"':
-                    c = self.__string_literal(line_list)
+                    if self.double_quote_literal(line_list) is None:
+                        break
+                    continue
 
                 if c == '\'':
-                    c = self.__single_quote_literal(line_list)
+                    if self.single_quote_literal(line_list) is None:
+                        break
+                    continue
 
-            if c is None:
-                break
+                if c is None:
+                    break
 
-            if c in JAVA_IDENTIFIER_GRAMMAR:
-                w = self.__concat(line_list, c)
-                if w in text_to_find:
-                    instances_found.append(w)
-        return instances_found
+                if c in self.identifier_grammar:
+                    w = self.concat(line_list, c)
+                    if w in text_to_find:
+                        instances_found.append(w)
+            return instances_found
 
-    def __line_comment(self, line_list: deque) -> str | None:
-        c = line_list.popleft() if line_list else ''
-        if c == '' or c == '/' or c == '*':
-            return self.__stop()
-        else:
-            return c
 
-    def __end_block_comment(self, line_list: deque) -> str | None:
-        c = line_list.popleft() if line_list else ''
-        if c == '':
-            return self.__stop()
-        else:
-            return c
+class ReadDiffElixir(_ReadDiff):
 
-    def __string_literal(self, line_list: deque) -> str | None:
-        while line_list:
-            c = line_list.popleft() if line_list else ''
-            if c == '':
-                return self.__stop()
-            if c == '"':
+    def __init__(self):
+        super().__init__(self.__FindKeyWords())
+
+    class __FindKeyWords(_FindKeyWordsInterface):
+        identifier_grammar = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
+
+        language = "Elixir"
+
+        def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
+            line_list = deque(text)
+            instances_found = []
+            while line_list:
+                c = line_list.popleft() if line_list else ''
+                if c == '':
+                    break
+
+                if c == '#':
+                    break
+
+                if c == '~':
+                    if self.sigil(c, line_list) is None:
+                        break
+                    continue
+
+                if c == '"':
+                    if self.double_quote_literal(line_list) is None:
+                        break
+                    continue
+
+                if c == '\'':
+                    if self.single_quote_literal(line_list) is None:
+                        break
+                    continue
+
+                if c is None:
+                    break
+
+                if c in self.identifier_grammar:
+                    w = self.concat(line_list, c)
+                    if w in text_to_find:
+                        instances_found.append(w)
+            return instances_found
+
+        def sigil(self, c, line_list: deque) -> str | None:
+            next_c = line_list.popleft() if line_list else ''
+            if next_c == '':
+                return self.stop()
+            if next_c not in ['c', 'C', 's', 'S']:
+                line_list.appendleft(next_c)  # put back the character,so it can be popped again in the next iteration
                 return c
-
-    def __single_quote_literal(self, line_list: deque) -> str | None:
-        while line_list:
-            c = line_list.popleft() if line_list else ''
-            if c == '':
-                return self.__stop()
-            if c == '\'':
+            double_next_c = line_list.popleft() if line_list else ''
+            if double_next_c == '' or double_next_c not in ['(', '{']:
+                line_list.appendleft(double_next_c)  # put back the character for the next iteration
+                line_list.appendleft(next_c)  # put back the character for the next iteration
                 return c
+            while line_list:
+                triple_next_c = line_list.popleft() if line_list else ''
+                if triple_next_c == '':
+                    return self.stop()
+                if double_next_c == '(' and triple_next_c == ')' or double_next_c == '{' and triple_next_c == '}':
+                    return double_next_c
 
-    @staticmethod
-    def __concat(line_list: deque, w: str) -> str:
-        while True:
-            c = line_list.popleft() if line_list else ''
-            if c == '':
-                return w
-            if c not in JAVA_IDENTIFIER_GRAMMAR:
-                line_list.appendleft(c)
-                return w
-            w += c
-
-    @staticmethod
-    def __stop() -> None:
-        return None
