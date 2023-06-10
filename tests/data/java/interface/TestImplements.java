@@ -5,7 +5,7 @@ public class TestImplements implements Runnable {
     public void localDeclaration() {
          //local declaratie
         Thread t = new Thread();
-        private String c = "inhoud";
+        String c = "inhoud";
     }
 
     public void run(){

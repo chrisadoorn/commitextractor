@@ -1,5 +1,3 @@
-// import wordt in import gecontroleerd, niet in class gebruik.
-import java.lang.Thread;
 
 public class TestNotUsed {
 

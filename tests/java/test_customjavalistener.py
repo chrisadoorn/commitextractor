@@ -67,33 +67,33 @@ class Test(unittest.TestCase):
         return tree.toStringTree(recog=parser)
 
     def test_import(self):
-        tree = self.get_tree_from_file('data/java/import/TestImport.java')
+        tree = self.get_tree_from_file('../data/java/import/TestImport.java')
         walker = ParseTreeWalker()
         expected = 'import \n'
 
-        t_listener = CustomJavaParserListener(zoekterm='ConcurrentHashMap', packagenaam='java.util.concurrent',
-                                              output='')
+        t_listener = CustomJavaParserListener( zoekterm='ConcurrentHashMap', packagenaam='java.util.concurrent',
+                                               zoekmethode='class', output='')
         walker.walk(listener=t_listener, t=tree)
         var = t_listener.is_gevonden_in()
         unittest.TestCase.assertTrue(self, var[IS_GEIMPORTEERD], 'import bij naam niet gevonden')
         unittest.TestCase.assertEqual(self, expected, t_listener.output, 'verschil in resultaat ')
 
-        t_listener = CustomJavaParserListener(zoekterm='Condition', packagenaam='java.util.concurrent.locks', output='')
+        t_listener = CustomJavaParserListener(zoekterm='Condition', packagenaam='java.util.concurrent.locks', zoekmethode='class', output='')
         walker.walk(listener=t_listener, t=tree)
         var = t_listener.is_gevonden_in()
         unittest.TestCase.assertTrue(self, var[IS_GEIMPORTEERD], 'import met * niet gevonden')
         unittest.TestCase.assertEqual(self, expected, t_listener.output, 'verschil in resultaat ')
 
         t_listener = CustomJavaParserListener(zoekterm='AtomicLong', packagenaam='java.util.concurrent.atomic',
-                                              output='')
+                                              zoekmethode='class', output='')
         walker.walk(listener=t_listener, t=tree)
         var = t_listener.is_gevonden_in()
         unittest.TestCase.assertTrue(self, var[IS_GEIMPORTEERD], 'is hetzelfde package niet gevonden')
         unittest.TestCase.assertEqual(self, expected, t_listener.output, 'verschil in resultaat ')
 
     def test_class_usage(self):
-        tree = self.get_tree_from_file('data/java/class/TestInstanceDeclaration.java')
-        tree_string = self.get_treestring_from_file('data/java/class/TestInstanceDeclaration.java')
+        tree = self.get_tree_from_file('../data/java/class/TestInstanceDeclaration.java')
+        tree_string = self.get_treestring_from_file('../data/java/class/TestInstanceDeclaration.java')
         ntlr_tree = Tree.fromstring(tree_string, '()')
 
         found = find_class_use(ntlr_tree, 'Thread', False)

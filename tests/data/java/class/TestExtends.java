@@ -4,8 +4,8 @@ public class TestExtends extends Thread {
 
     public void localDeclaration() {
          //local declaratie
-        Thread t = new Thread();
-        private String c = "inhoud";
+        // Thread t = new Thread();
+        String c = "inhoud";
     }
 
     public void run(){
