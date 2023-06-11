@@ -430,6 +430,25 @@ class Test(unittest.TestCase):
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, set())])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
+        try:
+            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = text + "+Hoi~s Hallo Hoi"
+            x = read_diff.check_diff_text(text, ["Hoi"])
+            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, {"Hoi"})])
+            x = read_diff.check_diff_text(text, ["Hallo"])
+            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, {"Hallo"})])
+        except InvalidDiffText:
+            self.fail("Unexpected InvalidDiffText exception")
+
+        try:
+            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = text + "+Hoi ~s Hallo Hoi"
+            x = read_diff.check_diff_text(text, ["Hoi"])
+            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, {"Hoi"})])
+            x = read_diff.check_diff_text(text, ["Hallo"])
+            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, {"Hallo"})])
+        except InvalidDiffText:
+            self.fail("Unexpected InvalidDiffText exception")
 
         try:
             text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
