@@ -9,7 +9,7 @@ class InvalidDiffText(Exception):
 
 class _FindKeyWordsInterface:
     language = ""
-    identifier_grammar = ""
+    identifier_alphabet = ""
 
     def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
         pass
@@ -50,7 +50,7 @@ class _FindKeyWordsInterface:
             c = line_list.popleft() if line_list else ''
             if c == '':
                 return w
-            if c not in self.identifier_grammar:
+            if c not in self.identifier_alphabet:
                 line_list.appendleft(c)  # put back the character for the next iteration
                 return w
             w += c
@@ -212,7 +212,7 @@ class ReadDiffJava(_ReadDiff):
 
     class __FindKeyWords(_FindKeyWordsInterface):
         # This list consist of characters allowed in the words we wou are looking for.
-        identifier_grammar = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
                                                                                                                   '$']
 
         language = "Java"
@@ -250,7 +250,7 @@ class ReadDiffJava(_ReadDiff):
                 if c is None:
                     break
 
-                if c in self.identifier_grammar:
+                if c in self.identifier_alphabet:
                     w = self.concat(line_list, c)
                     if w in text_to_find:
                         instances_found.append(w)
@@ -263,7 +263,7 @@ class ReadDiffElixir(_ReadDiff):
         super().__init__(self.__FindKeyWords())
 
     class __FindKeyWords(_FindKeyWordsInterface):
-        identifier_grammar = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
 
         language = "Elixir"
 
@@ -296,7 +296,7 @@ class ReadDiffElixir(_ReadDiff):
                 if c is None:
                     break
 
-                if c in self.identifier_grammar:
+                if c in self.identifier_alphabet:
                     w = self.concat(line_list, c)
                     if w in text_to_find:
                         instances_found.append(w)
