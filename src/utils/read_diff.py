@@ -9,16 +9,17 @@ class InvalidDiffText(Exception):
 
 class _FindKeyWordsInterface:
     language = ""
-    identifier_grammar = ""
+    identifier_alphabet = ""
 
     def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
         pass
 
-    def line_comment(self, line_list: deque) -> str | None:
-        c = line_list.popleft() if line_list else ''
-        if c == '' or c == '/' or c == '*':
+    def line_comment(self, c, line_list: deque) -> str | None:
+        next_c = line_list.popleft() if line_list else ''
+        if next_c == '' or next_c == '/' or next_c == '*':
             return self.stop()
         else:
+            line_list.appendleft(next_c)
             return c
 
     def end_block_comment(self, line_list: deque) -> str | None:
@@ -49,7 +50,7 @@ class _FindKeyWordsInterface:
             c = line_list.popleft() if line_list else ''
             if c == '':
                 return w
-            if c not in self.identifier_grammar:
+            if c not in self.identifier_alphabet:
                 line_list.appendleft(c)  # put back the character for the next iteration
                 return w
             w += c
@@ -73,6 +74,18 @@ class _ReadDiff(object):
 
     def check_diff_text(self, chunk: str = '', words: list[str] = None) -> tuple[
         list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+
+        """
+        Read a diff chunk text, and return the new- and removed (un-empty) lines, together with the line number and
+        a set of found keywords.
+        The new lines are compared with the old lines, A new line contains a word if that word occurs more in the
+        new line then in the old line.
+        :param words: words to look for
+        :param chunk: diff text
+        :return: tuple of two lists. The first list contains tuples of (line number, line, set([keywords])) of
+        (un-empty) new lines. The second list contains tuples of (line number, line, set([keywords])) of (un-empty)
+        removed lines.
+        """
         self.check_diff_text_no_check_with_removed(chunk, words)
         self.__check_with_removed_lines()
         return self.new_lines, self.removed_lines
@@ -82,7 +95,7 @@ class _ReadDiff(object):
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
-        :param words:
+        :param words: words to look for
         :param chunk: diff text
         :return: tuple of two lists. The first list contains tuples of (line number, line, [keywords]) of
             (un-empty) new lines. The second list contains tuples of (line number, line, [keywords]) of (un-empty)
@@ -108,14 +121,22 @@ class _ReadDiff(object):
         temp_lines = []
         for new_lnr, new_line, new_keys in self.new_lines:
             self.__loop_through_removed_line(new_lnr, new_keys)
-            temp_lines.append((new_lnr, new_line, set(new_keys)))
+            temp_lines.append((new_lnr, new_line, set(new_keys)))  # remove duplicates by creating a set
         self.new_lines = temp_lines
         temp_lines = []
         for rem_lnr, rem_line, rem_keys in self.removed_lines:
-            temp_lines.append((rem_lnr, rem_line, set(rem_keys)))
+            temp_lines.append((rem_lnr, rem_line, set(rem_keys)))  # remove duplicates by creating a set
         self.removed_lines = temp_lines
 
     def __loop_through_removed_line(self, l_nr: int, new_keys: list[str]):
+        """
+        Check for occurrence of a keyword on the same line in the removed_lines and new_lines.
+        The new_line, after this method, contains the added keywords minus the keywords from the removed_line.
+        This because when a keyword is added and removed on the same line there is no change.
+        :param l_nr: line number
+        :param new_keys: list of keywords found on the line
+        :return: none, but the new_keys is changed
+        """
         for rem_lnr, rem_line, rem_keys in self.removed_lines:
             if rem_lnr == l_nr:
                 new_temp_keys = new_keys.copy()
@@ -191,7 +212,7 @@ class ReadDiffJava(_ReadDiff):
 
     class __FindKeyWords(_FindKeyWordsInterface):
         # This list consist of characters allowed in the words we wou are looking for.
-        identifier_grammar = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
                                                                                                                   '$']
 
         language = "Java"
@@ -205,9 +226,9 @@ class ReadDiffJava(_ReadDiff):
                     break
 
                 if c == '/':
-                    c = self.line_comment(line_list)
-                    if c is None:
+                    if self.line_comment(c, line_list) is None:
                         break
+                    continue
 
                 if c == '*':
                     c = self.end_block_comment(line_list)
@@ -229,7 +250,7 @@ class ReadDiffJava(_ReadDiff):
                 if c is None:
                     break
 
-                if c in self.identifier_grammar:
+                if c in self.identifier_alphabet:
                     w = self.concat(line_list, c)
                     if w in text_to_find:
                         instances_found.append(w)
@@ -242,7 +263,7 @@ class ReadDiffElixir(_ReadDiff):
         super().__init__(self.__FindKeyWords())
 
     class __FindKeyWords(_FindKeyWordsInterface):
-        identifier_grammar = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
 
         language = "Elixir"
 
@@ -275,7 +296,7 @@ class ReadDiffElixir(_ReadDiff):
                 if c is None:
                     break
 
-                if c in self.identifier_grammar:
+                if c in self.identifier_alphabet:
                     w = self.concat(line_list, c)
                     if w in text_to_find:
                         instances_found.append(w)
@@ -299,4 +320,3 @@ class ReadDiffElixir(_ReadDiff):
                     return self.stop()
                 if double_next_c == '(' and triple_next_c == ')' or double_next_c == '{' and triple_next_c == '}':
                     return double_next_c
-
