@@ -28,26 +28,54 @@ def create_database_script(new_schema='refact'):
     full.write('-------------------create schema  ' + new_schema + '--------------------------\n')
     full.write('------------------------------------------------------------------------------\n')
     full.write('------------------------------------------------------------------------------\n')
-    full.write('CREATE SCHEMA IF NOT EXISTS ' + new_schema + ' AUTHORIZATION appl;\n')
-    full.write('GRANT ALL ON SCHEMA ' + new_schema + ' TO appl;\n')
+    full.write('CREATE SCHEMA IF NOT EXISTS ' + new_schema + ';\n')
+    full.write('SET SCHEMA \'' + new_schema + '\';\n')
 
     for sql_file in file_names:
         f_path = os.path.realpath(os.path.join(sql_dir, './' + sql_file))
         org = open(f_path, 'rt')
-        n_path = os.path.realpath(os.path.join(run_dir, './' + sql_file))
-        new = open(n_path, 'wt')
+        org_text = read_file(f_path).splitlines()
+        org.close()
         full.write('------------------------------------------------------------------------------\n')
         full.write('------------------------------------------------------------------------------\n')
         full.write('--script--' + sql_file + '---------------------\n')
         full.write('------------------------------------------------------------------------------\n')
         full.write('------------------------------------------------------------------------------\n')
-        for line in org:
-            new.write(line.replace("'test'", "'" + new_schema + "'"))
-            full.write(line.replace("'test'", "'" + new_schema + "'"))
-        org.close()
-        new.close()
-
+        start_write = False
+        is_procedure = False
+        for line in org_text:
+            line = line.replace('bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 )', 'BIGSERIAL')
+            line_temp = line.strip()
+            if line_temp and line.startswith(')'):
+                full.write(');\n')
+                full.write('\n')
+                start_write = False
+                continue
+            if line_temp.startswith('CREATE TABLE') or line_temp.startswith('CREATE INDEX'):
+                start_write = True
+            if line_temp.startswith('ALTER TABLE') and 'ADD CONSTRAINT' in line_temp:
+                start_write = True
+                line = line.replace('_fk', '_fk_' + new_schema)
+            if line_temp.startswith('CREATE OR REPLACE PROCEDURE'):
+                start_write = True
+                is_procedure = True
+            if line_temp.startswith('set schema'):
+                continue
+            if start_write:
+                full.write(line + '\n')
+            if is_procedure and line_temp.startswith('$BODY$;'):
+                start_write = False
+                is_procedure = False
+            if not is_procedure and line_temp.endswith(';'):
+                start_write = False
     full.close()
+
+
+def read_file(filepath):
+    file = open(filepath, 'rt')
+    text = file.read()
+    file.close()
+    return text
 
 
 if __name__ == '__main__':
