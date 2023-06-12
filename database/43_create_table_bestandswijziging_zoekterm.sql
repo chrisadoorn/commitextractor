@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS bestandswijziging_zoekterm
 )
 TABLESPACE pg_default;
 
+
+
+ALTER TABLE IF EXISTS bestandswijziging_zoekterm
+    OWNER to postgres;
+
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE bestandswijziging_zoekterm TO appl;
 GRANT USAGE ON SEQUENCE bestandswijziging_zoekterm_id_seq TO appl;
 
@@ -18,4 +23,5 @@ COMMENT ON TABLE bestandswijziging_zoekterm
     IS 'analyse info over voorkomen van een zoekterm in een bestandswijziging';
 
 -- indexen
--- CREATE INDEX bestandswijziging_zoekterm_zoekterm_idx ON bestandswijziging_zoekterm (zoekterm);
+CREATE INDEX bestandswijziging_zoekterm_idbestandswijziging_idx ON bestandswijziging_zoekterm (idbestandswijziging);
+CREATE INDEX bestandswijziging_zoekterm_zoekterm_idx ON bestandswijziging_zoekterm (zoekterm);
