@@ -160,3 +160,4 @@ cython_debug/
 /var/commitextractor.seed
 /src/utils/read_diff_rust.py
 /database/temp/
+/database/py_scripts/combine_create_table_scripts.py

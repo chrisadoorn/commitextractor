@@ -8,7 +8,6 @@ class InvalidDiffText(Exception):
 
 
 class _FindKeyWordsInterface:
-    language = ""
     identifier_alphabet = ""
 
     def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
@@ -213,9 +212,7 @@ class ReadDiffJava(_ReadDiff):
     class __FindKeyWords(_FindKeyWordsInterface):
         # This list consist of characters allowed in the words we wou are looking for.
         identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
-                                                                                                                  '$']
-
-        language = "Java"
+                                                                                                                   '$']
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
@@ -264,8 +261,6 @@ class ReadDiffElixir(_ReadDiff):
 
     class __FindKeyWords(_FindKeyWordsInterface):
         identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
-
-        language = "Elixir"
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
@@ -331,8 +326,6 @@ class ReadDiffRust(_ReadDiff):
         # This list consist of characters allowed in the words we wou are looking for.
         identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
                                                                                                                    '$']
-
-        language = "Rust"
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
