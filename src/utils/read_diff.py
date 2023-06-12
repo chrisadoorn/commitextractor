@@ -8,7 +8,6 @@ class InvalidDiffText(Exception):
 
 
 class _FindKeyWordsInterface:
-    language = ""
     identifier_alphabet = ""
 
     def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
@@ -213,9 +212,7 @@ class ReadDiffJava(_ReadDiff):
     class __FindKeyWords(_FindKeyWordsInterface):
         # This list consist of characters allowed in the words we wou are looking for.
         identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
-                                                                                                                  '$']
-
-        language = "Java"
+                                                                                                                   '$']
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
@@ -264,8 +261,6 @@ class ReadDiffElixir(_ReadDiff):
 
     class __FindKeyWords(_FindKeyWordsInterface):
         identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
-
-        language = "Elixir"
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
@@ -320,3 +315,53 @@ class ReadDiffElixir(_ReadDiff):
                     return self.stop()
                 if double_next_c == '(' and triple_next_c == ')' or double_next_c == '{' and triple_next_c == '}':
                     return double_next_c
+
+
+class ReadDiffRust(_ReadDiff):
+
+    def __init__(self):
+        super().__init__(self.__FindKeyWords())
+
+    class __FindKeyWords(_FindKeyWordsInterface):
+        # This list consist of characters allowed in the words we wou are looking for.
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
+                                                                                                                   '$']
+
+        def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
+            line_list = deque(text)
+            instances_found = []
+            while line_list:
+                c = line_list.popleft() if line_list else ''
+                if c == '':
+                    break
+
+                if c == '/':
+                    if self.line_comment(c, line_list) is None:
+                        break
+                    continue
+
+                if c == '*':
+                    c = self.end_block_comment(line_list)
+                    if c is None:
+                        break
+                    if c == '/':
+                        instances_found = []
+
+                if c == '"':
+                    if self.double_quote_literal(line_list) is None:
+                        break
+                    continue
+
+                if c == '\'':
+                    if self.single_quote_literal(line_list) is None:
+                        break
+                    continue
+
+                if c is None:
+                    break
+
+                if c in self.identifier_alphabet:
+                    w = self.concat(line_list, c)
+                    if w in text_to_find:
+                        instances_found.append(w)
+            return instances_found
