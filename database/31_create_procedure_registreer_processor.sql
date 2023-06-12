@@ -1,4 +1,3 @@
-set schema 'test';
 -- PROCEDURE: registreer_processor(character, bigint)
 
 -- DROP PROCEDURE IF EXISTS registreer_processor(character, bigint);
@@ -10,7 +9,7 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
 
-set schema 'test';
+
 insert into processor ("identifier")
 values (p_identifier)
 RETURNING "id" INTO p_new_id;
@@ -19,5 +18,5 @@ return;
 
 END;
 $BODY$;
-ALTER PROCEDURE registreer_processor(character, bigint)
-    OWNER TO appl;
+
+GRANT EXECUTE ON PROCEDURE registreer_processor(character, bigint) TO appl;

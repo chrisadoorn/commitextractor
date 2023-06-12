@@ -110,13 +110,13 @@ INSERT INTO java_zoekterm (zoekterm,categorie,package,opmerking) VALUES
 	 ('ReentrantReadWriteLock.ReadLock','classes','java.util.concurrent.locks',NULL),
 	 ('ReentrantReadWriteLock.WriteLock','classes','java.util.concurrent.locks',NULL),
 	 ('StampedLock','classes','java.util.concurrent.locks',NULL),
-	 ('Collections.synchronizedCollection()  	','classes','java.util.collections ',NULL),
-	 ('Collections.synchronizedList()  	','classes','java.util.collections ',NULL),
-	 ('Collections.synchronizedMap()  	','classes','java.util.collections ',NULL),
-	 ('Collections.synchronizedSet()  	','classes','java.util.collections ',NULL);
+	 ('Collections.synchronizedCollection','classes','java.util.collections ',NULL),
+	 ('Collections.synchronizedList','classes','java.util.collections ',NULL),
+	 ('Collections.synchronizedMap','classes','java.util.collections ',NULL),
+	 ('Collections.synchronizedSet','classes','java.util.collections ',NULL);
 INSERT INTO java_zoekterm (zoekterm,categorie,package,opmerking) VALUES
-	 ('Collections.synchronizedSortedMap()  	','classes','java.util.collections ',NULL),
-	 ('Collections.synchronizedSortedSet()  	','classes','java.util.collections ',NULL),
+	 ('Collections.synchronizedSortedMap','classes','java.util.collections ',NULL),
+	 ('Collections.synchronizedSortedSet','classes','java.util.collections ',NULL),
 	 ('io.reactivex.rxjava2','libraries',NULL,'RxJava'),
 	 ('org.awaitility','libraries',NULL,'Awaitility'),
 	 ('io.projectreacto','libraries',NULL,'ProjectReactor'),

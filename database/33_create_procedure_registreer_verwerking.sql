@@ -1,4 +1,3 @@
-set schema 'test';
 -- PROCEDURE: test.registreer_verwerking(bigint, character varying)
 
 -- DROP PROCEDURE IF EXISTS test.registreer_verwerking(bigint, character varying);
@@ -25,13 +24,7 @@ set einde_verwerking = now()
 where id = p_projectid;
 
 
-
 END;
 $BODY$;
-ALTER PROCEDURE registreer_verwerking(bigint, character varying)
-    OWNER TO appl;
-
-GRANT EXECUTE ON PROCEDURE registreer_verwerking(bigint, character varying) TO PUBLIC;
 
 GRANT EXECUTE ON PROCEDURE registreer_verwerking(bigint, character varying) TO appl;
-
