@@ -1,5 +1,3 @@
-
-set schema 'test';
 -- PROCEDURE: verwerk_volgend_project(character, character varying, character varying, bigint, character varying, integer)
 -- DROP PROCEDURE IF EXISTS verwerk_volgend_project(character, character varying, character varying, bigint, character varying, integer);
 
@@ -15,8 +13,6 @@ AS $BODY$
 DECLARE
 	v_processor bigint;
 BEGIN
-
-set schema 'test';
 
 -- controleer of de processor nog mag doorwerken
 SELECT id INTO v_processor
@@ -64,11 +60,9 @@ else
 	select 1 into p_rowcount;
 end if;
 
-
-
 return;
 
 END;
 $BODY$;
-ALTER PROCEDURE verwerk_volgend_project(character, character varying, character varying, bigint, character varying, integer)
-    OWNER TO appl;
+
+GRANT EXECUTE ON PROCEDURE verwerk_volgend_project(character, character varying, character varying, bigint, character varying, integer) TO appl;

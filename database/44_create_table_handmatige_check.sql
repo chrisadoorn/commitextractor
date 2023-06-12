@@ -1,12 +1,6 @@
-set schema 'test';
-
--- Table: handmatige_check
-
-DROP TABLE IF EXISTS handmatige_check;
-
 CREATE TABLE IF NOT EXISTS handmatige_check
 (
-    id bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
+    id BIGSERIAL PRIMARY KEY,
     projectnaam character varying NOT NULL,
     project_id bigint NOT NULL,
     bwz_id bigint NOT NULL,
@@ -20,22 +14,16 @@ CREATE TABLE IF NOT EXISTS handmatige_check
     gecontroleerd boolean DEFAULT FALSE,
     akkoord boolean NULL,
     opmerking character varying NULL,
-    CONSTRAINT handmatige_check_pk PRIMARY KEY (id)
+    CONSTRAINT bestandswijziging_fk FOREIGN KEY (bestandswijziging_id)
+        REFERENCES bestandswijziging(id) ON DELETE CASCADE
 )
-
 TABLESPACE pg_default;
 
-ALTER TABLE handmatige_check ADD CONSTRAINT bestandswijziging_fk FOREIGN KEY (bestandswijziging_id) REFERENCES bestandswijziging(id) ON DELETE CASCADE;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE handmatige_check TO appl;
+GRANT USAGE ON SEQUENCE handmatige_check_id_seq TO appl;
+
+--indexen
 CREATE INDEX handmatige_check_idbestandswijziging_idx ON handmatige_check (bestandswijziging_id);
 CREATE INDEX handmatige_check_zoekterm_idx ON handmatige_check (zoekterm);
 CREATE INDEX handmatige_check_project_idx ON handmatige_check (project_id);
 CREATE INDEX handmatige_check_bwz_idx ON handmatige_check (bwz_id);
-
-
-ALTER TABLE IF EXISTS handmatige_check
-    OWNER to postgres;
-
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE handmatige_check TO appl;
-
-GRANT ALL ON TABLE handmatige_check TO postgres;
-
