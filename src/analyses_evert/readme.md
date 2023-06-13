@@ -278,7 +278,15 @@ Process.monitor
 GenServer
 spawn_link
 Supervisor
-
+Registry.start_link //start registry
+Registry.register
+Registry.lookup
+DynamicSupervisor
+Task
+Agent
+:ets
+Mnesia
+Quantum
 
 use GenServer .functions
  - start_link
@@ -304,3 +312,46 @@ use Supervisor .functions
  - terminate
  - init
  - code_change
+
+The
+supervision tree describes how the system is started and how it’s taken down.
+
+An important consequence of this style of error handling is that the worker code is
+liberated from paranoid, defensive try/catch constructs. Usually these aren’t needed
+because you use supervisors to handle error recovery.
+
+Usually these aren’t needed
+because you use supervisors to handle error recovery.
+
+This style is also known as let it crash. In addition to making the code shorter and
+more focused, “let it crash” promotes clean-slate recovery. Remember, when a new pro-
+cess starts, it starts with new state, which should be consistent. Furthermore, the mes-
+sage queue (mailbox) of the old process is thrown away. This will cause some requests
+in the system to fail. But the new process starts fresh, which gives it a better chance to
+resume normal operation
+
+There are two important situations in which you should
+explicitly handle an error:
+¡ In critical processes that shouldn’t crash
+¡ When you expect an error that can be dealt with in a meaningful way
+
+Each process should reside somewhere in a supervision tree.
+
+Workers are the processes that provide some part of your service, whereas supervisors
+organize the worker processes into a tree. This allows you to start and stop processes
+in the desired order, and also to restart critical processes if they fail.
+
+all processes that are started directly from a
+supervisor should be OTP-compliant processes. Processes started with plain spawn
+and spawn_link are not OTP-compliant, so you should refrain from running such
+processes in production. Modules such as Supervisor, GenServer, and Registry
+allow you to start OTP-compliant processes that can be placed into a supervision tree.
+
+child_spec/1
+
+Just like with GenServer, the injected specification will invoke
+start_link/1, so you need to define start_link/1 even if you don’t use the argu-
+ment.
+
+As a mechanical rule, if a GenServer-powered module implements only init/1,
+handle_cast/2, and handle_call/3, it can be replaced with an Agent
