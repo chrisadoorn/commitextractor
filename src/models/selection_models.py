@@ -5,7 +5,8 @@ from src.utils import configurator
 
 params = configurator.get_database_configuration()
 pg_db = PostgresqlDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
-                           host=params.get('host'), port=params.get('port'))
+                           host=params.get('host'),  port=params.get('port'),
+                           options="-c search_path=" + params.get('schema'))
 pg_db_schema = params.get('schema')
 
 
@@ -28,6 +29,7 @@ class Selectie(BaseModel):
     haswiki = BooleanField(null=True)
     haslicense = BooleanField(null=True)
     committedmin = DateField(null=True)
+    locatie = CharField(null=True)
 
 
 class Project(BaseModel):

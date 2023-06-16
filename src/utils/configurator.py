@@ -25,6 +25,7 @@ INI_FILE2 = \
 
 inifile2 = INI_FILE2
 
+
 # get_number_of_processes returns the number of processes for which the application is configured
 def get_number_of_processes():
     config = ConfigParser()
@@ -66,6 +67,7 @@ def get_extensions():
 
     return extensions
 
+
 def get_keywords():
     config = ConfigParser()
     config.read(inifile2)
@@ -77,6 +79,7 @@ def get_keywords():
 
     return extensions
 
+
 def get_keywords_lib():
     config = ConfigParser()
     config.read(inifile2)
@@ -87,6 +90,7 @@ def get_keywords_lib():
         raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
 
     return extensions
+
 
 def get_files():
     config = ConfigParser()
@@ -114,29 +118,8 @@ def get_main_language():
 
 # get_ghsearch_importfile returns the file from which a list of projects can be added to be extracted.
 def get_ghsearch_importfile():
-    config = ConfigParser()
-    config.read(inifile)
 
-    # get section
-    if config.has_option(GHSEARCH, IMPORTFILE):
-        path_to_file = config[GHSEARCH][IMPORTFILE]
-    else:
-        raise Exception('Option {0} not found in the {1} file'.format(IMPORTFILE, inifile))
-
-    return path_to_file
-
-
-def is_ghsearch_import_wanted():
-    config = ConfigParser()
-    config.read(inifile)
-
-    # get section
-    if config.has_option(GHSEARCH, IMPORT):
-        is_import_wanted = config[GHSEARCH][IMPORT]
-    else:
-        raise Exception('Option {0} not found in the {1} file'.format(IMPORTFILE, inifile))
-
-    return bool(int(is_import_wanted))
+    return get_module_configurationitem(module='load_ghsearch', entry='importfile')
 
 
 # Zet de waarde of er een nieuwe lijst van bestanden geladen moet worden.
@@ -162,9 +145,21 @@ def get_github_personal_access_token():
     return p_a_c
 
 
-
 # set_inifile makes the ini_file dynamic.
 # this function is used for test purposes only.
 def set_inifile(newfile=INI_FILE):
     global inifile
     inifile = newfile
+
+
+def get_module_configurationitem(module: str, entry: str) -> str:
+    config = ConfigParser()
+    config.read(inifile)
+
+    # get section
+    if config.has_option(module, entry):
+        value = config[module][entry]
+    else:
+        raise Exception('Option {0} not found in the {1} module'.format(entry, module))
+
+    return value
