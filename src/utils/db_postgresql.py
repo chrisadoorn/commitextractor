@@ -133,3 +133,13 @@ def clean_testset():
     db_conn.commit()
     cursor.close()
 
+def insert_3_test_projecten():
+    cursor = db_conn.cursor()
+    sql = "INSERT INTO selectie(selectionmoment, language, locatie) VALUES('2023-06-15', 'Java','https://onzin.com/');" \
+          "INSERT INTO project(naam, idselectie, main_language)VALUES('openda-association/openda', (select max(id) from selectie), 'Java');" \
+          "INSERT INTO project(naam, idselectie, main_language)VALUES('ladieda/openda', (select max(id) from selectie), 'Java');" \
+          "INSERT INTO project(naam, idselectie, main_language)VALUES('quota-association/openda', (select max(id) from selectie), 'Java');"
+    cursor.execute(sql, [])
+    db_conn.commit()
+    cursor.close()
+

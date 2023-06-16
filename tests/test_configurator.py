@@ -48,22 +48,13 @@ class Test(unittest.TestCase):
         resultaat = configurator.get_ghsearch_importfile()
         unittest.TestCase.assertEqual(self, verwacht, resultaat, 'ghsearch importfile niet correct!')
 
-    # test of er een exception komt als de wens voor de import lijst niet opgehaald kan worden
-    def test_ghsearch_importfile_error(self):
-        configurator.set_inifile(TEST_ERROR_FILE)
-        self.assertRaises(Exception, configurator.is_ghsearch_import_wanted)
-
-    # test werking van set_import_wanted
-    def test_ghsearch_importfile(self):
-        # controleer standaard waarde
+    # tests get_module_configurationitem
+    def test_module_configurationitem_no_such_item(self):
         configurator.set_inifile(TEST_INI_FILE)
-        verwacht = True
-        configurator.set_ghsearch_import_wanted(verwacht)
-        resultaat = configurator.is_ghsearch_import_wanted()
-        unittest.TestCase.assertEqual(self, verwacht, resultaat, 'ghsearch import 1 niet correct!')
+        self.assertRaises(Exception, configurator.get_module_configurationitem, 'load_ghsearch', 'bestaat_niet')
 
-        # controleer wijziging
-        verwacht = False
-        configurator.set_ghsearch_import_wanted(verwacht)
-        resultaat = configurator.is_ghsearch_import_wanted()
-        unittest.TestCase.assertEqual(self, verwacht, resultaat, 'ghsearch set import 2 niet correct!')
+    def test_module_configurationitem(self):
+        configurator.set_inifile(TEST_INI_FILE)
+        verwacht = 'INFO'
+        resultaat = configurator.get_module_configurationitem('load_ghsearch', 'loglevel')
+        unittest.TestCase.assertEqual(self, verwacht, resultaat, 'ghsearch get module_configurationitem niet correct!')

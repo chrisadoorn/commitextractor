@@ -1,5 +1,8 @@
 import os
 
+# zet hier de naam van het schema
+new_schema='test'
+
 scriptdir = os.path.dirname(__file__)
 
 print(str(scriptdir))
@@ -8,17 +11,14 @@ print(run_dir)
 sql_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 print(sql_dir)
 
-# geef hier de naam van het nieuwe schema op
-new_schema = 'ma2'
-
 file_names = ['10_create_table_selectie.sql'
     , '11_create_table_project.sql'
     , '12_create_table_commitinfo.sql'
     , '13_create_table_bestandswijziging.sql'
     , '21_create_table_processor.sql'
-    , '21_create_table_processor.sql'
     , '22_create_table_verwerk_project.sql'
     , '23_create_table_verwerking_geschiedenis.sql'
+    , '24_create_trigger_verwerk_project.sql'
     , '31_create_procedure_registreer_processor.sql'
     , '32_create_procedure_deregistreer_processor.sql'
     , '33_create_procedure_registreer_verwerking.sql'
@@ -42,7 +42,7 @@ full.write('--------------------------------------------------------------------
 full.write('CREATE SCHEMA IF NOT EXISTS ' + new_schema + ' AUTHORIZATION appl;\n')
 full.write('GRANT USAGE ON SCHEMA ' + new_schema + ' TO appl;\n')
 
-full.write('SET SCHEMA \''  + new_schema + '\';\n')
+full.write('SET SCHEMA \'' + new_schema + '\';\n')
 
 for sql_file in file_names:
     f_path = os.path.realpath(os.path.join(sql_dir, './' + sql_file))
@@ -56,5 +56,5 @@ for sql_file in file_names:
         full.write(line)
     org.close()
 
-
 full.close()
+
