@@ -28,17 +28,20 @@ def _check_seed() -> bool:
 
 # check_parallelization checks if the parameter for the number of processes is correctly configured.
 # return true if it is a positive number 1 or bigger, false otherwise.
-def _check_parallelization() -> bool:
+def _check_parallelization(module_name: str) -> bool:
+    # modules without parallelization
+    if module_name not in ['repo_extractor']:
+        return True
     # check if number for parallelization is configured
     try:
-        number_of_processes = configurator.get_number_of_processes()
+        number_of_processes = configurator.get_number_of_processes(module_name)
     except Exception as e:
         logging.exception(e)
         number_of_processes = 0
     return number_of_processes > 0
 
 
-# gecontroleerd wordt of er een geldige accesstoken aanwwezig is.
+# Gecontroleerd wordt of er een geldige accesstoken aanwwezig is.
 # om dit te controleren wordt de eerste commit van dit project opgevraagd.
 def _check_gh_token() -> bool:
     try:
@@ -52,7 +55,7 @@ def _check_gh_token() -> bool:
 
 # check_dependencies runs all checks, and logs their results.
 # return true if all checks succeed, false otherwise.
-def check_dependencies() -> bool:
+def check_dependencies(module: str) -> bool:
     checkall = True
 
     # controle of database connectie werkt
@@ -64,12 +67,12 @@ def check_dependencies() -> bool:
     logging.info('Checking: check seed..........................[' + str(check_value) + ']')
     checkall = checkall and check_value
     # controle of parallelization is geconfigureerd
-    check_value = _check_parallelization()
+    check_value = _check_parallelization(module)
     logging.info('Checking: check parallelization...............[' + str(check_value) + ']')
     checkall = checkall and check_value
     # controle of github personal access token is geconfigureerd
     check_value = _check_gh_token()
-    logging.info('Checking: check pgithub access token..........[' + str(check_value) + ']')
+    logging.info('Checking: check github access token...........[' + str(check_value) + ']')
     checkall = checkall and check_value
 
     return checkall

@@ -25,7 +25,7 @@ if not found then
 end if;
 
 -- select id en naam van maximaal 1 record
-select id, naam, 0 INTO p_new_id, p_projectnaam, p_rowcount
+select id, concat(locatie,naam), 0 INTO p_new_id, p_projectnaam, p_rowcount
 from verwerk_project
 where processor is null
 and processtap = p_vorige_stap

@@ -7,17 +7,24 @@ from src.repo_extractor import hashing
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
 from src.utils import configurator, db_postgresql
 
+PROCESSTAP = 'extractie'
+STATUS_MISLUKT = 'mislukt'
+STATUS_VERWERKT = 'verwerkt'
+
 global db_connectie
 
-GITHUB = 'https://github.com/'
 extensions = configurator.get_extensions()
 files = configurator.get_files()
+save_code_before = configurator.get_module_configurationitem_boolean(module='repo_extractor', entry='save_before')
+
 
 def extract_repository(projectname, project_id):
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
-    full_repository = Repository(GITHUB + projectname)
+    full_repository = Repository(projectname)
     for commit in full_repository.traverse_commits():
+
+        # TODO: if not_exists(commit.hash)
 
         commit_info = CommitInfo()
         commit_info.idproject = project_id
@@ -52,9 +59,12 @@ def save_bestandswijziging(file, commit_id):
         file_changes.filename = file.filename
         file_changes.difftext = file.diff
         file_changes.tekstachteraf = file.content
+        if save_code_before:
+            file_changes.tekstvooraf = file.content_before
         file_changes.idcommit = commit_id
         file_changes.locatie = file.new_path
         file_changes.extensie = fs[1]
+
         try:
             file_changes.save()
         except UnicodeDecodeError as e_inner:
@@ -81,10 +91,9 @@ def file_selector(file):
 
 # extract_repositories is the starting point for this functionality
 # extract repositories while there are repositories to be processed
-def extract_repositories(process_identifier):
+def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
     global db_connectie
-    oude_processtap = 'selectie'
-    nieuwe_processtap = 'extractie'
+    nieuwe_processtap = PROCESSTAP
     try:
         db_connectie = db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
@@ -94,19 +103,20 @@ def extract_repositories(process_identifier):
         while rowcount == 1:
             projectnaam = volgend_project[1]
             projectid = volgend_project[0]
-            verwerking_status = 'mislukt'
+            verwerking_status = STATUS_MISLUKT
 
             # We gebruiken een inner try voor het verwerken van een enkel project.
             # Als dit foutgaat, dan kan dit aan het project liggen.
             # We stoppen dan met dit project, en starten een volgend project
             try:
                 extract_repository(projectnaam, projectid)
-                verwerking_status = 'verwerkt'
+                verwerking_status = STATUS_VERWERKT
             # continue processing next project
             except Exception as e_inner:
                 logging.error('Er zijn fouten geconstateerd tijdens de verwerking project. Zie details hieronder')
                 logging.exception(e_inner)
 
+            # do always
             db_postgresql.registreer_verwerking(projectnaam=projectnaam, processor=process_identifier,
                                                 verwerking_status=verwerking_status, projectid=projectid)
             volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
