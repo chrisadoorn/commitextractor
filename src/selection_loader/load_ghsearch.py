@@ -4,14 +4,18 @@ import os
 from datetime import datetime
 
 from src.models.selection_models import Selectie, Project
-from src.models.process_management_models import Verwerk_Project
 from src.utils import configurator
 
 
 #####################################
 #         define functions          #
 #####################################
-def read_json(jsonfile):
+def __read_json(jsonfile) -> json:
+    """
+
+    :param jsonfile: relative path to jsonfile downloaded from GHSearch
+    :return: The content of the file, a JSON string
+    """
     if os.path.isfile(jsonfile):
         f = open(jsonfile)
 
@@ -23,7 +27,12 @@ def read_json(jsonfile):
         logging.error('Het bestand ' + str(jsonfile) + ' kan niet gevonden worden')
 
 
-def import_projects(jsondata, selectie_id):
+def import_projects(jsondata: json, selectie_id: int) -> None:
+    """
+    Inserts each project in the given json into the project table
+    :param jsondata:
+    :param selectie_id: database id for a selectie record
+    """
     logging.info('Starting import_projects for selectie: ' + str(selectie_id))
     # get data from json
     for project in jsondata['items']:
@@ -44,24 +53,17 @@ def import_projects(jsondata, selectie_id):
 
         try:
             project_details.save()
-            # insert project_verwerk
-            verwerk_details = Verwerk_Project()
-            verwerk_details.id = project_details.id
-            verwerk_details.naam = project_details.naam
-            verwerk_details.processtap = 'selectie'
-            verwerk_details.status = 'gereed'
-            verwerk_details.resultaat = 'verwerkt'
-            try:
-                # verwerk_project neemt de id over van project. peewee denkt dan standaard dat het een update is.
-                # met force_insert wordt een insert afgedwongen.
-                verwerk_details.save(force_insert=True)
-            except ValueError as e_inner:
-                logging.exception(e_inner)
+
         except ValueError as e_outer:
             logging.exception(e_outer)
 
 
-def import_selectioncriteria(jsondata):
+def import_selectioncriteria(jsondata: json) -> int:
+    """
+    inserts the used selection criteria into the selectie table.
+    :param jsondata: A JSON string
+    :return: id of the newly made selectie record.
+    """
     logging.info('Starting import_selectioncriteria')
 
     selectie = Selectie()
@@ -76,6 +78,7 @@ def import_selectioncriteria(jsondata):
     selectie.haswiki = jsondata.get('parameters').get('hasWiki', None)
     selectie.haslicense = jsondata.get('parameters').get('hasLicense', None)
     selectie.committedmin = jsondata.get('parameters').get('committedMin') or None
+    selectie.locatie = 'https://github.com/'
 
     try:
         selectie.save()
@@ -86,10 +89,13 @@ def import_selectioncriteria(jsondata):
     return selectie.id
 
 
-def load_importfile(importfile):
-
+def load_importfile(importfile: str) -> None:
+    """
+    Process a GHSearch JSON export file indicated by a relative path
+    :param importfile:
+    """
     logging.info('Start importing ' + importfile)
-    data = read_json(importfile)
+    data = __read_json(importfile)
     if not data:
         logging.error('geen data gevonden')
         exit(1)
@@ -98,28 +104,33 @@ def load_importfile(importfile):
     logging.debug('selectie id = ' + str(selectie_id))
     import_projects(data, selectie_id)
 
-    configurator.set_ghsearch_import_wanted(False)
+
+def __load() -> None:
+    load_importfile(configurator.get_module_configurationitem(module='load_ghsearch', entry='importfile'))
 
 
-def load():
-    load_importfile(configurator.get_ghsearch_importfile())
+def __initialize() -> None:
+    """
+    Initialisation actions:
+    -- create logging file name
+    """
+    # initialiseer logging
+    dt = datetime.now()
+    loglevel = configurator.get_module_configurationitem(module='load_ghsearch', entry='loglevel')
+
+    log_filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                                 '..', '..', 'log',
+                                                 'load_ghsearch.' + dt.strftime('%y%m%d-%H%M%S') + '.log'))
+
+    logging.basicConfig(filename=log_filename,
+                        format='%(asctime)s %(levelname)s: %(message)s',
+                        level=loglevel, encoding='utf-8')
 
 
 #####################################
 #         start of code             #
 #####################################
 
-def initialize():
-
-    # initialiseer logging
-    dt = datetime.now()
-    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '..', '..', 'log', 'main.' + dt.strftime('%y%m%d-%H%M%S') + '.log'))
-    logging.basicConfig(filename=filename,
-                        format='%(asctime)s %(levelname)s: %(message)s',
-                        level=logging.INFO, encoding='utf-8')
-
-
 if __name__ == '__main__':
-    initialize()
-    load()
+    __initialize()
+    __load()

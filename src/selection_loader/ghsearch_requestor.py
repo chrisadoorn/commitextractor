@@ -26,8 +26,8 @@ class GhSearchSampleRequester:
         response = requests.get(gh_search_api, headers=HEADERS, verify=False)
         content = response.content.decode('latin-1')
         data = json.loads(content)
-        sel_id = import_selectioncriteria(data)
-        import_projects(data, sel_id)
+        sel_id = __import_selectioncriteria(data)
+        __import_projects(data, sel_id)
 
 
 if __name__ == '__main__':
