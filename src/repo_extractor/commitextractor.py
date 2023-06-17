@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-from pydriller import Repository
+from pydriller import Repository, ModifiedFile
 from src.repo_extractor import hashing
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
 from src.utils import configurator, db_postgresql
@@ -13,15 +13,24 @@ STATUS_VERWERKT = 'verwerkt'
 
 global db_connectie
 
+# configurtion options
 extensions = configurator.get_extensions()
 files = configurator.get_files()
 save_code_before = configurator.get_module_configurationitem_boolean(module='repo_extractor', entry='save_before')
 
 
-def extract_repository(projectname, project_id):
+def __extract_repository(projectlocation: str, project_id: int) -> None:
+    """
+    Process a project by using PyDriller.
+    PyDriller downloads the project, and returns a list of all its commits. Each commit contains a list of its filechanges.
+    This function loops through those and stores the information.
+   :param projectlocation: The location from where you are downloading the project
+                        If this is a local or network drive, the project will not be downloaded, but processed in place.
+    :param project_id: The database id of the project
+    """
     start = datetime.now()
-    logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
-    full_repository = Repository(projectname)
+    logging.info('start verwerking (' + str(project_id) + '):  ' + projectlocation + str(start))
+    full_repository = Repository(projectlocation)
     for commit in full_repository.traverse_commits():
 
         # TODO: if not_exists(commit.hash)
@@ -37,22 +46,28 @@ def extract_repository(projectname, project_id):
         try:
             commit_info.save()
             for file in commit.modified_files:
-                save_bestandswijziging(file, commit_info.id)
+                __save_bestandswijziging(file, commit_info.id)
         except UnicodeDecodeError as e_inner:
             logging.exception(e_inner)
         except ValueError as e_inner:
             logging.exception(e_inner)
 
     eind = datetime.now()
-    logging.info('einde verwerking ' + projectname + str(eind))
+    logging.info('einde verwerking ' + projectlocation + str(eind))
     print(eind)
     duur = eind - start
-    logging.info('verwerking ' + projectname + ' duurde ' + str(duur))
+    logging.info('verwerking ' + projectlocation + ' duurde ' + str(duur))
     print(duur)
 
 
-def save_bestandswijziging(file, commit_id):
-    fs = file_selector(file)
+def __save_bestandswijziging(file: ModifiedFile, commit_id: int) -> None:
+    """
+    Checks if a bestandswijziging is of wanted in further analysis
+    If so saves it into the database.
+    :param file: PyDriller object: ModifiedFile
+    :param commit_id: database id of commitinfo record
+    """
+    fs = __file_selector(file)
     if fs[0]:
         # sla op in database
         file_changes = BestandsWijziging()
@@ -73,7 +88,14 @@ def save_bestandswijziging(file, commit_id):
             logging.exception(e_inner)
 
 
-def file_selector(file):
+def __file_selector(file: ModifiedFile) -> (bool, str):
+    """
+    Checks if the file has to be analyzed according to the configuration.
+    Returns a tuple ( want to anayze, file name)
+    :param file: PyDriller object: ModifiedFile
+    :return: tuple, boolean True if file is of a type wanted to be analysed
+                    str     The filename
+    """
     split_up = os.path.splitext(file.filename)
     # bestand is apart genoemd
     if file.new_path in files:
@@ -109,7 +131,7 @@ def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
             # Als dit foutgaat, dan kan dit aan het project liggen.
             # We stoppen dan met dit project, en starten een volgend project
             try:
-                extract_repository(projectnaam, projectid)
+                __extract_repository(projectnaam, projectid)
                 verwerking_status = STATUS_VERWERKT
             # continue processing next project
             except Exception as e_inner:

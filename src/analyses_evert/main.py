@@ -11,7 +11,7 @@ from src.analyses_evert.read_diff_evert import ReadDiffEvert
 from src.models.extracted_data_models import CommitInfo, BestandsWijziging
 from evert_models import GhSearchSelection, TempDiffTextAnalysis
 from src.models.selection_models import pg_db, Selectie, Project, pg_db_schema
-from src.repo_extractor.commitextractor import extract_repository
+from src.repo_extractor.commitextractor import __extract_repository
 from src.utils import configurator
 from src.utils.read_diff import ReadDiff
 
@@ -59,7 +59,7 @@ def process_repos(subproject):
         t.meta_import_started_at = datetime.now()
 
         try:
-            extract_repository(t.name, project.id)
+            __extract_repository(t.name, project.id)
             t.selected_for_survey = True
         except Exception as e:
             t.selected_for_survey = False
