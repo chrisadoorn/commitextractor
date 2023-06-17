@@ -31,11 +31,12 @@ class CommitInfo(BaseModel):
 class BestandsWijziging(BaseModel):
     id = AutoField(primary_key=True)
     idcommit = ForeignKeyField(CommitInfo, backref="bestandsWijzigingen", on_delete="CASCADE", column_name="idcommit")
-    filename = CharField(null=True, max_length=512)
-    locatie = CharField(null=True, max_length=512)
-    extensie = CharField(null=True, max_length=20)
+    filename = CharField(null=True)
+    locatie = CharField(null=True)
+    extensie = CharField(null=True)
     difftext = TextField(null=True)
     tekstachteraf = TextField(null=True)
+    tekstvooraf = TextField(null=True)
 
 
 pg_db.connect()

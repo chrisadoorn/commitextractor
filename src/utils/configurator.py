@@ -1,16 +1,20 @@
 import os
 from configparser import ConfigParser
 
+# module names
+LOAD_GHSEARCH = 'load_ghsearch'
+EXTRACTOR = 'repo_extractor'
+
+# entry names
 GHSEARCH = 'ghsearch'
-IMPORT = 'import'
 IMPORTFILE = 'importfile'
 EXTENSIONS = 'language'
 KEYWORDS = 'keywords'
 POSTGRESQL = 'postgresql'
-PROCESS = 'process'
 RUN_PARALLEL = 'run_parallel'
 GITHUB = 'github'
 PERSONAL_ACCESS_TOKEN = 'personal_access_token'
+LIST_FILES = 'list_files'
 
 # INI_FILE contains the default location of the configuration
 INI_FILE = \
@@ -27,17 +31,8 @@ inifile2 = INI_FILE2
 
 
 # get_number_of_processes returns the number of processes for which the application is configured
-def get_number_of_processes():
-    config = ConfigParser()
-    config.read(inifile)
-
-    # get section
-    if config.has_option(PROCESS, RUN_PARALLEL):
-        number_of_processes = config[PROCESS][RUN_PARALLEL]
-    else:
-        raise Exception('Option {0} not found in the {1} file'.format(RUN_PARALLEL, inifile))
-
-    return int(number_of_processes)
+def get_number_of_processes(module_name: str) -> int:
+    return int(get_module_configurationitem(module_name, RUN_PARALLEL))
 
 
 # get_database_configuration returns a list of database connection parameters
@@ -57,92 +52,39 @@ def get_database_configuration():
 
 
 def get_extensions():
-    config = ConfigParser()
-    config.read(inifile)
-
-    if config.has_section(EXTENSIONS):
-        extensions = config.get('language', 'list_extensions').replace(' ', '').split(',')
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
-
-    return extensions
+    return get_module_configurationitem(EXTRACTOR, 'list_extensions').replace(' ', '').split(',')
 
 
 def get_keywords():
-    config = ConfigParser()
-    config.read(inifile2)
-
-    if config.has_section(KEYWORDS):
-        extensions = config.get('keywords', 'list_keywords').replace(' ', '').split(',')
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
-
-    return extensions
+    return get_module_configurationitem(KEYWORDS, 'list_keywords').replace(' ', '').split(',')
 
 
 def get_keywords_lib():
-    config = ConfigParser()
-    config.read(inifile2)
-
-    if config.has_section(KEYWORDS):
-        extensions = config.get('keywords', 'list_keywords_lib').replace(' ', '').split(',')
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
-
-    return extensions
+    return get_module_configurationitem(KEYWORDS, 'list_keywords_lib').replace(' ', '').split(',')
 
 
 def get_files():
     config = ConfigParser()
     config.read(inifile)
 
-    if config.has_section(EXTENSIONS):
-        extensions = config.get('language', 'list_files').replace(' ', '').split(',')
+    # get section
+    if config.has_option(EXTRACTOR, LIST_FILES):
+        return get_module_configurationitem(EXTRACTOR, LIST_FILES).replace(' ', '').split(',')
     else:
-        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
-
-    return extensions
+        return []
 
 
 def get_main_language():
-    config = ConfigParser()
-    config.read(inifile)
-
-    if config.has_section(EXTENSIONS):
-        main_language = config.get('language', 'main_language').replace(' ', '').split(',')
-    else:
-        raise Exception('Section {0} not found in the {1} file'.format(EXTENSIONS, inifile))
-
-    return main_language
+    return get_module_configurationitem('language', 'main_language').replace(' ', '').split(',')
 
 
 # get_ghsearch_importfile returns the file from which a list of projects can be added to be extracted.
 def get_ghsearch_importfile():
-
-    return get_module_configurationitem(module='load_ghsearch', entry='importfile')
-
-
-# Zet de waarde of er een nieuwe lijst van bestanden geladen moet worden.
-def set_ghsearch_import_wanted(true_or_false: bool):
-    config = ConfigParser()
-    config.read(inifile)
-    config.set(GHSEARCH, IMPORT, str(int(true_or_false)))
-
-    with open(inifile, 'w') as configfile:
-        config.write(configfile)
+    return get_module_configurationitem(module=LOAD_GHSEARCH, entry='importfile')
 
 
 def get_github_personal_access_token():
-    config = ConfigParser()
-    config.read(inifile)
-
-    # get section
-    if config.has_option(GITHUB, PERSONAL_ACCESS_TOKEN):
-        p_a_c = config[GITHUB][PERSONAL_ACCESS_TOKEN]
-    else:
-        raise Exception('Option {0} not found in the {1} file'.format(GITHUB, inifile))
-
-    return p_a_c
+    return get_module_configurationitem(GITHUB, PERSONAL_ACCESS_TOKEN)
 
 
 # set_inifile makes the ini_file dynamic.
@@ -161,5 +103,24 @@ def get_module_configurationitem(module: str, entry: str) -> str:
         value = config[module][entry]
     else:
         raise Exception('Option {0} not found in the {1} module'.format(entry, module))
+
+    return value
+
+
+def get_module_configurationitem_boolean(module: str, entry: str) -> bool:
+    """
+    Returns a boolean value for an item
+    Default value False if item is lacking in ini file
+    Value for the entry should be either 0 (False) or 1 (True)
+    :param module:
+    :param entry:
+    :return:
+    """
+    config = ConfigParser()
+    config.read(inifile)
+    value = False
+
+    if config.has_option(module, entry):
+        value = bool(int(config[module][entry]))
 
     return value

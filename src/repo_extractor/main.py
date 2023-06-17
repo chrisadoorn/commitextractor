@@ -4,15 +4,13 @@ import uuid
 from datetime import datetime
 from multiprocessing import freeze_support
 
-from src.utils import db_postgresql, sanitychecker
+from src.utils import db_postgresql, sanitychecker, configurator
 from src.repo_extractor import parallelizer
 
 
 #####################################
 #         define functions          #
 #####################################
-
-
 def start_processing():
     try:
         # connect to database
@@ -39,7 +37,7 @@ def start_with_checks():
     try:
 
         # check if environment is configured properly
-        sane = sanitychecker.check_dependencies()
+        sane = sanitychecker.check_dependencies('repo_extractor')
         if not sane:
             logging.info('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
             raise Exception('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
@@ -58,11 +56,14 @@ if __name__ == '__main__':
     instance_uuid = str(uuid.uuid4())
     # initialiseer logging
     dt = datetime.now()
+    loglevel = configurator.get_module_configurationitem(module='repo_extractor', entry='loglevel')
+
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'main.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+                                             '../..', 'log', 'repo_extractor.' + dt.strftime(
+                                             '%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
-                        level=logging.INFO, encoding='utf-8')
+                        level=loglevel, encoding='utf-8')
 
     logging.info('Starting application commitextractor with procesid ' + instance_uuid)
 
