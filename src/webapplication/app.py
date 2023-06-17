@@ -5,12 +5,12 @@ from src.models.extracted_data_models import CommitInfo, BestandsWijziging
 from src.models.selection_models import Project, pg_db_schema, pg_db
 from src.models.webapp_models import ManualChecking, Handmatige_Check
 from src.utils import configurator
-from src.utils.read_diff import ReadDiff
+from src.utils.read_diff import ReadDiffElixir
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 language = configurator.get_main_language()[0]
-readDiff = ReadDiff(language=language)
+readDiff = ReadDiffElixir()
 
 zoektermen = [x.zoekwoord for x in Zoekterm.select(Zoekterm.zoekwoord).distinct()]
 

@@ -284,7 +284,7 @@ Registry.lookup
 DynamicSupervisor
 Task
 Agent
-:ets
+:ets 
 Mnesia
 Quantum
 
