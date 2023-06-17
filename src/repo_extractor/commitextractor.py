@@ -33,8 +33,6 @@ def __extract_repository(projectlocation: str, project_id: int) -> None:
     full_repository = Repository(projectlocation)
     for commit in full_repository.traverse_commits():
 
-        # TODO: if not_exists(commit.hash)
-
         commit_info = CommitInfo()
         commit_info.idproject = project_id
         commit_info.commitdatumtijd = commit.committer_date
