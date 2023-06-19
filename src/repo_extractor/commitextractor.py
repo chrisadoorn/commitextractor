@@ -39,7 +39,7 @@ def __extract_repository(process_identifier: str, projectlocation: str, project_
     Process a project by using PyDriller.
     PyDriller downloads the project, and returns a list of all its commits. Each commit contains a list of its filechanges.
     This function loops through those and stores the information.
-   :param projectlocation: The location from where you are downloading the project
+    :param projectlocation: The location from where you are downloading the project
                         If this is a local or network drive, the project will not be downloaded, but processed in place.
     :param project_id: The database id of the project
     """
@@ -191,5 +191,4 @@ def __get_connection_from_pool(process_identifier):
                                         password=params_for_db.get('password'), host='localhost',
                                         port=params_for_db.get('port'))
         PeeWeeConnectionPool[process_identifier] = connection
-        print('nieuwe connectie gemaakt voor:' + process_identifier)
     return connection
