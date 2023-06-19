@@ -1,25 +1,40 @@
 import logging
 import os
+from peewee import PostgresqlDatabase
 from datetime import datetime
 
 from pydriller import Repository, ModifiedFile
 from src.repo_extractor import hashing
-from src.models.extracted_data_models import CommitInfo, BestandsWijziging
 from src.utils import configurator, db_postgresql
 
 PROCESSTAP = 'extractie'
 STATUS_MISLUKT = 'mislukt'
 STATUS_VERWERKT = 'verwerkt'
 
-global db_connectie
 
 # configurtion options
 extensions = configurator.get_extensions()
 files = configurator.get_files()
 save_code_before = configurator.get_module_configurationitem_boolean(module='repo_extractor', entry='save_before')
 
+PeeWeeConnectionPool = {}
 
-def __extract_repository(projectlocation: str, project_id: int) -> None:
+INSERT_COMMITS_SQL = "insert into {schema}.commitinfo (idproject, commitdatumtijd, " \
+                       "hashvalue, username, emailaddress, remark) " \
+                       "values ({idproject}, '{commitdatumtijd}', " \
+                       "'{hashvalue}', '{username}', '{emailaddress}', {remark}) returning id;"
+
+INSERT_FILES_SQL = "insert into {schema}.bestandswijziging " \
+                   "(idcommit, filename, locatie, extensie, difftext, " \
+                   "tekstvooraf,tekstachteraf) " \
+                   "values ({idcommit}, '{filename}', '{locatie}', '{extensie}', {difftext}," \
+                   "{tekstvooraf}, {tekstachteraf} ) " \
+                   "returning id;"
+
+schema = ''
+
+
+def __extract_repository(process_identifier: str, projectlocation: str, project_id: int) -> None:
     """
     Process a project by using PyDriller.
     PyDriller downloads the project, and returns a list of all its commits. Each commit contains a list of its filechanges.
@@ -28,61 +43,60 @@ def __extract_repository(projectlocation: str, project_id: int) -> None:
                         If this is a local or network drive, the project will not be downloaded, but processed in place.
     :param project_id: The database id of the project
     """
+    connection = __get_connection_from_pool(process_identifier)
+
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectlocation + str(start))
+    print('start verwerking (' + str(project_id) + '):  ' + projectlocation + str(start))
     full_repository = Repository(projectlocation)
     for commit in full_repository.traverse_commits():
-
-        commit_info = CommitInfo()
-        commit_info.idproject = project_id
-        commit_info.commitdatumtijd = commit.committer_date
-        commit_info.hashvalue = commit.hash
-        commit_info.username = hashing.make_hash(commit.author.name)
-        commit_info.emailaddress = hashing.make_hash(commit.author.email)
-        commit_info.remark = commit.msg
-
+        remark = __opkuizen_speciale_tekens(commit.msg, False)
+        sql = INSERT_COMMITS_SQL.format(schema=schema, idproject=project_id, commitdatumtijd=commit.committer_date,
+                                          hashvalue=commit.hash, username=hashing.make_hash(commit.author.name),
+                                          emailaddress=hashing.make_hash(commit.author.email), remark=remark)
         try:
-            commit_info.save()
+            c = connection.execute_sql(sql)
+            nw_pk = c.fetchone()
             for file in commit.modified_files:
-                __save_bestandswijziging(file, commit_info.id)
+                __save_bestandswijziging(connection, schema, file, nw_pk[0])
         except UnicodeDecodeError as e_inner:
             logging.exception(e_inner)
         except ValueError as e_inner:
             logging.exception(e_inner)
+        except Exception as e_inner:
+            logging.exception(e_inner)
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectlocation + str(eind))
-    print(eind)
+    print('einde verwerking ' + projectlocation + str(eind))
     duur = eind - start
     logging.info('verwerking ' + projectlocation + ' duurde ' + str(duur))
-    print(duur)
 
 
-def __save_bestandswijziging(file: ModifiedFile, commit_id: int) -> None:
+def __save_bestandswijziging(connection: PostgresqlDatabase, schema_in: str, file: ModifiedFile,
+                             commit_id: int) -> None:
     """
     Checks if a bestandswijziging is of wanted in further analysis
     If so saves it into the database.
     :param file: PyDriller object: ModifiedFile
     :param commit_id: database id of commitinfo record
     """
-    fs = __file_selector(file)
-    if fs[0]:
+    (do_safe, extension) = __file_selector(file)
+    if do_safe:
         # sla op in database
-        file_changes = BestandsWijziging()
-        file_changes.filename = file.filename
-        file_changes.difftext = file.diff
-        file_changes.tekstachteraf = file.content
-        if save_code_before:
-            file_changes.tekstvooraf = file.content_before
-        file_changes.idcommit = commit_id
-        file_changes.locatie = file.new_path
-        file_changes.extensie = fs[1]
-
         try:
-            file_changes.save()
+            tekstvooraf = __opkuizen_speciale_tekens(file.content_before, False) if save_code_before else 'null'
+            diff_text = __opkuizen_speciale_tekens(file.diff, True)
+            tekstachteraf = __opkuizen_speciale_tekens(file.content, False)
+            sql = INSERT_FILES_SQL.format(schema=schema_in, idcommit=commit_id, filename=file.filename,
+                                          locatie=file.new_path, extensie=extension, difftext=diff_text,
+                                          tekstvooraf=tekstvooraf, tekstachteraf=tekstachteraf)
+            connection.execute_sql(sql)
         except UnicodeDecodeError as e_inner:
             logging.exception(e_inner)
         except ValueError as e_inner:
+            logging.exception(e_inner)
+        except Exception as e_inner:
             logging.exception(e_inner)
 
 
@@ -124,12 +138,12 @@ def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
             projectnaam = volgend_project[1]
             projectid = volgend_project[0]
             verwerking_status = STATUS_MISLUKT
-
+            logging.info('start verwerking (' + str(projectid) + '):  ' + projectnaam)
             # We gebruiken een inner try voor het verwerken van een enkel project.
             # Als dit foutgaat, dan kan dit aan het project liggen.
             # We stoppen dan met dit project, en starten een volgend project
             try:
-                __extract_repository(projectnaam, projectid)
+                __extract_repository(process_identifier, projectnaam, projectid)
                 verwerking_status = STATUS_VERWERKT
             # continue processing next project
             except Exception as e_inner:
@@ -148,3 +162,34 @@ def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
     except Exception as e_outer:
         logging.error('Er zijn fouten geconstateerd tijdens het loopen door de projectenlijst. Zie details hieronder')
         logging.exception(e_outer)
+
+
+def __opkuizen_speciale_tekens(tekst, not_null):
+    """
+    Speciale tekens toevoegen aan een string voor gebruik in een PSQL statement
+    """
+    if tekst is None:
+        if not_null:
+            return "''"
+        return 'null'
+    try:
+        tekst = tekst.decode()
+    except (UnicodeDecodeError, AttributeError):
+        pass
+
+    return "'" + tekst.replace("'", "''").replace("%", "%%") + "'"
+
+
+def __get_connection_from_pool(process_identifier):
+    if process_identifier in PeeWeeConnectionPool:
+        connection = PeeWeeConnectionPool[process_identifier]
+    else:
+        params_for_db = configurator.get_database_configuration()
+        global schema
+        schema = params_for_db.get('schema')
+        connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'),
+                                        password=params_for_db.get('password'), host='localhost',
+                                        port=params_for_db.get('port'))
+        PeeWeeConnectionPool[process_identifier] = connection
+        print('nieuwe connectie gemaakt voor:' + process_identifier)
+    return connection

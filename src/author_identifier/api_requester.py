@@ -144,17 +144,17 @@ def fetch_authors_by_project(projectid, limit=None) -> None:
     schema = pg_db_schema
 
     sql = \
-        "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
-        "FROM " + schema + ".commitinfo AS ci " + \
-        "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
-        "WHERE ci.idproject = " + str(projectid) + \
-        " AND author_id is null;" \
-            if limit is None else \
-            "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " + \
-            "FROM " + schema + ".commitinfo AS ci " + \
-            "JOIN " + schema + ".project AS pr ON ci.idproject = pr.id " + \
-            "WHERE ci.idproject = " + str(projectid) + \
-            " AND author_id is null limit({});".format(limit)
+        ("SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " +
+         "FROM {schema}.commitinfo AS ci " +
+         "JOIN {schema}.project AS pr ON ci.idproject = pr.id " +
+         "WHERE ci.idproject = {projectid} " +
+         " AND author_id is null;"
+         if limit is None else
+         "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " +
+         "FROM {schema}.commitinfo AS ci " +
+         "JOIN {schema}.project AS pr ON ci.idproject = pr.id " +
+         "WHERE ci.idproject = {projectid} " +
+         " AND author_id is null limit({limit});").format(schema=schema, limit=limit, projectid=projectid)
 
     cursor = pg_db.execute_sql(sql)
     counter = 1
