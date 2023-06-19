@@ -63,8 +63,6 @@ def __extract_repository(process_identifier: str, projectlocation: str, project_
             logging.exception(e_inner)
         except ValueError as e_inner:
             logging.exception(e_inner)
-        except Exception as e_inner:
-            logging.exception(e_inner)
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectlocation + str(eind))
@@ -126,7 +124,6 @@ def __file_selector(file: ModifiedFile) -> (bool, str):
 # extract_repositories is the starting point for this functionality
 # extract repositories while there are repositories to be processed
 def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
-    global db_connectie
     nieuwe_processtap = PROCESSTAP
     try:
         db_connectie = db_postgresql.open_connection()
@@ -188,7 +185,7 @@ def __get_connection_from_pool(process_identifier):
         global schema
         schema = params_for_db.get('schema')
         connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'),
-                                        password=params_for_db.get('password'), host='localhost',
+                                        password=params_for_db.get('password'), host=params_for_db.get('host'),
                                         port=params_for_db.get('port'))
         PeeWeeConnectionPool[process_identifier] = connection
         print('nieuwe connectie gemaakt voor:' + process_identifier)
