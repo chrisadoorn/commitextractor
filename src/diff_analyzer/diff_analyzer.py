@@ -1,21 +1,28 @@
 import logging
-
 from datetime import datetime
 
-from src.models.extracted_data_models import BestandsWijziging, CommitInfo
-from src.utils import db_postgresql, configurator
 from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
-from src.utils.read_diff import ReadDiffElixir
+from src.models.extracted_data_models import BestandsWijziging, CommitInfo, open_connection, close_connection
+from src.utils import db_postgresql, configurator
+from src.utils.db_postgresql import _get_connection
+from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust
+
+read_diff = ReadDiffJava()
+
+
+def __set_read_diff():
+    global read_diff
+    language = configurator.get_main_language()[0]
+    read_diff = ReadDiffElixir() if language.upper() == 'ELIXIR' else (
+        ReadDiffJava() if language == 'JAVA' else ReadDiffRust())
 
 
 def analyze_by_project(projectname, project_id):
     start = datetime.now()
+    global read_diff
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
-
-    # bepaal taal waarvoor gezocht moet worden
-    language = configurator.get_main_language()[0]
-    read_diff = ReadDiffElixir()
     # haal voor deze commit de lijst bestandswijzig id's op.
+    open_connection()
     commitinfo_lijst = CommitInfo.select(CommitInfo.id).where(CommitInfo.idproject == project_id)
     for commitInfo in commitinfo_lijst:
 
@@ -24,8 +31,7 @@ def analyze_by_project(projectname, project_id):
         for bestandswijziging in bestandswijzigingen_lijst:
 
             # haal de gevonden zoektermen voor deze diff op
-            bestandswijziging_id = bestandswijziging.id
-            bwz_lijst = BestandsWijzigingZoekterm.get_voor_bestandswijziging(bestandswijziging_id)
+            bwz_lijst = BestandsWijzigingZoekterm.get_voor_bestandswijziging(bestandswijziging.id)
             if len(bwz_lijst) == 0:
                 # geen zoekterm, dan door naar de volgende
                 continue
@@ -37,14 +43,14 @@ def analyze_by_project(projectname, project_id):
 
             # haal de diff op
             (difftekst,) = BestandsWijziging.select(BestandsWijziging.difftext).where(
-                BestandsWijziging.id == bestandswijziging_id)
+                BestandsWijziging.id == bestandswijziging.id)
 
             # doorzoek de diff op de eerder gevonden zoektermen
 
-            (new_lines, old_lines) = read_diff.check_diff_text(difftekst.difftext, zoektermlijst)
+            (new_lines, removed_lines) = read_diff.check_diff_text(difftekst.difftext, zoektermlijst)
 
             # sla gevonden resultaten op per bestandswijziging
-            BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging_id, regels_oud=len(old_lines),
+            BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging.id, regels_oud=len(removed_lines),
                                                    regels_nieuw=len(new_lines))
 
             # sla gevonden resultaten op per zoekterm in bestandswijziging
@@ -65,6 +71,7 @@ def analyze_by_project(projectname, project_id):
                 bestandswijziging_zoekterm.aantalgevonden = len(regelnrs)
                 bestandswijziging_zoekterm.save()
 
+    close_connection()
     eind = datetime.now()
     logging.info('einde verwerking ' + projectname + str(eind))
     print(eind)
@@ -78,10 +85,11 @@ def analyze(process_identifier):
     nieuwe_processtap = 'zoekterm_controleren'
 
     try:
-        db_postgresql.open_connection()
-        db_postgresql.registreer_processor(process_identifier)
+        connection = __get_connection_from_pool(process_identifier)
+        db_postgresql.registreer_processor(process_identifier, connection)
 
-        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
+        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap,
+                                                        connection)
         rowcount = volgend_project[2]
         while rowcount == 1:
             projectnaam = volgend_project[1]
@@ -100,13 +108,29 @@ def analyze(process_identifier):
                 logging.exception(e_inner)
 
             db_postgresql.registreer_verwerking(projectnaam=projectnaam, processor=process_identifier,
-                                                verwerking_status=verwerking_status, projectid=projectid)
-            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
+                                                verwerking_status=verwerking_status, projectid=projectid,
+                                                connection=connection)
+            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap,
+                                                            connection)
             rowcount = volgend_project[2]
 
         # na de loop
         db_postgresql.deregistreer_processor(process_identifier)
-
     except Exception as e_outer:
         logging.error('Er zijn fouten geconstateerd tijdens het loopen door de projectenlijst. Zie details hieronder')
         logging.exception(e_outer)
+
+
+DBConnectionPool = {}
+
+
+def __get_connection_from_pool(process_identifier):
+    if process_identifier in DBConnectionPool:
+        connection = DBConnectionPool[process_identifier]
+        if connection.closed:
+            connection = _get_connection()
+            DBConnectionPool[process_identifier] = connection
+    else:
+        connection = _get_connection()
+        DBConnectionPool[process_identifier] = connection
+    return connection

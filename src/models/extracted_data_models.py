@@ -1,19 +1,26 @@
-from peewee import CharField, Model, AutoField, DateTimeField, PostgresqlDatabase, TextField, ForeignKeyField, \
-    IntegerField
+from peewee import CharField, Model, AutoField, DateTimeField, TextField, ForeignKeyField, IntegerField
+from playhouse.pool import PooledPostgresqlExtDatabase
 
 from src.models.selection_models import Project
-
 from src.utils import configurator
 
 params = configurator.get_database_configuration()
-pg_db = PostgresqlDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
-                           host=params.get('host'), port=params.get('port'))
+
+pg_database = PooledPostgresqlExtDatabase(
+    database=params.get('database'),
+    max_connections=32,
+    stale_timeout=300,
+    user=params.get('user'),
+    password=params.get('password'),
+    host=params.get('host'),
+    port=params.get('port'))
+
 pg_db_schema = params.get('schema')
 
 
 class BaseModel(Model):
     class Meta:
-        database = pg_db
+        database = pg_database
         schema = pg_db_schema
 
 
@@ -39,4 +46,9 @@ class BestandsWijziging(BaseModel):
     tekstvooraf = TextField(null=True)
 
 
-pg_db.connect()
+def open_connection():
+    pg_database.connect()
+
+
+def close_connection():
+    pg_database.close()
