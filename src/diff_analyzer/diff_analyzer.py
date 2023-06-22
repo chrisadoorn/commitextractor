@@ -5,7 +5,7 @@ from datetime import datetime
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo
 from src.utils import db_postgresql, configurator
 from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
-from src.utils.read_diff import ReadDiff
+from src.utils.read_diff import ReadDiffElixir
 
 
 def analyze_by_project(projectname, project_id):
@@ -14,7 +14,7 @@ def analyze_by_project(projectname, project_id):
 
     # bepaal taal waarvoor gezocht moet worden
     language = configurator.get_main_language()[0]
-    read_diff = ReadDiff(language=language)
+    read_diff = ReadDiffElixir()
     # haal voor deze commit de lijst bestandswijzig id's op.
     commitinfo_lijst = CommitInfo.select(CommitInfo.id).where(CommitInfo.idproject == project_id)
     for commitInfo in commitinfo_lijst:

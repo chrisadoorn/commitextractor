@@ -268,25 +268,19 @@ Phoenix web framework (http://phoenixframework.org/), is used to facilitate bidi
 tional communication between a client and a web server over protocols such as WebSocket
 or HTTP.
 
-spawn
-send
-receive
-Process.register
-Process.link
-Process.flag
-Process.monitor
-GenServer
-spawn_link
-Supervisor
-Registry.start_link //start registry
-Registry.register
-Registry.lookup
-DynamicSupervisor
-Task
 Agent
-:ets 
-Mnesia
-Quantum
+DynamicSupervisor
+GenServer
+Node
+Process
+Registry
+Supervisor
+Task
+receive
+send
+spawn
+spawn_link
+spawn_monitor
 
 use GenServer .functions
  - start_link

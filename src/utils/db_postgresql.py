@@ -9,12 +9,8 @@ global db_conn
 
 def _get_connection():
     params = configurator.get_database_configuration()
-    v_host = params.get('host')
-    conn = psycopg2.connect(host=params.get('host'),
-                            port=params.get('port'),
-                            user=params.get('user'),
-                            password=params.get('password'),
-                            database=params.get('database'),
+    conn = psycopg2.connect(host=params.get('host'), port=params.get('port'), user=params.get('user'),
+                            password=params.get('password'), database=params.get('database'),
                             options="-c search_path=" + params.get('schema'))
     logging.info('opened a database connection')
     return conn
@@ -36,8 +32,7 @@ def check_connection():
         logging.exception(e)
         failure = True
     finally:
-        if conn:
-            conn.close()
+        conn.close()
 
     logging.info('Created connection to database')
     return conn and not failure
@@ -64,53 +59,53 @@ def insert_project(values):
     return resultaattuple[0]
 
 
-def volgend_project(processor, oude_processtap, nieuwe_processtap):
+def volgend_project(processor, oude_processtap, nieuwe_processtap, connection=None):
     new_id = 0
     rowcount = 0
     projectnaam = ''
 
     values = (processor, oude_processtap, nieuwe_processtap, new_id, projectnaam, rowcount)
     sql = 'CALL verwerk_volgend_project(%s, %s, %s, %s, %s, %s)'
-    projectcursor = db_conn.cursor()
+    projectcursor = db_conn.cursor() if connection is None else connection.cursor()
     projectcursor.execute(sql, values)
     resultaat = projectcursor.fetchone()
     logging.info(processor + ' heeft project opgevraagd met als resultaat: ' + str(resultaat))
-    db_conn.commit()
+    db_conn.commit() if connection is None else connection.commit()
     projectcursor.close()
     if resultaat[2] == 0 and resultaat[0] is not None and resultaat[0] > 0:
         # bug racecondition: probeer opnieuw
-        return volgend_project(processor, oude_processtap, nieuwe_processtap)
+        return volgend_project(processor, oude_processtap, nieuwe_processtap, connection)
 
     return resultaat
 
 
-def registreer_verwerking(projectnaam, processor, verwerking_status, projectid):
+def registreer_verwerking(projectnaam, processor, verwerking_status, projectid, connection=None):
     logging.info(processor + ' heeft project: ' + projectnaam + ' verwerkt met status: ' + verwerking_status)
     values = (projectid, verwerking_status)
     sql = 'CALL registreer_verwerking(%s, %s)'
-    verwerkingcursor = db_conn.cursor()
+    verwerkingcursor = db_conn.cursor() if connection is None else connection.cursor()
     verwerkingcursor.execute(sql, values)
-    db_conn.commit()
+    db_conn.commit() if connection is None else connection.commit()
     verwerkingcursor.close()
 
 
-def registreer_processor(identifier):
+def registreer_processor(identifier, connection=None):
     new_id = 0
     values = (identifier, new_id)
     sql = 'CALL registreer_processor(%s, %s)'
-    projectcursor = db_conn.cursor()
+    projectcursor = db_conn.cursor() if connection is None else connection.cursor()
     projectcursor.execute(sql, values)
     new_id = projectcursor.fetchone()[0]
-    db_conn.commit()
+    db_conn.commit() if connection is None else connection.commit()
     projectcursor.close()
     return new_id
 
 
-def deregistreer_processor(identifier):
+def deregistreer_processor(identifier, connection=None):
     sql = 'CALL deregistreer_processor(%s)'
-    projectcursor = db_conn.cursor()
+    projectcursor = db_conn.cursor() if connection is None else connection.cursor()
     projectcursor.execute(sql, [identifier])
-    db_conn.commit()
+    db_conn.commit() if connection is None else connection.commit()
     projectcursor.close()
 
 
@@ -133,6 +128,7 @@ def clean_testset():
     db_conn.commit()
     cursor.close()
 
+
 def insert_3_test_projecten():
     cursor = db_conn.cursor()
     sql = "INSERT INTO selectie(selectionmoment, language, locatie) VALUES('2023-06-15', 'Java','https://onzin.com/');" \
@@ -142,4 +138,3 @@ def insert_3_test_projecten():
     cursor.execute(sql, [])
     db_conn.commit()
     cursor.close()
-
