@@ -3,8 +3,8 @@ import os
 import uuid
 from datetime import datetime
 
-from src.text_search import text_searcher
-from src.utils import db_postgresql, sanitychecker
+from src.text_search import parallelizer
+from src.utils import sanitychecker
 
 
 #####################################
@@ -15,8 +15,7 @@ from src.utils import db_postgresql, sanitychecker
 def start_processing():
     try:
         # connect to database
-        db_postgresql.open_connection()
-        text_searcher.search_by_project(instance_uuid)
+        parallelizer.start_text_search()
 
     except Exception as e:
         # stop processing
@@ -39,7 +38,7 @@ def start_with_checks():
     try:
 
         # check if environment is configured properly
-        sane = sanitychecker.check_dependencies('repo_extractor'')
+        sane = sanitychecker.check_dependencies('repo_extractor')
         if not sane:
             logging.info('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
             raise Exception('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
@@ -54,6 +53,7 @@ def start_with_checks():
 #         start of code             #
 #####################################
 if __name__ == '__main__':
+    print('Starting module zoekterm_vinden')
     # initialiseer logging
     instance_uuid = str(uuid.uuid4())
     # initialiseer logging
@@ -68,3 +68,4 @@ if __name__ == '__main__':
     logging.info('Starting module zoekterm_vinden with procesid ' + instance_uuid)
 
     start_with_checks()
+    print('Module zoekterm_vinden stopped')
