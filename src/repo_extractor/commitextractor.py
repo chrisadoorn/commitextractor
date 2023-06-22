@@ -63,8 +63,6 @@ def __extract_repository(process_identifier: str, projectlocation: str, project_
             logging.exception(e_inner)
         except ValueError as e_inner:
             logging.exception(e_inner)
-        except Exception as e_inner:
-            logging.exception(e_inner)
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectlocation + str(eind))
@@ -95,8 +93,6 @@ def __save_bestandswijziging(connection: PostgresqlDatabase, schema_in: str, fil
         except UnicodeDecodeError as e_inner:
             logging.exception(e_inner)
         except ValueError as e_inner:
-            logging.exception(e_inner)
-        except Exception as e_inner:
             logging.exception(e_inner)
 
 
