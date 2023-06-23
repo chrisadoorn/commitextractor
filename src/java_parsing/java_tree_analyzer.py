@@ -324,8 +324,8 @@ def __is_type_declaration_usage(path: list[str]) -> bool:
       """
     if len(path) < 4:
         return False
-
-    return path[1] == 'typeIdentifier' and path[2] == 'classOrInterfaceType' and path[3] == 'typeType'
+    is_identifier = path[1] == 'typeIdentifier' or path[1] == 'identifier'
+    return is_identifier and path[2] == 'classOrInterfaceType' and path[3] == 'typeType'
 
 
 def __is_constructor_declaration(path: list[str]) -> bool:
@@ -357,8 +357,8 @@ def __is_lone_identifier(path: list[str]) -> bool:
       """
     if len(path) < 2:
         return False
-
-    return path[1] == 'identifier' and 'expression' in path
+    next_is_identifier = path[1] == 'identifier' or path[1] == 'typeIdentifier'
+    return next_is_identifier and 'expression' in path
 
 
 def __trim_path(path: list[str]) -> list[str]:
