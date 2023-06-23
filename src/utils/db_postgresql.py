@@ -9,12 +9,8 @@ global db_conn
 
 def _get_connection():
     params = configurator.get_database_configuration()
-    v_host = params.get('host')
-    conn = psycopg2.connect(host=params.get('host'),
-                            port=params.get('port'),
-                            user=params.get('user'),
-                            password=params.get('password'),
-                            database=params.get('database'),
+    conn = psycopg2.connect(host=params.get('host'), port=params.get('port'), user=params.get('user'),
+                            password=params.get('password'), database=params.get('database'),
                             options="-c search_path=" + params.get('schema'))
     logging.info('opened a database connection')
     return conn
@@ -36,8 +32,7 @@ def check_connection():
         logging.exception(e)
         failure = True
     finally:
-        if conn:
-            conn.close()
+        conn.close()
 
     logging.info('Created connection to database')
     return conn and not failure
@@ -133,6 +128,7 @@ def clean_testset():
     db_conn.commit()
     cursor.close()
 
+
 def insert_3_test_projecten():
     cursor = db_conn.cursor()
     sql = "INSERT INTO selectie(selectionmoment, language, locatie) VALUES('2023-06-15', 'Java','https://onzin.com/');" \
@@ -142,4 +138,3 @@ def insert_3_test_projecten():
     cursor.execute(sql, [])
     db_conn.commit()
     cursor.close()
-
