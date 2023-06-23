@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 
 from src.diff_analyzer import diff_analyzer
+from src.diff_analyzer.diff_analyzer import __set_read_diff
 from src.utils import configurator
 
 
@@ -27,10 +28,10 @@ def _start_diff_analysis(nummer=0):
 # start_processen is the entry point for parallelizer
 # it starts a configurable number of processes
 def start_diff_analysis_processen():
-    number_of_processes = configurator.get_number_of_processes()
+    number_of_processes = configurator.get_number_of_processes("diff_analyzer")
     logging.info("Number of (virtual) processors on this machine: " + str(mp.cpu_count()))
     logging.info('Starting ' + str(number_of_processes) + ' processes')
-
+    __set_read_diff()
     mp.Pool()
     pool = mp.Pool(number_of_processes)
     pool.map(_start_diff_analysis, range(number_of_processes))

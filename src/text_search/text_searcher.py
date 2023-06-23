@@ -67,9 +67,9 @@ def search_by_project(process_identifier: str) -> None:
     nieuwe_processtap = 'zoekterm_vinden'
     try:
         global zoekterm_list
-        db_connectie = __get_connection_from_pool(process_identifier)
-        db_postgresql.registreer_processor(process_identifier, db_connectie)
-        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap, db_connectie)
+        db_postgresql.open_connection()
+        db_postgresql.registreer_processor(process_identifier)
+        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
         rowcount = volgend_project[2]
         while rowcount == 1:
             projectnaam = volgend_project[1]
@@ -89,12 +89,12 @@ def search_by_project(process_identifier: str) -> None:
                 logging.exception(e_inner)
 
             db_postgresql.registreer_verwerking(projectnaam=projectnaam, processor=process_identifier,
-                                                verwerking_status=verwerking_status, projectid=projectid, connection=db_connectie)
-            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap, db_connectie)
+                                                verwerking_status=verwerking_status, projectid=projectid)
+            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
             rowcount = volgend_project[2]
 
         # na de loop
-        db_postgresql.deregistreer_processor(process_identifier, db_connectie)
+        db_postgresql.deregistreer_processor(process_identifier)
 
     except Exception as e_outer:
         logging.error('Er zijn fouten geconstateerd tijdens het loopen door de projectenlijst. Zie details hieronder')

@@ -1,22 +1,10 @@
 import playhouse
-from peewee import CharField, Model, AutoField, BigIntegerField, IntegerField, BooleanField
+from peewee import CharField, AutoField, BigIntegerField, IntegerField, BooleanField
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
-from src.utils import configurator
-
-params = configurator.get_database_configuration()
-pg_db = PostgresqlExtDatabase(database=params.get('database'), user=params.get('user'), password=params.get('password'),
-                              host=params.get('host'), port=params.get('port'))
-pg_db_schema = params.get('schema')
+from src.models.extracted_data_models import BaseModel, pg_db_schema, pg_database
 
 
-class BaseModel(Model):
-    class Meta:
-        database = pg_db
-        schema = pg_db_schema
-
-
-# bestandswijziging info krijgt zijn id van bestandswijziging.
 class BestandsWijzigingInfo(BaseModel):
     class Meta:
         table_name = 'bestandswijziging_info'
@@ -52,7 +40,7 @@ class BestandsWijzigingZoekterm(BaseModel):
     def get_voor_bestandswijziging(bestandswijzigings_id):
         sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + \
               pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(bestandswijzigings_id)
-        cursor = pg_db.execute_sql(sql)
+        cursor = pg_database.execute_sql(sql)
         return cursor.fetchall()
 
 
@@ -60,5 +48,4 @@ class Zoekterm(BaseModel):
     extensie = CharField(null=True, max_length=20)
     zoekwoord = CharField(null=True)
 
-
-pg_db.connect()
+# pg_db.connect()
