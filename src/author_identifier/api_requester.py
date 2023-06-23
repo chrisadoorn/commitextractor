@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import requests
 from requests.exceptions import ConnectTimeout
 
-from src.models.extracted_data_models import pg_db_schema, pg_db, CommitInfo
+from src.models.extracted_data_models import pg_db_schema, CommitInfo, pg_database
 from src.utils import configurator
 
 GITHUB_API = 'https://api.github.com/repos/{}/commits/{}'
@@ -156,7 +156,7 @@ def fetch_authors_by_project(projectid, limit=None) -> None:
          "WHERE ci.idproject = {projectid} " +
          " AND author_id is null limit({limit});").format(schema=schema, limit=limit, projectid=projectid)
 
-    cursor = pg_db.execute_sql(sql)
+    cursor = pg_database.execute_sql(sql)
     counter = 1
     for (commit_info_id, id_project, email_address_hashed, username_hashed, sha, project_name) in cursor.fetchall():
         logging.info("Processing " + str(counter) + " of (max) " + str(limit))

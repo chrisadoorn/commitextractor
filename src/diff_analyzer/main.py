@@ -16,7 +16,7 @@ from src.diff_analyzer import parallelizer
 def start_processing():
     try:
         # connect to database
-        db_postgresql.open_connection()
+        # db_postgresql.open_connection()
         parallelizer.start_diff_analysis_processen()
     except Exception as e:
         # stop processing
