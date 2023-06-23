@@ -85,11 +85,9 @@ def analyze(process_identifier):
     nieuwe_processtap = 'zoekterm_controleren'
 
     try:
-        connection = __get_connection_from_pool(process_identifier)
-        db_postgresql.registreer_processor(process_identifier, connection)
-
-        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap,
-                                                        connection)
+        db_postgresql.open_connection()
+        db_postgresql.registreer_processor(process_identifier)
+        volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
         rowcount = volgend_project[2]
         while rowcount == 1:
             projectnaam = volgend_project[1]
@@ -108,10 +106,8 @@ def analyze(process_identifier):
                 logging.exception(e_inner)
 
             db_postgresql.registreer_verwerking(projectnaam=projectnaam, processor=process_identifier,
-                                                verwerking_status=verwerking_status, projectid=projectid,
-                                                connection=connection)
-            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap,
-                                                            connection)
+                                                verwerking_status=verwerking_status, projectid=projectid)
+            volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
             rowcount = volgend_project[2]
 
         # na de loop
