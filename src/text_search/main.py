@@ -2,10 +2,8 @@ import logging
 import os
 import uuid
 from datetime import datetime
-
-from src.text_search import text_searcher
-from src.utils import db_postgresql, sanitychecker
-
+from src.utils import sanitychecker
+from src.text_search import parallelizer
 
 #####################################
 #         define functions          #
@@ -15,8 +13,7 @@ from src.utils import db_postgresql, sanitychecker
 def start_processing():
     try:
         # connect to database
-        db_postgresql.open_connection()
-        text_searcher.search_by_project(instance_uuid)
+        parallelizer.start_text_search()
 
     except Exception as e:
         # stop processing
