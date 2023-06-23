@@ -24,5 +24,5 @@ class Test(unittest.TestCase):
         results = determine_searchword_usage(usage_paths, zoekterm)
         print(str(results))
         expected_results = ['import', 'extends', 'instance_variable', 'instantation', 'method_result', 'method_argument'
-            , 'method_typeargument', 'local_variable', 'instantation', 'instantation', 'generics extend', 'extends']
+            , 'method_typeargument', 'local_variable', 'instantation', 'instantation', 'generics_extend', 'extends']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')

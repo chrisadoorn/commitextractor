@@ -7,7 +7,7 @@ def find_class_use(node: Tree, classname: str, found: bool) -> bool:
     :param node: A tree or subtree
     :param classname: The name you are looking for
     :param found:
-    :return: boolean, True if the searched name is found.
+    :return: boolean, True if the searched name is found as a Type definition.
     """
     if found:
         return found
@@ -15,7 +15,7 @@ def find_class_use(node: Tree, classname: str, found: bool) -> bool:
     if isinstance(node, Tree):
         if node.label() == 'typeType':
             leaves_list = node.leaves()
-            found = leaves_list.__contains__(classname)
+            found = classname in leaves_list
 
         if not found:
             for child in node:

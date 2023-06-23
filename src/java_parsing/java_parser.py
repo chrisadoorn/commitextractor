@@ -1,59 +1,113 @@
-import antlr4
-import antlr4.error
-import pyparsing
 import logging
 from datetime import datetime
 
-from antlr4 import ParseTreeWalker
+import antlr4
+import antlr4.error
 
-from src.java_parsing.CustomJavaParserListener import CustomJavaParserListener
 from src.java_parsing.JavaLexer import JavaLexer
 from src.java_parsing.JavaParser import JavaParser
-from src.java_parsing.JavaParserListener import JavaParserListener
+from src.java_parsing.java_tree_analyzer import determine_searchword_usage
+from src.java_parsing.parsetree_searcher import to_nltk_tree, leaves_with_path
+from src.models.java_models import JavaParserSelection, JavaParseResult
 from src.utils import db_postgresql
-from src.models.analyzed_data_models import BestandsWijzigingZoekterm
-from src.models.extracted_data_models import BestandsWijziging
+
+PROCESSTAP = 'java_parsing'
+STATUS_MISLUKT = 'mislukt'
+STATUS_VERWERKT = 'verwerkt'
 
 
-def __remove_comments(text):
-    # single line comments removed //
-    comment_filter = pyparsing.dblSlashComment.suppress()
-    # multiline comments removed /*...*/
-    comment_filter2 = pyparsing.cppStyleComment.suppress()
-    newtext = comment_filter.transformString(text)
-    newtext2 = comment_filter2.transformString(newtext)
-    return newtext2
+def __get_treestring(text: str) -> str:
+    inputstream = antlr4.InputStream(text)
+    lexer = JavaLexer(inputstream)
+    stream = antlr4.CommonTokenStream(lexer)
+    parser = JavaParser(stream)
+    parser.setTrace(True)
+    tree = parser.compilationUnit()
+
+    return tree.toStringTree(recog=parser)
+
+
+def __usage_is_same(usage_list_vooraf: [str], usage_list_achteraf: [str]) -> bool:
+    """
+    Het gebruik vooraf en achteraf is gelijk als dezelfde vorm van gebruik even vaak gebruikt wordt.
+    :param usage_list_vooraf: list of strings indicating usage in text before
+    :param usage_list_achteraf: list of strings indicating usage in text after
+    :return bool: True is lists contain the same items
+    """
+    if len(usage_list_vooraf) != len(usage_list_achteraf):
+        return False
+    if len(usage_list_vooraf) == 0:
+        return False
+
+    work_vooraf = usage_list_vooraf.copy()
+    work_vooraf.sort()
+    work_achteraf = usage_list_achteraf.copy()
+    work_achteraf.sort()
+    return all(x == y for x, y in zip(work_vooraf, work_achteraf))
 
 
 def __analyze_by_project(projectnaam, projectid):
     start = datetime.now()
     logging.info('start verwerking (' + str(projectid) + '):  ' + projectnaam + str(start))
 
-    # haal per bestandswijzigingszoekterm, die niet eerder als false positive is herkend, de textafter op
-    bw_list = BestandsWijziging().select().where(BestandsWijziging.id == 20214)
-    for bw in bw_list:
-        textafter = bw.tekstachteraf
-        # verwijder alle comments.
-        text = __remove_comments(textafter)
-        inputstream = antlr4.InputStream(text)
-        lexer = JavaLexer(inputstream)
-        stream = antlr4.CommonTokenStream(lexer)
-        parser = JavaParser(stream)
-        parser.setTrace(True)
-        tree = parser.compilationUnit()
-        rc_listener = CustomJavaParserListener(zoekterm='ResultCode', packagenaam='org.prebid.mobile', output='')
-        t_listener = CustomJavaParserListener(zoekterm='Thread', packagenaam='java.lang', output='')
-        walker = ParseTreeWalker()
-        resultaat = walker.walk(listener=rc_listener, t=tree)
-        var = rc_listener.is_gevonden_in()
-        print('rc_listener : ' + str(var))
-        resultaat = walker.walk(listener=t_listener, t=tree)
-        var = t_listener.is_gevonden_in()
-        print('t_listener : ' + str(var))
+    vorig_bw_id = 0
 
-        # is zoekterm daadwerkelijk gebruikt? (afhankelijk van soort zoekwoord hoe dit bepaald wordt. kijk naar indicatie booleans. )
-        # is zoekterm anders gebruikt dan in textvooraf? vergelijk listener outputs
-        # vergelijk resultaat pre en after
+    selection_list = JavaParserSelection.select().where(JavaParserSelection.project_id == projectid).order_by(
+        JavaParserSelection.bw_id)
+    for listitem in selection_list:
+        zoekterm = listitem.zoekterm
+        commit_id = listitem.commit_id
+        bw_id = listitem.bw_id
+        bzw_id = listitem.id
+        tekstvooraf = listitem.tekstvooraf
+        tekstachteraf = listitem.tekstachteraf
+        is_nieuw = (tekstvooraf is None)
+        is_verwijderd = (tekstachteraf is None)
+        is_gebruik = False
+        usage_list_vooraf = []
+        usage_list_achteraf = []
+
+        if vorig_bw_id != bw_id:
+            # maak nieuwe parsetrees
+            try:
+                if not is_nieuw:
+                    vooraf_tree = to_nltk_tree(__get_treestring(tekstvooraf))
+                else:
+                    vooraf_tree = to_nltk_tree('()')
+                if not is_verwijderd:
+                    achteraf_tree = to_nltk_tree(__get_treestring(tekstachteraf))
+                else:
+                    achteraf_tree = to_nltk_tree('()')
+            except Exception as e:
+                logging.error('Parse exception in bestandswijziging ' + str(bw_id))
+                logging.error(e)
+                continue
+
+        if is_verwijderd:
+            # hele bestand verwijderen telt niet als gebruik
+            is_gebruik = False
+        else:
+            # parsetree content voor zoekterm achteraf
+            usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm)
+
+            if not is_nieuw:
+                usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm)
+                is_gebruik = __usage_is_same(usage_list_vooraf, usage_list_achteraf)
+            else:
+                is_gebruik = len(usage_list_achteraf) > 0
+
+        bevat_unknown = 'unknown' in usage_list_vooraf or 'unknown' in usage_list_achteraf
+        if bevat_unknown:
+            logging.warning('Unknown in tekst bestandswijziging ' + str(bw_id) + ' zoekwoord= ' + zoekterm)
+
+        # persist resultaat
+        JavaParseResult.insert_or_update(bzw_id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id,
+                                         is_gebruik=is_gebruik, is_nieuw=is_nieuw, is_verwijderd=is_verwijderd,
+                                         bevat_unknown=bevat_unknown,
+                                         usage_list_achteraf=str(usage_list_achteraf),
+                                         usage_list_vooraf=str(usage_list_vooraf))
+
+        vorig_bw_id = bw_id
 
     eind = datetime.now()
     logging.info('einde verwerking ' + projectnaam + str(eind))
@@ -63,9 +117,20 @@ def __analyze_by_project(projectnaam, projectid):
     print(duur)
 
 
-def analyze(process_identifier):
-    oude_processtap = 'zoekterm_controleren'
-    nieuwe_processtap = 'java_parsing'
+def __get_usage_zoekterm(achteraf_tree, zoekterm):
+    leaves_path = leaves_with_path(achteraf_tree, ['complilationUnit'])
+    usage_paths = []
+    for path in leaves_path:
+        path.reverse()  # eerste term wordt het zoekwoord.
+        if path[0] == zoekterm:
+            usage_paths.append(path)
+    usage_list = determine_searchword_usage(usage_paths, zoekterm)
+
+    return usage_list
+
+
+def analyze(process_identifier, oude_processtap):
+    nieuwe_processtap = PROCESSTAP
 
     try:
         db_postgresql.open_connection()

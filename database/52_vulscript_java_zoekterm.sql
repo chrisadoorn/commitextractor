@@ -1,5 +1,3 @@
-set schema 'qselect';
-
 INSERT INTO java_zoekterm (zoekterm,categorie,package,opmerking) VALUES
 	 ('synchronized','keywords',NULL,'(code block) or (methods)'),
 	 ('volatile','keywords',NULL,NULL),

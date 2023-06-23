@@ -27,7 +27,7 @@ def _start_diff_analysis(nummer=0):
 # start_processen is the entry point for parallelizer
 # it starts a configurable number of processes
 def start_diff_analysis_processen():
-    number_of_processes = configurator.get_number_of_processes()
+    number_of_processes = configurator.get_number_of_processes('diff_analyzer')
     logging.info("Number of (virtual) processors on this machine: " + str(mp.cpu_count()))
     logging.info('Starting ' + str(number_of_processes) + ' processes')
 
