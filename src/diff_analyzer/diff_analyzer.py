@@ -4,7 +4,6 @@ from datetime import datetime
 from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo, open_connection, close_connection
 from src.utils import db_postgresql, configurator
-from src.utils.db_postgresql import _get_connection
 from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust
 
 read_diff = ReadDiffJava()
@@ -22,7 +21,7 @@ def analyze_by_project(projectname, project_id):
     global read_diff
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectname + str(start))
     # haal voor deze commit de lijst bestandswijzig id's op.
-    open_connection()
+    open_connection()  # nodig bij gebruik PooledPostgresqlExtDatabase
     commitinfo_lijst = CommitInfo.select(CommitInfo.id).where(CommitInfo.idproject == project_id)
     for commitInfo in commitinfo_lijst:
 
@@ -71,7 +70,7 @@ def analyze_by_project(projectname, project_id):
                 bestandswijziging_zoekterm.aantalgevonden = len(regelnrs)
                 bestandswijziging_zoekterm.save()
 
-    close_connection()
+    close_connection()  # nodig bij gebruik PooledPostgresqlExtDatabase
     eind = datetime.now()
     logging.info('einde verwerking ' + projectname + str(eind))
     print(eind)
@@ -115,18 +114,3 @@ def analyze(process_identifier):
     except Exception as e_outer:
         logging.error('Er zijn fouten geconstateerd tijdens het loopen door de projectenlijst. Zie details hieronder')
         logging.exception(e_outer)
-
-
-DBConnectionPool = {}
-
-
-def __get_connection_from_pool(process_identifier):
-    if process_identifier in DBConnectionPool:
-        connection = DBConnectionPool[process_identifier]
-        if connection.closed:
-            connection = _get_connection()
-            DBConnectionPool[process_identifier] = connection
-    else:
-        connection = _get_connection()
-        DBConnectionPool[process_identifier] = connection
-    return connection
