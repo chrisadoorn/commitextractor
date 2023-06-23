@@ -3,8 +3,9 @@ CREATE TABLE IF NOT EXISTS java_zoekterm
     id BIGSERIAL PRIMARY KEY,
     zoekterm varchar NOT NULL,
     categorie varchar NOT NULL,
-    "package" varchar,
+    packagenaam varchar,
     opmerking varchar,
+    import_controle bool,
     CONSTRAINT zoekterm_uk UNIQUE (zoekterm)
 )
 

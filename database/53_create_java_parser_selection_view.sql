@@ -1,12 +1,14 @@
 
 CREATE OR REPLACE VIEW java_parser_selection_view
-AS SELECT  bz.id as id, b.id as bw_id, c.id as commit_id, p.id as project_id, bz.zoekterm, b.tekstvooraf, b.tekstachteraf
+AS SELECT  bz.id as id, b.id as bw_id, c.id as commit_id, p.id as project_id, bz.zoekterm, b.tekstvooraf, b.tekstachteraf, jz.import_controle
 from    bestandswijziging b,
         commitinfo c,
         project p,
-        bestandswijziging_zoekterm bz
+        bestandswijziging_zoekterm bz,
+        java_zoekterm jz 
 where   b.idcommit = c.id
 and     c.idproject = p.id
+and     bz.zoekterm = jz.zoekterm
 and     bz.idbestandswijziging = b.id
 and     bz.falsepositive = false
 order by bw_id;
