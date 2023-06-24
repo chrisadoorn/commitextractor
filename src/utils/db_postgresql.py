@@ -7,7 +7,7 @@ from src.utils import configurator
 global db_conn
 
 
-def _get_connection():
+def _get_new_connection():
     params = configurator.get_database_configuration()
     conn = psycopg2.connect(host=params.get('host'), port=params.get('port'), user=params.get('user'),
                             password=params.get('password'), database=params.get('database'),
@@ -23,7 +23,7 @@ def check_connection():
     conn = False
     failure = False
     try:
-        conn = _get_connection()
+        conn = _get_new_connection()
         cursor = conn.cursor()
         cursor.execute('select * from selectie where id = 1')
         cursor.close()
@@ -42,7 +42,7 @@ def open_connection():
     # open_connection()
     # create a connection and cache this connection
     global db_conn
-    db_conn = _get_connection()
+    db_conn = _get_new_connection()
     return db_conn
 
 
@@ -73,7 +73,8 @@ def volgend_project(processor, oude_processtap, nieuwe_processtap):
     db_conn.commit()
     projectcursor.close()
     if resultaat[2] == 0 and resultaat[0] is not None and resultaat[0] > 0:
-        # bug racecondition: probeer opnieuw
+        # bug racecondition: Er is een project geselecteerd, maar het kon niet geclaimd worden.
+        # ( zie stred procedure in database) probeer opnieuw.
         return volgend_project(processor, oude_processtap, nieuwe_processtap)
 
     return resultaat
@@ -131,10 +132,10 @@ def clean_testset():
 
 def insert_3_test_projecten():
     cursor = db_conn.cursor()
-    sql = "INSERT INTO selectie(selectionmoment, language, locatie) VALUES('2023-06-15', 'Java','https://onzin.com/');" \
-          "INSERT INTO project(naam, idselectie, main_language)VALUES('openda-association/openda', (select max(id) from selectie), 'Java');" \
-          "INSERT INTO project(naam, idselectie, main_language)VALUES('ladieda/openda', (select max(id) from selectie), 'Java');" \
-          "INSERT INTO project(naam, idselectie, main_language)VALUES('quota-association/openda', (select max(id) from selectie), 'Java');"
+    sql = "INSERT INTO test.selectie(selectionmoment, language, locatie) VALUES('2023-06-15', 'Java','https://onzin.com/');" \
+          "INSERT INTO test.project(naam, idselectie, main_language)VALUES('openda-association/openda', (select max(id) from selectie), 'Java');" \
+          "INSERT INTO test.project(naam, idselectie, main_language)VALUES('ladieda/openda', (select max(id) from selectie), 'Java');" \
+          "INSERT INTO test.project(naam, idselectie, main_language)VALUES('quota-association/openda', (select max(id) from selectie), 'Java');"
     cursor.execute(sql, [])
     db_conn.commit()
     cursor.close()
