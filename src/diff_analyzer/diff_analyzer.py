@@ -4,16 +4,18 @@ from datetime import datetime
 from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo, open_connection, close_connection
 from src.utils import db_postgresql, configurator
-from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust
+from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust, _ReadDiff
 
-read_diff = ReadDiffJava()
+read_diff = None
 
 
-def __set_read_diff():
+def __get_read_diff() -> _ReadDiff:
     global read_diff
-    language = configurator.get_main_language()[0]
-    read_diff = ReadDiffElixir() if language.upper() == 'ELIXIR' else (
-        ReadDiffJava() if language == 'JAVA' else ReadDiffRust())
+    if read_diff is None:
+        language = configurator.get_main_language()[0]
+        read_diff = ReadDiffElixir() if language.upper() == 'ELIXIR' else (
+            ReadDiffJava() if language == 'JAVA' else ReadDiffRust())
+    return read_diff
 
 
 def analyze_by_project(projectname, project_id):
@@ -46,7 +48,7 @@ def analyze_by_project(projectname, project_id):
 
             # doorzoek de diff op de eerder gevonden zoektermen
 
-            (new_lines, removed_lines) = read_diff.check_diff_text(difftekst.difftext, zoektermlijst)
+            (new_lines, removed_lines) = __get_read_diff().check_diff_text(difftekst.difftext, zoektermlijst)
 
             # sla gevonden resultaten op per bestandswijziging
             BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging.id, regels_oud=len(removed_lines),
