@@ -4,7 +4,7 @@ import json
 import os
 from configparser import ConfigParser
 from src.utils import configurator
-from src.utils.db_postgresql import _get_connection
+from src.utils.db_postgresql import _get_new_connection
 from peewee import PostgresqlDatabase
 
 global db_connectie
@@ -51,7 +51,7 @@ def calcSampleSize():
 #Random sample using BERNOULLI method
 def performBernoulliSample():
     sql1 = "DELETE FROM test.verwerk_project WHERE id IN (SELECT id FROM test.verwerk_project TABLESAMPLE BERNOULLI  (%s))"
-    db_conn = _get_connection()
+    db_conn = _get_new_connection()
     projectcursor = db_conn.cursor()
     projectcursor.execute(sql1, [calcSampleSize()])
     db_conn.commit()

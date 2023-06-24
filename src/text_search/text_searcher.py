@@ -3,7 +3,7 @@ import logging
 from src.models.analyzed_data_models import Zoekterm
 from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
-from src.utils.db_postgresql import _get_connection
+from src.utils.db_postgresql import _get_new_connection
 
 global db_connectie
 schema = get_database_configuration().get('schema')
@@ -67,6 +67,8 @@ def search_by_project(process_identifier: str) -> None:
     nieuwe_processtap = 'zoekterm_vinden'
     try:
         global zoekterm_list
+        __get_zoektermen_list()
+
         db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
         volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
@@ -108,10 +110,10 @@ def __get_connection_from_pool(process_identifier):
     if process_identifier in DBConnectionPool:
         connection = DBConnectionPool[process_identifier]
         if connection.closed:
-            connection = _get_connection()
+            connection = _get_new_connection()
             DBConnectionPool[process_identifier] = connection
     else:
-        connection = _get_connection()
+        connection = _get_new_connection()
         DBConnectionPool[process_identifier] = connection
     return connection
 

@@ -3,7 +3,7 @@ import logging
 from src.models.analyzed_data_models import Zoekterm
 from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
-from src.utils.db_postgresql import _get_connection
+from src.utils.db_postgresql import _get_new_connection
 
 """De globale variabelen db_connectie, zoekterm_list en DBConnectionPool zijn verwijderd, omdat ze niet nodig zijn.
 Query's met parameters in plaats van strings aan elkaar te rijgen om de uitvoering van query's te verbeteren.
@@ -88,7 +88,7 @@ def search_by_project(process_identifier):
         logging.exception(e_outer)
 
 def _get_connection_from_pool(process_identifier):
-    return _get_connection()
+    return _get_new_connection()
 
 def save_bestandswijziging_zoekterm(connection, idbestandswijziging, zoekterm):
     sql = (
