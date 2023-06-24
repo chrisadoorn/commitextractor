@@ -3,11 +3,8 @@ import logging
 from src.models.analyzed_data_models import Zoekterm
 from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
-from src.utils.db_postgresql import _get_new_connection
 
-global db_connectie
 schema = get_database_configuration().get('schema')
-
 zoekterm_list = []
 
 
@@ -23,7 +20,7 @@ def __get_zoektermen_list() -> [Zoekterm]:
     return zoekterm_list
 
 
-def __get_bestandswijzigingen_list(zoekterm: Zoekterm, project_id: int, connection) -> [(int,)]:
+def __get_bestandswijzigingen_list(zoekterm: Zoekterm, project_id: int) -> [(int,)]:
     """
     retrieves the list of bestandswijzigingen for a project containing a certain keyword.
     :param zoekterm: Zoekterm object
@@ -33,7 +30,7 @@ def __get_bestandswijzigingen_list(zoekterm: Zoekterm, project_id: int, connecti
     sql = "select b.id from " + schema + ".bestandswijziging b, " + schema + ".commitinfo c where b.idcommit = c.id and c.idproject = " + str(
         project_id) + " and   b.extensie = '" + zoekterm.extensie + "' and b.difftext like '%" + zoekterm.zoekwoord + "%'"
     try:
-        cursor = connection.cursor()
+        cursor = db_postgresql.get_connection().cursor()
         cursor.execute(sql)
         return cursor.fetchall()
     except Exception as e:
@@ -41,18 +38,17 @@ def __get_bestandswijzigingen_list(zoekterm: Zoekterm, project_id: int, connecti
 
 
 # update table bestandswijziging_zoekterm when keyword is found
-def __find_zoektermen(project_id: int, zoektermen: [Zoekterm], project_naam: str, process_identifier) -> None:
+def __find_zoektermen(project_id: int, zoektermen: [Zoekterm], project_naam: str) -> None:
     """
     Searches for a project, for each zoekterm all bestandswijzigingen containing this zoekterm
     :param project_id:
     :param zoektermen:
     :param project_naam:
     """
-    connection = __get_connection_from_pool(process_identifier)
     for zoekterm in zoektermen:
         a = 0
-        for (bw_id,) in __get_bestandswijzigingen_list(zoekterm, project_id, connection):
-            save_bestands_wijziging_zoekterm(connection, bw_id, zoekterm.zoekwoord)
+        for (bw_id,) in __get_bestandswijzigingen_list(zoekterm, project_id):
+            save_bestands_wijziging_zoekterm(bw_id, zoekterm.zoekwoord)
             a = a + 1
         logging.debug('{0} bevat zoekterm {1} : {2}'.format(project_naam, zoekterm.zoekwoord, str(a)))
 
@@ -82,8 +78,7 @@ def search_by_project(process_identifier: str) -> None:
             # Als dit foutgaat, dan kan dit aan het project liggen.
             # We stoppen dan met dit project, en starten een volgend project
             try:
-                __find_zoektermen(project_id=projectid, zoektermen=zoekterm_list, project_naam=projectnaam,
-                                  process_identifier=process_identifier)
+                __find_zoektermen(project_id=projectid, zoektermen=zoekterm_list, project_naam=projectnaam)
                 verwerking_status = 'verwerkt'
             # continue processing next project
             except Exception as e_inner:
@@ -103,27 +98,12 @@ def search_by_project(process_identifier: str) -> None:
         logging.exception(e_outer)
 
 
-DBConnectionPool = {}
-
-
-def __get_connection_from_pool(process_identifier):
-    if process_identifier in DBConnectionPool:
-        connection = DBConnectionPool[process_identifier]
-        if connection.closed:
-            connection = _get_new_connection()
-            DBConnectionPool[process_identifier] = connection
-    else:
-        connection = _get_new_connection()
-        DBConnectionPool[process_identifier] = connection
-    return connection
-
-
-def save_bestands_wijziging_zoekterm(connection, idbestandswijziging, zoekterm):
+def save_bestands_wijziging_zoekterm(idbestandswijziging, zoekterm):
     sql = "insert into " + schema + ".bestandswijziging_zoekterm (idbestandswijziging, zoekterm) values (" + str(
         idbestandswijziging) + ", '" + zoekterm + "')"
     try:
-        cursor = connection.cursor()
+        cursor = db_postgresql.get_connection().cursor()
         cursor.execute(sql)
-        connection.commit()
+        db_postgresql.get_connection().commit()
     except Exception as e:
         logging.exception(e)

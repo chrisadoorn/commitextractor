@@ -5,6 +5,7 @@ import psycopg2
 from src.utils import configurator
 
 global db_conn
+db_conn = None
 
 
 def _get_new_connection():
@@ -14,6 +15,16 @@ def _get_new_connection():
                             options="-c search_path=" + params.get('schema'))
     logging.info('opened a database connection')
     return conn
+
+
+def get_connection():
+    global db_conn
+    if db_conn is None:
+        db_conn = _get_new_connection()
+    if db_conn.closed:
+        db_conn = _get_new_connection()
+    return db_conn
+
 
 
 # known error: if all other connection parameters are correct but the password is incorrect, there is no error detected.
