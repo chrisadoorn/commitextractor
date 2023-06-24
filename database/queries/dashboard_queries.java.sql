@@ -70,11 +70,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'zoekterm_controleren'
+set processtap = 'identificatie'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
-where processtap = 'java_parsing'
+where processtap = 'zoekterm_vinden'
 and resultaat = 'mislukt';
 
 update verwerk_project 
