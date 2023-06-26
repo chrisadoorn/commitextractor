@@ -4,14 +4,14 @@ from datetime import datetime
 import antlr4
 import antlr4.error
 
-from src.java_parsing.JavaLexer import JavaLexer
-from src.java_parsing.JavaParser import JavaParser
-from src.java_parsing.java_tree_analyzer import determine_searchword_usage
-from src.java_parsing.parsetree_searcher import to_nltk_tree, leaves_with_path
+from src.java_parser.JavaLexer import JavaLexer
+from src.java_parser.JavaParser import JavaParser
+from src.java_parser.java_tree_analyzer import determine_searchword_usage
+from src.java_parser.parsetree_searcher import to_nltk_tree, leaves_with_path
 from src.models.java_models import JavaParserSelection, JavaParseResult
 from src.utils import db_postgresql
 
-PROCESSTAP = 'java_parsing'
+PROCESSTAP = 'java_parser'
 STATUS_MISLUKT = 'mislukt'
 STATUS_VERWERKT = 'verwerkt'
 

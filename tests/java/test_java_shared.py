@@ -4,10 +4,10 @@ import antlr4
 import pyparsing
 from nltk import Tree
 
-from src.java_parsing.JavaLexer import JavaLexer
-from src.java_parsing.JavaParser import JavaParser
-from src.java_parsing.java_tree_analyzer import determine_searchword_usage
-from src.java_parsing.parsetree_searcher import leaves_with_path
+from src.java_parser.JavaLexer import JavaLexer
+from src.java_parser.JavaParser import JavaParser
+from src.java_parser.java_tree_analyzer import determine_searchword_usage
+from src.java_parser.parsetree_searcher import leaves_with_path
 
 
 def __read_file(relative_path, filename):

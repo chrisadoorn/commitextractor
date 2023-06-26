@@ -4,7 +4,7 @@ import os
 import uuid
 from datetime import datetime
 
-from src.java_parsing import java_parser
+from src.java_parser import java_parser
 from src.utils import configurator
 
 MODULE_NAAM = 'java_parser'
@@ -20,7 +20,7 @@ def _start_analysis(nummer=0):
 
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                              '../..', 'log',
-                                             'processor.' + dt.strftime(
+                                             'jp_processor.' + dt.strftime(
                                                  '%y%m%d-%H%M%S') + '.' + process_identifier + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',

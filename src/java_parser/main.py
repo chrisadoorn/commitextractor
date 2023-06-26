@@ -5,7 +5,7 @@ from datetime import datetime
 from multiprocessing import freeze_support
 
 from src.utils import db_postgresql, sanitychecker, configurator
-from src.java_parsing import parallelizer
+from src.java_parser import parallelizer
 
 
 #####################################
@@ -60,12 +60,12 @@ if __name__ == '__main__':
     dt = datetime.now()
     loglevel = configurator.get_module_configurationitem(module='repo_extractor', entry='loglevel')
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'java_parsing.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+                                             '../..', 'log', 'java_parser.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=loglevel, encoding='utf-8')
 
-    logging.info('Starting module java_parsing with procesid ' + instance_uuid)
+    logging.info('Starting module java_parser with procesid ' + instance_uuid)
 
     # freeze_support om de processen parallel te kunnen laten werken.
     freeze_support()
