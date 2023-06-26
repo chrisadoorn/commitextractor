@@ -1,7 +1,6 @@
 import os
 
 import antlr4
-import pyparsing
 from nltk import Tree
 
 from src.java_parser.JavaLexer import JavaLexer
@@ -18,19 +17,8 @@ def __read_file(relative_path, filename):
     return text
 
 
-def __remove_comments(text):
-    # single line comments removed //
-    comment_filter = pyparsing.dblSlashComment.suppress()
-    # multiline comments removed /*...*/
-    comment_filter2 = pyparsing.cppStyleComment.suppress()
-    newtext = comment_filter.transformString(text)
-    newtext2 = comment_filter2.transformString(newtext)
-    return newtext2
-
-
 def get_treestring_from_file(relative_path: str, filepath: str) -> str:
     textafter = __read_file(relative_path, filepath)
-    text = __remove_comments(textafter)
     inputstream = antlr4.InputStream(textafter)
     lexer = JavaLexer(inputstream)
     stream = antlr4.CommonTokenStream(lexer)

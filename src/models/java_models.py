@@ -27,6 +27,8 @@ class JavaParserSelection(BaseModel):
     zoekterm = CharField()
     tekstvooraf = CharField()
     tekstachteraf = CharField()
+    import_controle = BooleanField()
+    packagenaam = CharField()
 
 
 class JavaParseResult(BaseModel):
@@ -38,7 +40,8 @@ class JavaParseResult(BaseModel):
     zoekterm = CharField()
     bw_id = IntegerField()
     commit_id = IntegerField()
-    is_gebruik = BooleanField()
+    is_in_gebruik = BooleanField()
+    is_gebruik_gewijzigd = BooleanField()
     is_nieuw = BooleanField()
     is_verwijderd = BooleanField()
     bevat_unknown = BooleanField()
@@ -48,16 +51,19 @@ class JavaParseResult(BaseModel):
     # de constructie die hier gebruikt voor om een insert,
     # dan wel een update uit te voeren is specifiek voor gebruik in combinatie met postgresql
     # zie https://docs.peewee-orm.com/en/latest/peewee/querying.html ,zoek hier naar on_conflict
-    def insert_or_update(bzw_id, zoekterm, bw_id, commit_id, is_gebruik, is_nieuw, is_verwijderd, bevat_unknown, usage_list_achteraf, usage_list_vooraf):
-        JavaParseResult.insert(id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id, is_gebruik=is_gebruik,
+    def insert_or_update(bzw_id, zoekterm, bw_id, commit_id, is_in_gebruik, is_gebruik_gewijzigd, is_nieuw,
+                         is_verwijderd, bevat_unknown, usage_list_achteraf, usage_list_vooraf):
+        JavaParseResult.insert(id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id,
+                               is_in_gebruik=is_in_gebruik, is_gebruik_gewijzigd=is_gebruik_gewijzigd,
                                is_nieuw=is_nieuw, is_verwijderd=is_verwijderd, bevat_unknown=bevat_unknown,
                                usage_list_achteraf=usage_list_achteraf, usage_list_vooraf=usage_list_vooraf).on_conflict(
             conflict_target=[JavaParseResult.id],  # Which constraint?
-            preserve=[JavaParseResult.id],  # Use the value we would have inserted.
+            preserve=[JavaParseResult.id],  # Use the value we would have inserted as key
             update={JavaParseResult.zoekterm: zoekterm,
                     JavaParseResult.bw_id: bw_id,
                     JavaParseResult.commit_id: commit_id,
-                    JavaParseResult.is_gebruik: is_gebruik,
+                    JavaParseResult.is_in_gebruik: is_in_gebruik,
+                    JavaParseResult.is_gebruik_gewijzigd: is_gebruik_gewijzigd,
                     JavaParseResult.is_nieuw: is_nieuw,
                     JavaParseResult.is_verwijderd: is_verwijderd,
                     JavaParseResult.bevat_unknown: bevat_unknown,

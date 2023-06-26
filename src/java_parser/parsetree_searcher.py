@@ -1,3 +1,5 @@
+import logging
+
 from nltk import Tree
 
 
@@ -62,9 +64,20 @@ def find_import(node: Tree, packagenaam: str, classname: str, found: bool) -> bo
 def to_nltk_tree(tree_as_string: str) -> Tree:
     """
     Convert an antlr4 tree as string to a nltk tree.
+    For some reason the parser does not always ends with a matching pair of
     :param tree_as_string:
     :return: nltk Tree object
     """
+    aantal_openen = tree_as_string.count('(')
+    aantal_sluiten = tree_as_string.count(')')
+    verschil = aantal_openen - aantal_sluiten
+    if aantal_openen > aantal_sluiten:
+        padding = ')' * verschil
+        tree_as_string = tree_as_string + padding
+        logging.info('to_nltk_tree : padding with ' + padding)
+    if aantal_openen < aantal_sluiten:
+        tree_as_string = tree_as_string[:verschil]
+        logging.info('to_nltk_tree : removing with ' + str(verschil))
     return Tree.fromstring(tree_as_string, '()')
 
 

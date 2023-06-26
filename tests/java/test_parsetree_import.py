@@ -1,6 +1,6 @@
 import unittest
 
-from src.java_parser.parsetree_searcher import find_class_use, to_nltk_tree, find_import
+from src.java_parser.parsetree_searcher import to_nltk_tree, find_import
 from tests.java.test_java_shared import get_treestring_from_file
 
 RELATIVE_PATH = '../data/java/import'

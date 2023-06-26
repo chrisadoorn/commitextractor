@@ -1,6 +1,6 @@
 INSERT INTO java_zoekterm (zoekterm,categorie,packagenaam,opmerking,import_controle) VALUES
-	 ('synchronized','keywords',NULL,'(code block) or (methods)',false),
-	 ('volatile','keywords',NULL,NULL,false),
+	 ('synchronized','keywords','','(code block) or (methods)',false),
+	 ('volatile','keywords','',NULL,false),
 	 ('Runnable','interfaces','java.lang',NULL,false),
 	 ('BlockingDeque','interfaces','java.util.concurrent',NULL,true),
 	 ('BlockingQueue','interfaces','java.util.concurrent',NULL,true),
