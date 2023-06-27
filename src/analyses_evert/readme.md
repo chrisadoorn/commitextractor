@@ -349,3 +349,37 @@ ment.
 
 As a mechanical rule, if a GenServer-powered module implements only init/1,
 handle_cast/2, and handle_call/3, it can be replaced with an Agent
+
+An application is an OTP-specific construct. The resource that defines an application is
+called an application resource file
+
+¡ The application’s name and version, and a description
+¡ A list of application modules
+¡ A list of application dependencies (which must be applications themselves)
+¡ An optional application-callback module
+
+Once you have this file in place, you can use the Application module to start and stop
+the application.
+
+Starting the
+application amounts to starting all dependencies and then the application itself, which
+you do by calling the callback module’s start/2 function
+
+The task of the start/2 callback is to start the top-level process of your system, which
+should usually be a supervisor.
+
+If all of your processes run in a supervision tree,
+and if your top-level process is a supervisor, then by terminating the top-level process,
+you also terminate all other processes created by your application, leaving no dangling
+processes behind.
+
+For this to work, you must turn your code into an OTP application, because only
+then can you specify dependencies to other applications. This is ultimately used to bundle
+all required applications into a single deployable release.
+
+Therefore, anything reusable in Elixir/Erlang should reside in an application. This holds even
+for Elixir/Erlang: examples include the elixir application, which bundles the Elixir stan-
+dard library, as well as iex and mix, which are implemented as separate applications.
+
+exclude
+use Mix.Config
