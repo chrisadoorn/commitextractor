@@ -23,26 +23,41 @@ def verzamel_alle_primitieven_per_file():
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host='localhost', port=params_for_db.get('port'))
 
-    sql1 = "select idbestandswijziging, zoekterm, regelnummers from {sch}.bestandswijziging_zoekterm bw_zt " \
+    sql1 = "select id, idbestandswijziging, zoekterm, regelnummers from {sch}.bestandswijziging_zoekterm bw_zt " \
           "where bw_zt.falsepositive = false order by idbestandswijziging;".format(sch=schema)
 
     sql2 = "select difftext, tekstachteraf from {sch}.bestandswijziging bw where id = {id};"
 
     cursor = connection.execute_sql(sql1)
     vorige_idbestandswijziging = -1
-    for (idbestandswijziging, zoekterm, regelnummers ) in cursor.fetchall():
+    ml_comments = []
+    for (id, idbestandswijziging, zoekterm, regelnummers ) in cursor.fetchall():
         if idbestandswijziging != vorige_idbestandswijziging:
             if vorige_idbestandswijziging > 0:
                 input("Press Enter to continue...")
                 print('einde bestandswijziging {0}'.format(vorige_idbestandswijziging))
+            # volgend bestand
             vorige_idbestandswijziging = idbestandswijziging
             print('begin bestandswijziging {0}'.format(idbestandswijziging))
             cursor2 = connection.execute_sql(sql2.format(sch=schema, id=idbestandswijziging))
             (difftext, tekstachteraf) = cursor2.fetchone()
             printMetRegels(tekstachteraf)
-            xx =findMultiLineComments(tekstachteraf)
-            print(xx)
+            ml_comments =findMultiLineComments(tekstachteraf)
+            print(ml_comments)
         print('zoekterm: {0}, regelnummers: {1}'.format(zoekterm, regelnummers))
+        good_ln = []
+        for rn in regelnummers:
+            is_ml_comment = False
+            for (start, end) in ml_comments:
+                if start <= rn <= end:
+                    print('regel {0} is een multi-line comment'.format(rn))
+                    is_ml_comment = True
+                    break
+            if is_ml_comment is False:
+                good_ln = good_ln + [rn]
+                print('regel {0} is geen multi-line comment'.format(rn)) if is_ml_comment is False else None
+        print('goede regelnummers: {0}'.format(good_ln))
+        # todo: resultaat opslaan in database
 
 
 def findMultiLineComments(tekst):
