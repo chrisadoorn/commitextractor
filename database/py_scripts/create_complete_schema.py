@@ -32,6 +32,7 @@ file_names = ['10_create_table_selectie.sql'
     , '52_vulscript_java_zoekterm.sql'
     , '53_create_java_parser_selection_view.sql'
     , '54_create_table_java_parse_result.sql'
+    , '55_create_view_compare_analysis.sql'
               ]
 
 os.makedirs(run_dir)

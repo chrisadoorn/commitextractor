@@ -3,7 +3,6 @@ from datetime import datetime
 
 import antlr4
 import antlr4.error
-import pyparsing
 from nltk import Tree
 
 from src.java_parser import parsetree_searcher
@@ -17,16 +16,6 @@ from src.utils import db_postgresql
 PROCESSTAP = 'java_parsing'
 STATUS_MISLUKT = 'mislukt'
 STATUS_VERWERKT = 'verwerkt'
-
-
-def __remove_comments(text):
-    # single line comments removed //
-    comment_filter = pyparsing.dblSlashComment.suppress()
-    # multiline comments removed /*...*/
-    comment_filter2 = pyparsing.cppStyleComment.suppress()
-    newtext = comment_filter.transformString(text)
-    newtext2 = comment_filter2.transformString(newtext)
-    return newtext2
 
 
 def __get_treestring(text: str) -> str:
@@ -50,7 +39,7 @@ def __usage_is_same(usage_list_vooraf: [str], usage_list_achteraf: [str]) -> boo
     if len(usage_list_vooraf) != len(usage_list_achteraf):
         return False
     if len(usage_list_vooraf) == 0:
-        return False
+        return True
 
     work_vooraf = usage_list_vooraf.copy()
     work_vooraf.sort()
@@ -59,7 +48,7 @@ def __usage_is_same(usage_list_vooraf: [str], usage_list_achteraf: [str]) -> boo
     return all(x == y for x, y in zip(work_vooraf, work_achteraf))
 
 
-def __analyze_project(projectnaam, projectid):
+def __analyze_project(projectnaam: str, projectid: int) -> None:
     start = datetime.now()
     logging.info('start verwerking (' + str(projectid) + '):  ' + projectnaam)
 
@@ -70,7 +59,7 @@ def __analyze_project(projectnaam, projectid):
     for listitem in selection_list:
         zoekterm = listitem.zoekterm
         packagenaam = listitem.packagenaam
-        import_controle = listitem.import_controle
+        categorie = listitem.categorie
         commit_id = listitem.commit_id
         bw_id = listitem.bw_id
         bzw_id = listitem.id
@@ -78,11 +67,8 @@ def __analyze_project(projectnaam, projectid):
         tekstachteraf = listitem.tekstachteraf
         is_nieuw = (tekstvooraf is None)
         is_verwijderd = (tekstachteraf is None)
-        is_in_gebruik = False
-        is_gebruik_gewijzigd = False
-        usage_list_vooraf = []
-        usage_list_achteraf = []
 
+        # zelfde bestand, maar andere zoekterm, dan niet opnieuw tekst parsen.
         if vorig_bw_id != bw_id:
             # maak nieuwe parsetrees
             try:
@@ -104,32 +90,8 @@ def __analyze_project(projectnaam, projectid):
                 logging.error(e)
                 continue
 
-        if is_verwijderd:
-            # hele bestand verwijderen telt niet als gebruik
-            is_gebruik_gewijzigd = False
-            is_in_gebruik = False
-        else:
-            # parsetree content voor zoekterm achteraf
-            usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm)
-            is_in_gebruik = is_in_correct_namespace(achteraf_tree, packagenaam, zoekterm, import_controle)
-
-            if not is_nieuw:
-                usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm)
-                is_gebruik_gewijzigd = not __usage_is_same(usage_list_vooraf, usage_list_achteraf)
-            else:
-                is_gebruik_gewijzigd = len(usage_list_achteraf) > 0
-
-        bevat_unknown = 'unknown' in usage_list_vooraf or 'unknown' in usage_list_achteraf
-        if bevat_unknown:
-            logging.warning('Unknown in tekst bestandswijziging ' + str(bw_id) + ' zoekwoord= ' + zoekterm)
-
-        # persist resultaat
-        JavaParseResult.insert_or_update(bzw_id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id,
-                                         is_in_gebruik=is_in_gebruik, is_gebruik_gewijzigd=is_gebruik_gewijzigd,
-                                         is_nieuw=is_nieuw, is_verwijderd=is_verwijderd,
-                                         bevat_unknown=bevat_unknown, usage_list_achteraf=str(usage_list_achteraf),
-                                         usage_list_vooraf=str(usage_list_vooraf))
-
+        analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm)
+        #
         vorig_bw_id = bw_id
 
     eind = datetime.now()
@@ -140,31 +102,71 @@ def __analyze_project(projectnaam, projectid):
     print(duur)
 
 
-def is_in_correct_namespace(tree: Tree, packagenaam: str, zoekterm: str, import_required: bool) -> bool:
-    """
-    import required  is_imported  result
-        True            True       True     : imported or in same package
-        True            False      False    : Zoekterm is in different package
-        False           True       True     : import unneccessarily done (java.lang)
-        False           False      True     : import not needed (java.lang or keyword)
+def analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm):
+    # bepaal namespace alleen voor tekstafter. daar moet het goed gebruikt woren.
+    is_in_namespace = is_in_correct_namespace(achteraf_tree, packagenaam, zoekterm, categorie)
+    # altijd gebruik bepalen voor vooraf en achteraf.
+    usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm)
+    usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm)
+    if is_verwijderd:
+        # hele bestand verwijderen telt niet als gebruik
+        is_gebruik_gewijzigd = False
+        is_in_namespace = False
+    else:
+        # parsetree content voor zoekterm achteraf
+        if is_in_namespace:
+            if not is_nieuw:
+                is_gebruik_gewijzigd = not __usage_is_same(usage_list_vooraf, usage_list_achteraf)
+            else:
+                is_gebruik_gewijzigd = len(usage_list_achteraf) > 0
+        else:
+            # zoekwoord staat in andere namespace
+            is_gebruik_gewijzigd = False
+    # onverwacht resultaat loggen
+    bevat_unknown = 'unknown' in usage_list_vooraf or 'unknown' in usage_list_achteraf
+    if bevat_unknown:
+        logging.warning('Unknown in tekst bestandswijziging ' + str(bw_id) + ' zoekwoord= ' + zoekterm)
+    # persist resultaat
+    JavaParseResult.insert_or_update(bzw_id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id,
+                                     is_in_namespace=is_in_namespace, is_gebruik_gewijzigd=is_gebruik_gewijzigd,
+                                     is_nieuw=is_nieuw, is_verwijderd=is_verwijderd,
+                                     bevat_unknown=bevat_unknown, usage_list_achteraf=str(usage_list_achteraf),
+                                     usage_list_vooraf=str(usage_list_vooraf))
 
+
+def is_in_correct_namespace(tree: Tree, packagenaam: str, zoekterm: str, categorie: str) -> bool:
+    """
+    gebruik library: alleen zoeken naar import <zoekterm>
+    gebruik keyword: import niet relevant
+    gebruik elementen uit java.lang: import niet nodig, mar sluit uit dat een alternatieve namespace wordt gebruikt.
+    standaard: zoekterm moet in juiste namespace geimporteerd zijn, of
+               de hele namespace is met wildcard geimporteerd, of
+               file staat in zelfde namespace als zoekterm
     :param tree:
     :param packagenaam: packagename of the zoekterm
     :param zoekterm: gezocht woord
-    :param import_required: boolean: yes if the zoekterm must be imported, or in the same package.
-    :return: boolean
+    :param categorie: soort van keywoord waarnaar wij zoeken.
+    :return: boolean, true als de namespace klopt.
     """
-    is_imported = parsetree_searcher.find_import(tree, packagenaam, zoekterm, False)
-    return not import_required or (import_required and is_imported)
+    if categorie == 'libraries':
+        is_imported = parsetree_searcher.find_import_library(tree, zoekterm, False)
+    elif categorie == 'keywords':
+        is_imported = True
+    elif packagenaam == 'java.lang':
+        is_imported = not parsetree_searcher.find_alternative_import(tree, packagenaam, zoekterm, False)
+    else:
+        is_imported = parsetree_searcher.find_import(tree, packagenaam, zoekterm, False)
+    return is_imported
 
 
 def __get_usage_zoekterm(achteraf_tree, zoekterm):
     leaves_path = leaves_with_path(achteraf_tree, ['complilationUnit'])
     usage_paths = []
     for path in leaves_path:
-        path.reverse()  # eerste term wordt het zoekwoord.
-        if path[0] == zoekterm:
-            usage_paths.append(path)
+        kopie = path.copy()
+        kopie.reverse()  # eerste term wordt het zoekwoord.
+        if kopie[0] == zoekterm:
+            usage_paths.append(kopie)
     usage_list = determine_searchword_usage(usage_paths, zoekterm)
 
     return usage_list

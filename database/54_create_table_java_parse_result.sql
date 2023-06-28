@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS java_parse_result
     zoekterm varchar NOT NULL,
     bw_id bigint NOT NULL,
     commit_id bigint NOT NULL,
-    is_in_gebruik bool,
+    is_in_namespace bool,
     is_gebruik_gewijzigd bool,
     is_nieuw bool,
     is_verwijderd bool,

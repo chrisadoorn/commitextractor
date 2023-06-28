@@ -61,6 +61,68 @@ def find_import(node: Tree, packagenaam: str, classname: str, found: bool) -> bo
         return False
 
 
+def find_alternative_import(node: Tree, packagenaam: str, classname: str, found: bool) -> bool:
+    """
+    Function used to exclude an alternative namespace
+    Necessary to check for use of alternatives of keywords in java.lang package.
+    :param packagenaam:
+    :param node: A tree or subtree
+    :param classname: The name you are looking for
+    :param found:
+    :return: boolean, True if the searched name is found.
+    """
+    if found:
+        return found
+
+    if isinstance(node, Tree):
+        if node.label() == 'importDeclaration':
+            leaves_list = node.leaves()
+            import_statement = ''.join(leaves_list)
+            correct_import = 'import' + packagenaam + '.' + classname + ';'
+            alternative_import = '.' + classname + ';'
+            found = import_statement.endswith(alternative_import) and not import_statement == correct_import
+
+        if found:
+            for child in node:
+                found = found or find_import(child, packagenaam, classname, found)
+        return found
+    else:
+        return False
+
+
+def find_import_library(node: Tree, packagenaam: str, found: bool) -> bool:
+    """
+    For category 'libraries'. Check that something from this library is imported.
+    Classname is irrelevant.
+    :param node:
+    :param packagenaam:
+    :param found:
+    :return:
+    """
+    if found:
+        return found
+
+    if isinstance(node, Tree):
+        if node.label() == 'importDeclaration':
+            leaves_list = node.leaves()
+            import_statement = ''.join(leaves_list)
+            expected_name = 'import' + packagenaam + '.'
+            found = import_statement.startswith(expected_name)
+
+        if node.label() == 'packageDeclaration':
+            leaves_list = node.leaves()
+            package_statement = ''.join(leaves_list)
+            expected = 'package' + packagenaam + ';'
+            found = expected == package_statement
+
+        if not found:
+            for child in node:
+                found = found or find_import_library(child, packagenaam, found)
+        return found
+    else:
+        return False
+
+
 def to_nltk_tree(tree_as_string: str) -> Tree:
     """
     Convert an antlr4 tree as string to a nltk tree.

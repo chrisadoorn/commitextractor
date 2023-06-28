@@ -34,12 +34,10 @@ def __is_implements_usage(path: list[str]) -> bool:
     """
     try:
         startindex = path.index('implements')
-        if startindex > 0:
-            return path[startindex + 1] == 'class' and path[startindex + 2] == 'classDeclaration'
+        return startindex > 0
     except ValueError:
         return False
-    # default
-    return False
+
 
 
 def __is_instance_variable_usage(path: list[str]) -> bool:
@@ -350,6 +348,14 @@ def __is_interface_definition(path: list[str]) -> bool:
     return path[1] == 'identifier' and path[2] == 'interface' and path[3] == 'interfaceDeclaration'
 
 
+def __is_literal(path: list[str]) -> bool:
+    """
+
+      :param path:
+      """
+    literal_identifier = 'literal' in path
+    return literal_identifier
+
 def __is_lone_identifier(path: list[str]) -> bool:
     """
       Only as last resort
@@ -359,6 +365,7 @@ def __is_lone_identifier(path: list[str]) -> bool:
         return False
     next_is_identifier = path[1] == 'identifier' or path[1] == 'typeIdentifier'
     return next_is_identifier and 'expression' in path
+
 
 
 def __trim_path(path: list[str]) -> list[str]:
@@ -391,6 +398,9 @@ def determine_searchword_usage(paths: list[[str]], zoekterm: str) -> list[(str, 
     results = []
     for path in paths:
         complete_path = path.copy()
+        if __is_literal(path):
+            # literals (stringwaardes) worden niet verder verwerkt.
+            continue
         path = __trim_path(path)
         if __is_import_usage(path):
             results.append('import')
@@ -446,10 +456,10 @@ def determine_searchword_usage(paths: list[[str]], zoekterm: str) -> list[(str, 
         if __is_interface_definition(path):
             results.append('interface_definition')
             continue
-
         if __is_lone_identifier(path):
             results.append('identifier')
             continue
+
         else:
             results.append('unknown')
             logging.warning('unknown usage')

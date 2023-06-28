@@ -45,6 +45,7 @@ set start_verwerking = now()
    ,einde_verwerking = null
    ,processor = p_identifier
    ,status = 'bezig'
+   ,resultaat = 'onbekend'
    ,processtap = p_nieuwe_stap
 where processor is null
 and processtap = p_vorige_stap
