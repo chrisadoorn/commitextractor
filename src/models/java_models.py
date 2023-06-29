@@ -44,7 +44,13 @@ class JavaParseResult(BaseModel):
     is_gebruik_gewijzigd = BooleanField()
     is_nieuw = BooleanField()
     is_verwijderd = BooleanField()
+    vooraf_usage_ontbreekt = BooleanField()
+    achteraf_nieuw_usage = BooleanField()
     bevat_unknown = BooleanField()
+    parse_error_vooraf = BooleanField()
+    parse_error_achteraf = BooleanField()
+    len_usage_vooraf = IntegerField()
+    len_usage_achteraf = IntegerField()
     usage_list_achteraf = CharField()
     usage_list_vooraf = CharField()
 
@@ -52,11 +58,15 @@ class JavaParseResult(BaseModel):
     # dan wel een update uit te voeren is specifiek voor gebruik in combinatie met postgresql
     # zie https://docs.peewee-orm.com/en/latest/peewee/querying.html ,zoek hier naar on_conflict
     def insert_or_update(bzw_id, zoekterm, bw_id, commit_id, is_in_namespace, is_gebruik_gewijzigd, is_nieuw,
-                         is_verwijderd, bevat_unknown, usage_list_achteraf, usage_list_vooraf):
-        JavaParseResult.insert(id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id,
-                               is_in_namespace=is_in_namespace, is_gebruik_gewijzigd=is_gebruik_gewijzigd,
-                               is_nieuw=is_nieuw, is_verwijderd=is_verwijderd, bevat_unknown=bevat_unknown,
-                               usage_list_achteraf=usage_list_achteraf, usage_list_vooraf=usage_list_vooraf).on_conflict(
+                         is_verwijderd, vooraf_usage_ontbreekt, achteraf_nieuw_usage, bevat_unknown, usage_list_achteraf, usage_list_vooraf
+                         , parse_error_vooraf, parse_error_achteraf):
+        JavaParseResult.insert(id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id, is_in_namespace=is_in_namespace,
+                               is_gebruik_gewijzigd=is_gebruik_gewijzigd, is_nieuw=is_nieuw, is_verwijderd=is_verwijderd,
+                               vooraf_usage_ontbreekt=vooraf_usage_ontbreekt, achteraf_nieuw_usage=achteraf_nieuw_usage,bevat_unknown=bevat_unknown,
+                               len_usage_vooraf=len(usage_list_vooraf), len_usage_achteraf=len(usage_list_achteraf),
+                               usage_list_achteraf=str(usage_list_achteraf), usage_list_vooraf=str(usage_list_vooraf),
+                               parse_error_vooraf=parse_error_vooraf, parse_error_achteraf=parse_error_achteraf
+        ).on_conflict(
             conflict_target=[JavaParseResult.id],  # Which constraint?
             preserve=[JavaParseResult.id],  # Use the value we would have inserted as key
             update={JavaParseResult.zoekterm: zoekterm,
@@ -66,9 +76,15 @@ class JavaParseResult(BaseModel):
                     JavaParseResult.is_gebruik_gewijzigd: is_gebruik_gewijzigd,
                     JavaParseResult.is_nieuw: is_nieuw,
                     JavaParseResult.is_verwijderd: is_verwijderd,
+                    JavaParseResult.vooraf_usage_ontbreekt: vooraf_usage_ontbreekt,
+                    JavaParseResult.achteraf_nieuw_usage: achteraf_nieuw_usage,
                     JavaParseResult.bevat_unknown: bevat_unknown,
-                    JavaParseResult.usage_list_achteraf: usage_list_achteraf,
-                    JavaParseResult.usage_list_vooraf: usage_list_vooraf}).execute()
+                    JavaParseResult.parse_error_vooraf: parse_error_vooraf,
+                    JavaParseResult.parse_error_achteraf: parse_error_achteraf,
+                    JavaParseResult.len_usage_vooraf: len(usage_list_vooraf),
+                    JavaParseResult.len_usage_achteraf: len(usage_list_achteraf),
+                    JavaParseResult.usage_list_achteraf: str(usage_list_achteraf),
+                    JavaParseResult.usage_list_vooraf: str(usage_list_vooraf)}).execute()
 
 
 pg_db.connect()

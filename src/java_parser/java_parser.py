@@ -1,4 +1,7 @@
 import logging
+import os
+import sys
+import tempfile
 from datetime import datetime
 
 import antlr4
@@ -18,37 +21,89 @@ STATUS_MISLUKT = 'mislukt'
 STATUS_VERWERKT = 'verwerkt'
 
 
-def __get_treestring(text: str) -> str:
+def __reset_read_stderr(filename, original):
+    sys.stderr.close()
+    sys.stderr = original
+    file = open(filename)
+    is_parse_error = len(file.readlines()) > 0
+    if is_parse_error:
+        logging.warning('parse errors: ')
+        for line in file.readlines():
+            logging.warning(line)
+    file.close()
+    return is_parse_error
+
+
+def __get_filename(procesidentifier: str) -> str:
+    return os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                         '../..', 'log', 'temp.error.' + procesidentifier + '.log'))
+
+
+def __redirect_stderr(filename: str) -> object:
+    if os.path.exists(filename):
+        os.remove(filename)
+    file = open(filename, 'w')
+    file.close()
+    original = sys.stderr
+    sys.stderr = open(filename, 'w')
+    return filename, original
+
+
+def __get_treestring(text: str, procesidentifier: str) -> (str, bool):
+    filename = __get_filename(procesidentifier)
+    original = __redirect_stderr(filename)
     inputstream = antlr4.InputStream(text)
     lexer = JavaLexer(inputstream)
     stream = antlr4.CommonTokenStream(lexer)
     parser = JavaParser(stream)
     parser.setTrace(False)  # toggle trace logging to standard out
     tree = parser.compilationUnit()
+    stringtree = tree.toStringTree(recog=parser)
+    is_parse_error = __reset_read_stderr(filename, original)
 
-    return tree.toStringTree(recog=parser)
+    return stringtree, is_parse_error
 
 
-def __usage_is_same(usage_list_vooraf: [str], usage_list_achteraf: [str]) -> bool:
+def compare_usage(usage_list_vooraf: [str], usage_list_achteraf: [str]) -> (bool, bool, bool):
     """
     Het gebruik vooraf en achteraf is gelijk als dezelfde vorm van gebruik even vaak gebruikt wordt.
     :param usage_list_vooraf: list of strings indicating usage in text before
     :param usage_list_achteraf: list of strings indicating usage in text after
-    :return bool: True is lists contain the same items
+    :return (bool, bool, bool): gebruik binnen vooraf ontbreekt in achteraf
+                               ,gebruik in achteraf ontbreekt in vooraf
+                               ,er is een wijziging
     """
-    if len(usage_list_vooraf) != len(usage_list_achteraf):
-        return False
-    if len(usage_list_vooraf) == 0:
-        return True
+    if len(usage_list_vooraf) == 0 and len(usage_list_achteraf) == 0:
+        # beide leeg, dus geen wijziging
+        return False, False, False
 
     work_vooraf = usage_list_vooraf.copy()
     work_vooraf.sort()
     work_achteraf = usage_list_achteraf.copy()
     work_achteraf.sort()
-    return all(x == y for x, y in zip(work_vooraf, work_achteraf))
+
+    vooraf_usage_ontbreekt = False
+    achteraf_nieuw_usage = False
+    vorige = ''
+    for vooraf in work_vooraf:
+        if vooraf != vorige:
+            vorige = vooraf
+            c_vorige = work_vooraf.count(vooraf)
+            c_nieuw = work_achteraf.count(vooraf)
+            vooraf_usage_ontbreekt = vooraf_usage_ontbreekt or (c_vorige > c_nieuw)
+
+    vorige = ''
+    for achteraf in work_achteraf:
+        if achteraf != vorige:
+            vorige = achteraf
+            c_vorige = work_vooraf.count(achteraf)
+            c_nieuw = work_achteraf.count(achteraf)
+            achteraf_nieuw_usage = achteraf_nieuw_usage or (c_nieuw > c_vorige)
+
+    return (vooraf_usage_ontbreekt, achteraf_nieuw_usage, (vooraf_usage_ontbreekt or achteraf_nieuw_usage))
 
 
-def __analyze_project(projectnaam: str, projectid: int) -> None:
+def __analyze_project(projectnaam: str, projectid: int, procesidentifier:str) -> None:
     start = datetime.now()
     logging.info('start verwerking (' + str(projectid) + '):  ' + projectnaam)
 
@@ -70,27 +125,35 @@ def __analyze_project(projectnaam: str, projectid: int) -> None:
 
         # zelfde bestand, maar andere zoekterm, dan niet opnieuw tekst parsen.
         if vorig_bw_id != bw_id:
+            parse_error_vooraf = False
+            parse_error_achteraf = False
             # maak nieuwe parsetrees
             try:
                 if not is_nieuw:
-                    temp_vooraf = __get_treestring(tekstvooraf)
+                    temp_vooraf, parse_error_vooraf = __get_treestring(tekstvooraf, procesidentifier)
+                    if parse_error_vooraf:
+                        logging.warning('parse error in tekst vooraf van bestandswijziging: ' + str(bw_id))
                     vooraf_tree = to_nltk_tree(temp_vooraf)
                 else:
                     vooraf_tree = to_nltk_tree('()')
 
                 if not is_verwijderd:
-                    tempachteraf = __get_treestring(tekstachteraf)
+                    tempachteraf, parse_error_achteraf = __get_treestring(tekstachteraf, procesidentifier)
+                    if parse_error_achteraf:
+                        logging.warning('parse error in tekst achteraf van bestandswijziging: ' + str(bw_id))
+
                     achteraf_tree = to_nltk_tree(tempachteraf)
                 else:
                     achteraf_tree = to_nltk_tree('()')
             except ValueError as e:
                 # Na een exception in dit deel werken we door om alle andere bestandswijzingen in het project te verwerken.
                 # we loggen de fout, met de bestandswijziging id, zodat wij eventueel kunnen uitzoeken wat het probleem is.
-                logging.error('Parse exception in bestandswijziging ' + str(bw_id))
+                logging.error('Parse exception in bestandswijziging ' + str(bw_id) + ' (' + str())
                 logging.error(e)
                 continue
 
-        analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm)
+        analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm,
+                             parse_error_vooraf, parse_error_achteraf)
         #
         vorig_bw_id = bw_id
 
@@ -102,26 +165,15 @@ def __analyze_project(projectnaam: str, projectid: int) -> None:
     print(duur)
 
 
-def analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm):
+def analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm,
+                         parse_error_vooraf, parse_error_achteraf):
     # bepaal namespace alleen voor tekstafter. daar moet het goed gebruikt woren.
     is_in_namespace = is_in_correct_namespace(achteraf_tree, packagenaam, zoekterm, categorie)
     # altijd gebruik bepalen voor vooraf en achteraf.
     usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm)
     usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm)
-    if is_verwijderd:
-        # hele bestand verwijderen telt niet als gebruik
-        is_gebruik_gewijzigd = False
-        is_in_namespace = False
-    else:
-        # parsetree content voor zoekterm achteraf
-        if is_in_namespace:
-            if not is_nieuw:
-                is_gebruik_gewijzigd = not __usage_is_same(usage_list_vooraf, usage_list_achteraf)
-            else:
-                is_gebruik_gewijzigd = len(usage_list_achteraf) > 0
-        else:
-            # zoekwoord staat in andere namespace
-            is_gebruik_gewijzigd = False
+    (vooraf_usage_ontbreekt, achteraf_nieuw_usage, is_gebruik_gewijzigd) = compare_usage(usage_list_vooraf, usage_list_achteraf)
+
     # onverwacht resultaat loggen
     bevat_unknown = 'unknown' in usage_list_vooraf or 'unknown' in usage_list_achteraf
     if bevat_unknown:
@@ -129,16 +181,17 @@ def analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_
     # persist resultaat
     JavaParseResult.insert_or_update(bzw_id=bzw_id, zoekterm=zoekterm, bw_id=bw_id, commit_id=commit_id,
                                      is_in_namespace=is_in_namespace, is_gebruik_gewijzigd=is_gebruik_gewijzigd,
-                                     is_nieuw=is_nieuw, is_verwijderd=is_verwijderd,
-                                     bevat_unknown=bevat_unknown, usage_list_achteraf=str(usage_list_achteraf),
-                                     usage_list_vooraf=str(usage_list_vooraf))
+                                     is_nieuw=is_nieuw, is_verwijderd=is_verwijderd, vooraf_usage_ontbreekt=vooraf_usage_ontbreekt,
+                                     achteraf_nieuw_usage=achteraf_nieuw_usage, bevat_unknown=bevat_unknown,
+                                     usage_list_achteraf=usage_list_achteraf, usage_list_vooraf=usage_list_vooraf,
+                                     parse_error_vooraf=parse_error_vooraf, parse_error_achteraf=parse_error_achteraf)
 
 
 def is_in_correct_namespace(tree: Tree, packagenaam: str, zoekterm: str, categorie: str) -> bool:
     """
     gebruik library: alleen zoeken naar import <zoekterm>
     gebruik keyword: import niet relevant
-    gebruik elementen uit java.lang: import niet nodig, mar sluit uit dat een alternatieve namespace wordt gebruikt.
+    gebruik elementen uit java.lang: import niet nodig, maar sluit uit dat een alternatieve namespace wordt gebruikt.
     standaard: zoekterm moet in juiste namespace geimporteerd zijn, of
                de hele namespace is met wildcard geimporteerd, of
                file staat in zelfde namespace als zoekterm
@@ -190,7 +243,7 @@ def analyze(process_identifier, oude_processtap):
             # Als dit foutgaat, dan kan dit aan het project liggen.
             # We stoppen dan met dit project, en starten een volgend project
             try:
-                __analyze_project(projectnaam, projectid)
+                __analyze_project(projectnaam, projectid, process_identifier)
                 verwerking_status = 'verwerkt'
             # continue processing next project
             except Exception as e_inner:

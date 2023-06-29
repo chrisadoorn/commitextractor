@@ -1,5 +1,7 @@
 import logging
 import os
+import sys
+import tempfile
 import unittest
 
 import antlr4
@@ -7,21 +9,46 @@ import antlr4
 from src.java_parser.JavaLexer import JavaLexer
 from src.java_parser.JavaParser import JavaParser
 from src.java_parser.java_parser import analyseer_parsetrees
-from src.java_parser.parsetree_searcher import find_class_use, to_nltk_tree
+from src.java_parser.parsetree_searcher import to_nltk_tree
 from src.models.java_models import JavaParserSelection
+
 
 # Deze file is om te controleren of onverwachte uitkomsten klopten.
 # Zo is het mogelijk een enkel record te replayen.
 
 def get_treestring(text: str) -> str:
+    filename, original = redirect_stderr()
     inputstream = antlr4.InputStream(text)
     lexer = JavaLexer(inputstream)
     stream = antlr4.CommonTokenStream(lexer)
     parser = JavaParser(stream)
     parser.setTrace(False)  # toggle trace logging to standard out
     tree = parser.compilationUnit()
+    stringtree = tree.toStringTree(recog=parser)
+    is_parse_error = redirect_read_stderr(filename, original)
 
-    return tree.toStringTree(recog=parser)
+    return stringtree, is_parse_error
+
+
+def redirect_read_stderr(filename, original):
+    sys.stderr.close()
+    sys.stderr = original
+    file = open(filename)
+    is_parse_error = len(file.readlines()) > 0
+    file.close()
+    return is_parse_error
+
+
+def redirect_stderr():
+    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                             '../..', 'log', 'temp.error.log'))
+    if os.path.exists(filename):
+        os.remove(filename)
+    file = open(filename, 'w')
+    file.close()
+    original = sys.stderr
+    sys.stderr = open(filename, 'w')
+    return filename, original
 
 
 def init():
@@ -101,5 +128,12 @@ class Test(unittest.TestCase):
         search_id = 32894
         perform_analysis(search_id)
 
+    def test_errors(self):
+        init()
+        filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), '../data/java/class', 'TestWithParseErrors.java'))
+        file = open(filepath, 'rt')
+        text = file.read()
+        file.close()
+        get_treestring(text)
 
 
