@@ -70,11 +70,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'extractie'
+set processtap = 'identificatie'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
-where processtap = 'identificatie'
+where processtap = 'zoekterm_vinden'
 and resultaat = 'mislukt';
 
 update verwerk_project 
@@ -198,4 +198,7 @@ order by project_id
 select count(*) 
 from prod.handmatige_check 
 where gecontroleerd = true;
+
+insert into bestandswijziging_zoekterm_regelnummer (idbestandswijziging, zoekterm, regelnummer, regelsoort)
+values ( 104939, 'Callable', unnest (ARRAY[12,13,3]), 'oud')
 

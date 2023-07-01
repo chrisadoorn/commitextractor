@@ -1,3 +1,6 @@
+import logging
+
+
 def __is_import_usage(path: list[str]) -> bool:
     length = len(path)
     return path[length - 1] == 'complilationUnit' and path[length - 2] == 'importDeclaration' and path[
@@ -31,12 +34,10 @@ def __is_implements_usage(path: list[str]) -> bool:
     """
     try:
         startindex = path.index('implements')
-        if startindex > 0:
-            return path[startindex + 1] == 'class' and path[startindex + 2] == 'classDeclaration'
+        return startindex > 0
     except ValueError:
         return False
-    # default
-    return False
+
 
 
 def __is_instance_variable_usage(path: list[str]) -> bool:
@@ -64,7 +65,7 @@ def __is_instance_variable_usage(path: list[str]) -> bool:
         if element == 'classBodyDeclaration':
             if busy == 2:
                 busy = 3
-                continue
+                break
             else:
                 busy = 0
                 continue
@@ -84,7 +85,7 @@ def __is_local_variable_usage(path: list[str]) -> bool:
         if element == 'localVariableDeclaration':
             if busy == 0:
                 busy = 1
-                continue
+                break
             else:
                 busy = 0
                 continue
@@ -104,20 +105,16 @@ def __is_method_argument_usage(path: list[str]) -> bool:
     busy = 0
     for element in path:
         if element == 'formalParameter':
-            if busy == 0:
-                busy = 1
-                continue
-            else:
-                busy = 0
-                continue
-        if element == 'methodDeclaration':
+            busy = 1
+            continue
+        if element in ['constructorDeclaration', 'methodDeclaration']:
             if busy == 1:
                 busy = 2
                 continue
             else:
                 busy = 0
                 continue
-        if element == 'memberDeclaration':
+        if element in ['classDeclaration', 'enumDeclaration', 'memberDeclaration']:
             if busy == 2:
                 busy = 3
                 continue
@@ -127,7 +124,7 @@ def __is_method_argument_usage(path: list[str]) -> bool:
         if element == 'classBodyDeclaration':
             if busy == 3:
                 busy = 4
-                continue
+                break
             else:
                 busy = 0
                 continue
@@ -181,7 +178,7 @@ def __is_method_result_usage(path: list[str]) -> bool:
         if element == 'classBodyDeclaration':
             if busy == 3:
                 busy = 4
-                continue
+                break
             else:
                 busy = 0
                 continue
@@ -216,7 +213,7 @@ def __is_instantation_usage(path: list[str]) -> bool:
         if element == 'expression':
             if busy == 2:
                 busy = 3
-                continue
+                break
             else:
                 busy = 0
                 continue
@@ -251,12 +248,124 @@ def __is_generics_extends_usage(path: list[str]) -> bool:
         if element == 'typeParameter':
             if busy == 2:
                 busy = 3
-                continue
+                break
             else:
                 busy = 0
                 continue
     # default
     return busy == 3
+
+
+def __is_static_call(path: list[str]) -> bool:
+    """
+    Static starts  always with searchword, then followed by  'identifier', 'primary'
+    :param path:
+    """
+    if len(path) < 3:
+        return False
+
+    return path[1] == 'identifier' and path[2] == 'primary'
+
+
+def __is_blockstatement_modifier(path: list[str]) -> bool:
+    """
+    Static starts  always with searchword, then followed by  'statement', 'blockStatement'
+    synchronized', 'modifier', 'classBodyDeclaration
+    :param path:
+    """
+    conditional_modifier = False
+    if len(path) < 3:
+        return False
+    direct_modifier = path[1] == 'statement' and path[2] == 'blockStatement'
+    if len(path) > 4:
+        conditional_modifier = path[1] == 'statement' and path[2] == 'if' and path[3] == 'statement' and path[4] == 'blockStatement'
+    return direct_modifier or conditional_modifier
+
+
+def __is_classbody_modifier(path: list[str]) -> bool:
+    """
+    Static starts  always with searchword, then followed by  'modifier', 'classBodyDeclaration'
+    :param path:
+    """
+    if len(path) < 3:
+        return False
+
+    return path[1] == 'modifier' and path[2] == 'classBodyDeclaration'
+
+
+def __is_class_declaration(path: list[str]) -> bool:
+    """
+       starts  always with searchword, then followed by  'identifier', 'class', 'classDeclaration'
+      :param path:
+      """
+    if len(path) < 4:
+        return False
+
+    return path[1] == 'identifier' and path[2] == 'class' and path[3] == 'classDeclaration'
+
+
+def __is_enum_declaration(path: list[str]) -> bool:
+    """
+       starts  always with searchword, then followed by  'identifier', 'enum', 'enumDeclaration'
+      :param path:
+      """
+    if len(path) < 4:
+        return False
+
+    return path[1] == 'identifier' and path[2] == 'enum' and path[3] == 'enumDeclaration'
+
+
+def __is_type_declaration_usage(path: list[str]) -> bool:
+    """
+       starts  always with searchword, then followed by  'typeIdentifier', 'classOrInterfaceType', 'typeType'
+      :param path:
+      """
+    if len(path) < 4:
+        return False
+    is_identifier = path[1] == 'typeIdentifier' or path[1] == 'identifier'
+    return is_identifier and path[2] == 'classOrInterfaceType' and path[3] == 'typeType'
+
+
+def __is_constructor_declaration(path: list[str]) -> bool:
+    """
+      starts  always with searchword, then followed by  'identifier', 'constructorDeclaration'
+      :param path:
+      """
+    if len(path) < 3:
+        return False
+
+    return path[1] == 'identifier' and path[2] == 'constructorDeclaration'
+
+
+def __is_interface_definition(path: list[str]) -> bool:
+    """
+      starts  always with searchword, then followed by   'identifier', 'interface', 'interfaceDeclaration'
+      :param path:
+      """
+    if len(path) < 4:
+        return False
+
+    return path[1] == 'identifier' and path[2] == 'interface' and path[3] == 'interfaceDeclaration'
+
+
+def __is_literal(path: list[str]) -> bool:
+    """
+
+      :param path:
+      """
+    literal_identifier = 'literal' in path
+    return literal_identifier
+
+def __is_lone_identifier(path: list[str]) -> bool:
+    """
+      Only as last resort
+      :param path:
+      """
+    if len(path) < 2:
+        return False
+    next_is_identifier = path[1] == 'identifier' or path[1] == 'typeIdentifier'
+    return next_is_identifier and 'expression' in path
+
 
 
 def __trim_path(path: list[str]) -> list[str]:
@@ -288,6 +397,10 @@ def determine_searchword_usage(paths: list[[str]], zoekterm: str) -> list[(str, 
     """
     results = []
     for path in paths:
+        complete_path = path.copy()
+        if __is_literal(path):
+            # literals (stringwaardes) worden niet verder verwerkt.
+            continue
         path = __trim_path(path)
         if __is_import_usage(path):
             results.append('import')
@@ -314,11 +427,42 @@ def determine_searchword_usage(paths: list[[str]], zoekterm: str) -> list[(str, 
             results.append('instantation')
             continue
         if __is_generics_extends_usage(path):
-            results.append('generics extend')
+            results.append('generics_extend')
             continue
         if __is_implements_usage(path):
             results.append('implements')
             continue
+        if __is_static_call(path):
+            results.append('static_use')
+            continue
+        if __is_blockstatement_modifier(path):
+            results.append('blockstatement')
+            continue
+        if __is_classbody_modifier(path):
+            results.append('classbody_modifier')
+            continue
+        if __is_class_declaration(path):
+            results.append('class_declaration')
+            continue
+        if __is_enum_declaration(path):
+            results.append('enum_declaration')
+            continue
+        if __is_constructor_declaration(path):
+            results.append('constructor_declaration')
+            continue
+        if __is_type_declaration_usage(path):
+            results.append('type_declaration')
+            continue
+        if __is_interface_definition(path):
+            results.append('interface_definition')
+            continue
+        if __is_lone_identifier(path):
+            results.append('identifier')
+            continue
+
         else:
             results.append('unknown')
+            logging.warning('unknown usage')
+            logging.warning(str(complete_path))
+
     return results

@@ -1,6 +1,6 @@
 import unittest
 
-from src.java_parsing.parsetree_searcher import find_class_use, to_nltk_tree
+from src.java_parser.parsetree_searcher import find_class_use, to_nltk_tree
 from tests.java.test_java_shared import get_treestring_from_file, get_class_usage
 
 ZOEKTERM = 'Runnable'

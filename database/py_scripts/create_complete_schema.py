@@ -1,7 +1,7 @@
 import os
 
 # zet hier de naam van het schema
-new_schema='test'
+new_schema='pj3'
 
 scriptdir = os.path.dirname(__file__)
 
@@ -26,9 +26,14 @@ file_names = ['10_create_table_selectie.sql'
     , '41_create_table_zoekterm.sql'
     , '42_create_table_bestandswijziging_info.sql'
     , '43_create_table_bestandswijziging_zoekterm.sql'
-    , '44_create_table_handmatige_check.sql'
+    , '44_create_table_bestandswijziging_zoekterm_regelnummer.sql'
     , '45_create_manualchecking.sql'
+    , '46_create_table_handmatige_check.sql'
     , '51_create_table_java_zoekterm.sql'
+    , '52_vulscript_java_zoekterm.sql'
+    , '53_create_java_parser_selection_view.sql'
+    , '54_create_table_java_parse_result.sql'
+    , '55_create_view_compare_analysis.sql'
               ]
 
 os.makedirs(run_dir)

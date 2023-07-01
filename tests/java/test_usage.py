@@ -1,7 +1,7 @@
 import unittest
 
-from src.java_parsing.java_tree_analyzer import determine_searchword_usage
-from src.java_parsing.parsetree_searcher import to_nltk_tree, leaves_with_path
+from src.java_parser.java_tree_analyzer import determine_searchword_usage
+from src.java_parser.parsetree_searcher import to_nltk_tree, leaves_with_path
 from tests.java.test_java_shared import get_treestring_from_file
 
 RELATIVE_PATH = '../data/java/class'
@@ -24,5 +24,5 @@ class Test(unittest.TestCase):
         results = determine_searchword_usage(usage_paths, zoekterm)
         print(str(results))
         expected_results = ['import', 'extends', 'instance_variable', 'instantation', 'method_result', 'method_argument'
-            , 'method_typeargument', 'local_variable', 'instantation', 'instantation', 'generics extend', 'extends']
+            , 'method_typeargument', 'local_variable', 'instantation', 'instantation', 'generics_extend', 'extends']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
