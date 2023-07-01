@@ -161,3 +161,8 @@ cython_debug/
 /src/utils/read_diff_rust.py
 /database/temp/
 /database/py_scripts/execute_all_db_scripts.py
+_build/
+deps/*
+!/src/elixir_parsing/ast_creator/lib/
+/src/elixir_parsing/ast_creator/deps/*
+
