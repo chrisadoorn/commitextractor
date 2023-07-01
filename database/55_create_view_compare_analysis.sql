@@ -4,8 +4,8 @@ drop view if exists compare_analysis;
 CREATE OR REPLACE VIEW compare_analysis
 AS SELECT  bz.zoekterm
 , bz.falsepositive
-, bz.regelnummers 
-, bz.aantalgevonden 
+, bz.aantalgevonden_oud
+, bz.aantalgevonden_nieuw 
 ,jpr.is_in_namespace
 ,jpr.is_gebruik_gewijzigd
 ,jpr.is_nieuw

@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS bestandswijziging_zoekterm
     aantalgevonden_oud integer DEFAULT 0,
     aantalgevonden_nieuw integer DEFAULT 0,
     CONSTRAINT bestandswijziging_fk FOREIGN KEY (idbestandswijziging)
-        REFERENCES bestandswijziging(id) ON DELETE CASCADE
+        REFERENCES bestandswijziging(id) ON DELETE cascade,
+    CONSTRAINT bestandswijziging_ak unique (idbestandswijziging, zoekterm)
 )
 TABLESPACE pg_default;
 
@@ -26,3 +27,8 @@ COMMENT ON TABLE bestandswijziging_zoekterm
 -- indexen
 CREATE INDEX bestandswijziging_zoekterm_idbestandswijziging_idx ON bestandswijziging_zoekterm (idbestandswijziging);
 CREATE INDEX bestandswijziging_zoekterm_zoekterm_idx ON bestandswijziging_zoekterm (zoekterm);
+CREATE INDEX bestandswijziging_zoekterm_ak_idx ON bestandswijziging_zoekterm (idbestandswijziging, zoekterm);
+
+
+alter table bestandswijziging_zoekterm
+add CONSTRAINT bestandswijziging_ak unique (idbestandswijziging, zoekterm);

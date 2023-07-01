@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
 
-from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm
+from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzigingZoekterm, delete_regelnummer_by_key, \
+    insert_regelnummers_by_key, get_voor_bestandswijziging
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo, open_connection, close_connection
 from src.utils import db_postgresql, configurator
 from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust, _ReadDiff
@@ -18,6 +19,21 @@ def __get_read_diff() -> _ReadDiff:
     return read_diff
 
 
+def __update_regelnummers(idbestandswijziging: int, zoekterm: str, new_lines: [int], removed_lines: [int]) -> None:
+    """
+    Om regelnummers te kunnen updaten worden deze verwijderd, en vervolgens opnieuw opgevoerd.
+    :param idbestandswijziging:
+    :param new_lines:
+    :param removed_lines:
+    :param zoekterm:
+    """
+    delete_regelnummer_by_key(bestandswijzigings_id=idbestandswijziging, zoekterm=zoekterm)
+    if len(new_lines) > 0:
+        insert_regelnummers_by_key(idbestandswijziging, zoekterm, new_lines, 'nieuw')
+    if len(removed_lines) > 0:
+        insert_regelnummers_by_key(idbestandswijziging, zoekterm, removed_lines, 'oud')
+
+
 def analyze_by_project(projectname, project_id):
     start = datetime.now()
     global read_diff
@@ -32,14 +48,14 @@ def analyze_by_project(projectname, project_id):
         for bestandswijziging in bestandswijzigingen_lijst:
 
             # haal de gevonden zoektermen voor deze diff op
-            bwz_lijst = BestandsWijzigingZoekterm.get_voor_bestandswijziging(bestandswijziging.id)
+            bwz_lijst = get_voor_bestandswijziging(bestandswijziging.id)
             if len(bwz_lijst) == 0:
                 # geen zoekterm, dan door naar de volgende
                 continue
 
             # haal zoektermen uit de lijst
             zoektermlijst = []
-            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
+            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw) in bwz_lijst:
                 zoektermlijst.append(zoekterm)
 
             # haal de diff op
@@ -56,21 +72,26 @@ def analyze_by_project(projectname, project_id):
 
             # sla gevonden resultaten op per zoekterm in bestandswijziging
             # dit overschrijft eerdere versies, dus als de
-            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden) in bwz_lijst:
+            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw) in bwz_lijst:
                 zoekterm = zoekterm
-                regelnrs = []
+                regelnrs_new = []
                 for (regelnr, line, keywords) in new_lines:
                     if zoekterm in keywords:
-                        regelnrs.append(regelnr)
+                        regelnrs_new.append(regelnr)
+                regelnrs_old = []
+                for (regelnr, line, keywords) in removed_lines:
+                    if zoekterm in keywords:
+                        regelnrs_old.append(regelnr)
 
                 bestandswijziging_zoekterm = BestandsWijzigingZoekterm()
                 bestandswijziging_zoekterm.id = bwz_id
                 bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
                 bestandswijziging_zoekterm.zoekterm = zoekterm
-                bestandswijziging_zoekterm.falsepositive = (len(regelnrs) == 0)
-                bestandswijziging_zoekterm.regelnummers = regelnrs
-                bestandswijziging_zoekterm.aantalgevonden = len(regelnrs)
+                bestandswijziging_zoekterm.falsepositive = (len(regelnrs_old) == 0 and len(regelnrs_new) == 0)
+                bestandswijziging_zoekterm.aantalgevonden_oud = len(regelnrs_old)
+                bestandswijziging_zoekterm.aantalgevonden_nieuw = len(regelnrs_new)
                 bestandswijziging_zoekterm.save()
+                __update_regelnummers(idbestandswijziging, zoekterm, regelnrs_new, regelnrs_old)
 
     close_connection()  # nodig bij gebruik PooledPostgresqlExtDatabase
     eind = datetime.now()
