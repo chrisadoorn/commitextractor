@@ -199,3 +199,6 @@ select count(*)
 from prod.handmatige_check 
 where gecontroleerd = true;
 
+insert into bestandswijziging_zoekterm_regelnummer (idbestandswijziging, zoekterm, regelnummer, regelsoort)
+values ( 104939, 'Callable', unnest (ARRAY[12,13,3]), 'oud')
+

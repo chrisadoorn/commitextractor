@@ -1,6 +1,4 @@
-import playhouse
 from peewee import CharField, AutoField, BigIntegerField, IntegerField, BooleanField
-from playhouse.postgres_ext import PostgresqlExtDatabase
 
 from src.models.extracted_data_models import BaseModel, pg_db_schema, pg_database
 
@@ -34,18 +32,54 @@ class BestandsWijzigingZoekterm(BaseModel):
     idbestandswijziging = BigIntegerField(null=False)
     zoekterm = CharField(null=False)
     falsepositive = BooleanField(default=False)
-    regelnummers = playhouse.postgres_ext.ArrayField(field_class=IntegerField)
-    aantalgevonden = IntegerField(default=0)
+    afkeurreden = CharField(null=True)
+    aantalgevonden_oud = IntegerField(default=0)
+    aantalgevonden_nieuw = IntegerField(default=0)
 
-    def get_voor_bestandswijziging(bestandswijzigings_id):
-        sql = 'select id, idbestandswijziging, zoekterm, falsepositive, regelnummers, aantalgevonden  from ' + \
-              pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(bestandswijzigings_id)
-        cursor = pg_database.execute_sql(sql)
-        return cursor.fetchall()
+
+def get_voor_bestandswijziging(bestandswijzigings_id: int) -> (int, int, str, bool, str, int, int):
+    sql = 'select id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw from ' + \
+          pg_db_schema + '.bestandswijziging_zoekterm where idbestandswijziging = ' + str(bestandswijzigings_id)
+    cursor = pg_database.execute_sql(sql)
+    return cursor.fetchall()
 
 
 class Zoekterm(BaseModel):
     extensie = CharField(null=True, max_length=20)
     zoekwoord = CharField(null=True)
 
-# pg_db.connect()
+
+class Regelnummer(BaseModel):
+    class Meta:
+        table_name = 'bestandswijziging_zoekterm_regelnummer'
+
+    id = AutoField(primary_key=True)
+    idbestandswijziging = BigIntegerField(null=False)
+    zoekterm = CharField(null=False)
+    regelnummer = IntegerField(null=False)
+    regelsoort = CharField(null=False)
+
+
+def delete_regelnummer_by_key(bestandswijzigings_id: int, zoekterm: str) -> None:
+    """
+
+    :param bestandswijzigings_id:
+    :param zoekterm:
+    """
+    sql = 'delete from ' + pg_db_schema + '.bestandswijziging_zoekterm_regelnummer where idbestandswijziging = ' + \
+          str(bestandswijzigings_id) + ' and zoekterm = \'' + zoekterm + '\''
+    pg_database.execute_sql(sql)
+
+
+def insert_regelnummers_by_key(bestandswijzigings_id: int, zoekterm: str, regelnummers: [int], regelsoort: str) -> None:
+    """
+    Wij gebruiken hier een postgresql functie, unnest, om in 1 keer eeen insert te doen voor alle elementen van de lijst regelnummers
+    :param bestandswijzigings_id:
+    :param zoekterm:
+    :param regelnummers:
+    :param regelsoort:
+    """
+    sql = 'insert into ' + pg_db_schema + '.bestandswijziging_zoekterm_regelnummer (idbestandswijziging, zoekterm, regelnummer, regelsoort) values( ' + \
+          str(bestandswijzigings_id) + ',\'' + zoekterm + '\',unnest (ARRAY' + str(regelnummers) + '),\'' + regelsoort + '\')'
+    pg_database.execute_sql(sql)
+
