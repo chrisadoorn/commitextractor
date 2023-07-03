@@ -10,31 +10,34 @@ where auteur is not null; -- 1596
 
 
 -- update met tellingen
--- totaal aantallen commits per auteur per project 
+-- totaal aantallen commits per auteur per project
 update auteur_tellingen as qw
 set aantal_totaal = (select count(wl.auteur)
 	from wijziging_lineage wl
-	where qw.auteur = wl.auteur 
-	and qw.projectid = wl.projectid 
+	where qw.auteur = wl.auteur
+	and qw.projectid = wl.projectid
 ) ;
 
 
--- aantallen multi-core commits per auteur per project 
+-- aantallen multi-core commits per auteur per project
 update auteur_tellingen as qw
-set aantal_mc = (select count(wl.auteur)
+set aantal_kandidaat = (select count(wl.auteur)
 	from wijziging_lineage wl
-	where qw.auteur = wl.auteur 
-	and qw.projectid = wl.projectid 
+	where qw.auteur = wl.auteur
+	and qw.projectid = wl.projectid
 	and wl.zoekterm is not null
 ) ;
 
 
--- aantallen andere commits per auteur per project 
+-- aantallen andere commits per auteur per project
 update auteur_tellingen as qw
-set aantal_not_mc = (select count(wl.auteur)
-	from wijziging_lineage wl
+set aantal_bevestigd = (select count(wl.auteur)
+	from wijziging_lineage wl,
+	     bestandswijziging_zoekterm bwz
 	where qw.auteur = wl.auteur
-	and qw.projectid = wl.projectid 
-	and wl.zoekterm is null
+	and qw.projectid = wl.projectid
+	and wl.bestandswijziging = bwz.idbestandswijziging
+	and wl.zoekterm = bwz.zoekterm
+	and bwz.falsepositive = false
 ) ;
 

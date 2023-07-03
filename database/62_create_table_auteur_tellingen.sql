@@ -1,4 +1,3 @@
-drop table auteur_tellingen;
 
 CREATE TABLE IF NOT EXISTS auteur_tellingen
 (
