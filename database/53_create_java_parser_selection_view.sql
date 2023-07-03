@@ -10,6 +10,7 @@ where   b.idcommit = c.id
 and     c.idproject = p.id
 and     bz.zoekterm = jz.zoekterm
 and     bz.idbestandswijziging = b.id
+and     bz.falsepositive = false
 order by bw_id;
 
 -- Permissions
