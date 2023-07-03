@@ -23,7 +23,8 @@ defmodule AstCreator.MixProject do
   defp deps do
     [
       {:ecto_sql, "~> 3.2"},
-      {:postgrex, "~> 0.15"}
+      {:postgrex, "~> 0.15"},
+      {:expo, "~> 0.4.1"}
     ]
   end
 end

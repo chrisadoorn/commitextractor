@@ -6,6 +6,7 @@ defmodule AstCreator.Bestandswijziging do
   schema "bestandswijziging" do
     field :tekstvooraf, :string
     field :tekstachteraf, :string
+    field :difftext, :string
     field :idcommit, :integer
   end
 end
