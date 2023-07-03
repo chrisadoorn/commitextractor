@@ -56,8 +56,23 @@ where zoekterm is null
 group by auteur, project;
 
 
+select sum(aantal_kandidaat)
+from auteur_tellingen at2 
 
+update auteur_tellingen as qw
+set aantal_totaal = (select count(distinct(wl.bestandswijziging))
+	from wijziging_lineage wl
+	where qw.auteur = wl.auteur
+	and qw.projectid = wl.projectid
+) ;
 
+update auteur_tellingen as qw
+set aantal_kandidaat = (select count(distinct(wl.bestandswijziging))
+	from wijziging_lineage wl
+	where qw.auteur = wl.auteur
+	and qw.projectid = wl.projectid
+	and wl.zoekterm is not null
+) ;
 -- aanpasingen in verhouding tot tijdsduur project
 
 -- mc aanpassingen in verhouding tot andere aanpassingen

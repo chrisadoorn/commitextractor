@@ -14,5 +14,6 @@ TABLESPACE pg_default;
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE auteur_tellingen TO appl;
 
 COMMENT ON TABLE auteur_tellingen
-    IS 'hulptabel om resultaten te sommeren';
+    IS 'hulptabel om resultaten te sommeren. Aantal_kandidaat: bestandswijziging_zoekterm. aantal_bevestigd: aantal kandidaten die na parsen bevestigd zijn'
+    ;
 

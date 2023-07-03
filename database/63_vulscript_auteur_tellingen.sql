@@ -10,18 +10,18 @@ where auteur is not null; -- 1596
 
 
 -- update met tellingen
--- totaal aantallen commits per auteur per project
+-- totaal aantallen bestandswijzingen per auteur per project
 update auteur_tellingen as qw
-set aantal_totaal = (select count(wl.auteur)
+set aantal_totaal = (select count(distinct(bestandswijziging))
 	from wijziging_lineage wl
 	where qw.auteur = wl.auteur
 	and qw.projectid = wl.projectid
 ) ;
 
 
--- aantallen multi-core commits per auteur per project
+-- aantallen mogelijke bestandswijzingen met multi-core statements per auteur per project
 update auteur_tellingen as qw
-set aantal_kandidaat = (select count(wl.auteur)
+set aantal_kandidaat = (select count(distinct(wl.bestandswijziging))
 	from wijziging_lineage wl
 	where qw.auteur = wl.auteur
 	and qw.projectid = wl.projectid
@@ -31,7 +31,7 @@ set aantal_kandidaat = (select count(wl.auteur)
 
 -- aantallen andere commits per auteur per project
 update auteur_tellingen as qw
-set aantal_bevestigd = (select count(wl.auteur)
+set aantal_bevestigd = (select count(distinct(wl.bestandswijziging))
 	from wijziging_lineage wl,
 	     bestandswijziging_zoekterm bwz
 	where qw.auteur = wl.auteur
