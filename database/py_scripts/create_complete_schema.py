@@ -37,6 +37,7 @@ file_names = ['10_create_table_selectie.sql'
     , '61_create_view_wijziging_lineage.sql'
     , '62_create_table_auteur_tellingen.sql'
     , '63_vulscript_auteur_tellingen.sql'
+    , '64_create_view_geordende_commitinfo.sql'
               ]
 
 os.makedirs(run_dir)

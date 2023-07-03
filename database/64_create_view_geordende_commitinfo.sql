@@ -1,4 +1,6 @@
-select c.idproject
+ -- view toont commitinfo op volgorde, om verder queryen te vereenvoudigen over tijdsduur.
+CREATE OR REPLACE VIEW commit_colgorde
+AS select c.idproject
       ,c.id as idcommit
       ,ROW_NUMBER () over ( partition by c.idproject  order by c.idproject, c.id, c.commitdatumtijd) as volgnummer 
       ,c.commitdatumtijd 
@@ -15,4 +17,6 @@ order by c.idproject
         ,c.id
         ,c.commitdatumtijd; 
       
+-- Permissions
+GRANT SELECT ON TABLE commit_colgorde TO appl;
        

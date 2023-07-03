@@ -12,6 +12,6 @@ join commitinfo c on b.idcommit = c.id
 join project p on c.idproject = p.id;
 
 -- Permissions
-GRANT SELECT ON TABLE java_parser_selection_view TO appl;
+GRANT SELECT ON TABLE wijziging_lineage TO appl;
 
 
