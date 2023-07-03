@@ -74,15 +74,23 @@ def perform_analysis(search_id):
         is_verwijderd = (tekstachteraf is None)
 
         # maak nieuwe parsetrees
+        parse_error_vooraf = False
+        parse_error_achteraf = False
+        # maak nieuwe parsetrees
         try:
             if not is_nieuw:
-                temp_vooraf = get_treestring(tekstvooraf)
+                temp_vooraf, parse_error_vooraf = get_treestring(tekstvooraf)
+                if parse_error_vooraf:
+                    logging.warning('parse error in tekst vooraf van bestandswijziging: ' + str(bw_id))
                 vooraf_tree = to_nltk_tree(temp_vooraf)
             else:
                 vooraf_tree = to_nltk_tree('()')
 
             if not is_verwijderd:
-                tempachteraf = get_treestring(tekstachteraf)
+                tempachteraf, parse_error_achteraf = get_treestring(tekstachteraf)
+                if parse_error_achteraf:
+                    logging.warning('parse error in tekst achteraf van bestandswijziging: ' + str(bw_id))
+
                 achteraf_tree = to_nltk_tree(tempachteraf)
             else:
                 achteraf_tree = to_nltk_tree('()')
@@ -93,12 +101,12 @@ def perform_analysis(search_id):
             logging.error(e)
             continue
 
-        analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm)
+        analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm, parse_error_vooraf, parse_error_achteraf)
 
 
 class Test(unittest.TestCase):
 
-    @unittest.skip
+   @unittest.skip
     def test_4710(self):
         init()
         search_id = 4710

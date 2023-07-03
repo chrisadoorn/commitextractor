@@ -34,6 +34,9 @@ file_names = ['10_create_table_selectie.sql'
     , '53_create_java_parser_selection_view.sql'
     , '54_create_table_java_parse_result.sql'
     , '55_create_view_compare_analysis.sql'
+    , '61_create_view_wijziging_lineage.sql'
+    , '62_create_table_auteur_tellingen.sql'
+    , '63_vulscript_auteur_tellingen.sql'
               ]
 
 os.makedirs(run_dir)
