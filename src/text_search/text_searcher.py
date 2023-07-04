@@ -14,9 +14,7 @@ def __get_zoektermen_list() -> [Zoekterm]:
     :return: lijst van Zoekterm objecten
     """
     global zoekterm_list
-    if len(zoekterm_list) == 0:
-        zoekterm_list = Zoekterm.select().execute()
-
+    zoekterm_list = Zoekterm.select().execute()
     return zoekterm_list
 
 

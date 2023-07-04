@@ -2,7 +2,6 @@ import logging
 
 from src.models.analyzed_data_models import Zoekterm
 from src.utils import db_postgresql
-from src.utils.configurator import get_database_configuration
 from src.utils.db_postgresql import _get_new_connection
 
 """De globale variabelen db_connectie, zoekterm_list en DBConnectionPool zijn verwijderd, omdat ze niet nodig zijn.
