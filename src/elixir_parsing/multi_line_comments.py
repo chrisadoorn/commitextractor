@@ -16,51 +16,59 @@ def initialize():
     logging.basicConfig(filename=filename, format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO,
                         encoding='utf-8')
 
-# todo: uitzonderingen, een keyword dat als parameter naam wordt gebruikt, multi-line comments """ en """
-
 
 def verzamel_alle_primitieven_per_file():
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host='localhost', port=params_for_db.get('port'))
 
-    sql1 = "select id, idbestandswijziging, zoekterm, regelnummers from {sch}.bestandswijziging_zoekterm bw_zt " \
-          "where bw_zt.falsepositive = false order by idbestandswijziging;".format(sch=schema)
+    sql1 = "select distinct idbestandswijziging from {sch}.bestandswijziging_zoekterm bw_zt " \
+          "where bw_zt.falsepositive = false order by bw_zt.idbestandswijziging asc;".format(sch=schema)
 
-    sql2 = "select difftext, tekstachteraf from {sch}.bestandswijziging bw where id = {id};"
+    sql2 = "select tekstvooraf, tekstachteraf from {sch}.bestandswijziging bw where id = {id};"
 
-    cursor = connection.execute_sql(sql1)
-    vorige_idbestandswijziging = -1
+    sql3 = "select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from {sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id};"
+
+    bestandswijziging_zoekterm_cursor = connection.execute_sql(sql1)
+
     ml_comments = []
-    for (id, idbestandswijziging, zoekterm, regelnummers ) in cursor.fetchall():
-        if idbestandswijziging != vorige_idbestandswijziging:
-            if vorige_idbestandswijziging > 0:
-                input("Press Enter to continue...")
-                print('einde bestandswijziging {0}'.format(vorige_idbestandswijziging))
-            # volgend bestand
-            vorige_idbestandswijziging = idbestandswijziging
-            print('begin bestandswijziging {0}'.format(idbestandswijziging))
-            cursor2 = connection.execute_sql(sql2.format(sch=schema, id=idbestandswijziging))
-            (difftext, tekstachteraf) = cursor2.fetchone()
-            printMetRegels(tekstachteraf)
-            ml_comments =findMultiLineComments(tekstachteraf)
-            print(ml_comments)
-        print('zoekterm: {0}, regelnummers: {1}'.format(zoekterm, regelnummers))
-        good_ln = []
-        for rn in regelnummers:
-            is_ml_comment = False
-            for (start, end) in ml_comments:
-                if start <= rn <= end:
-                    print('regel {0} is een multi-line comment'.format(rn))
-                    is_ml_comment = True
-                    break
-            if is_ml_comment is False:
-                good_ln = good_ln + [rn]
-                print('regel {0} is geen multi-line comment'.format(rn)) if is_ml_comment is False else None
-        print('goede regelnummers: {0}'.format(good_ln))
-        # todo: resultaat opslaan in database
+    for (idbestandswijziging,) in bestandswijziging_zoekterm_cursor.fetchall():  # per bestandswijziging
+        bestandswijziging_cursor = connection.execute_sql(sql2.format(sch=schema, id=idbestandswijziging))
+        (tekstvooraf, tekstachteraf) = bestandswijziging_cursor.fetchone()  # haal de tekst voor en na de wijziging op
+        ml_comments_min =findMultiLineComments(tekstvooraf)  # lijst met multi-line comments voor de wijziging
+        ml_comments_plus =findMultiLineComments(tekstachteraf)  # lijst met multi-line comments na de wijziging
+        regelnummers_cursor = connection.execute_sql(sql3.format(sch=schema, id=idbestandswijziging))
+        for (id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in regelnummers_cursor.fetchall():  # zoektermen met regelnummers
+            r = (id, idbestandswijziging, zoekterm, regelnummer, regelsoort)
+            if regelsoort == 'oud':
+                for (start, end) in ml_comments_min:
+                    if start <= regelnummer <= end:
+                        print('regel {0} is een multi-line comment'.format(regelnummer))
+                        ml_comments = ml_comments + [r]
+                        break  # regelnummer valt af
+            elif regelsoort == 'nieuw':
+                for (start, end) in ml_comments_plus:
+                    if start <= regelnummer <= end:
+                        print('regel {0} is een multi-line comment'.format(regelnummer))
+                        ml_comments = ml_comments + [r]
+                        break  # regelnummer valt af
+
+        for (id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in ml_comments:
+            if regelsoort == 'oud':
+                substract_sql_min = "UPDATE {sch}.bestandswijziging_zoekterm set aantalgevonden_oud = aantalgevonden_oud -1 " \
+                            "WHERE idbestandswijziging={idbestandswijziging} and zoekterm='{zoekterm}' " \
+                            .format(sch=schema, idbestandswijziging=idbestandswijziging, zoekterm=zoekterm)
+                connection.execute_sql(substract_sql_min)
+            elif regelsoort == 'nieuw':
+                substract_sql_plus = "UPDATE {sch}.bestandswijziging_zoekterm set aantalgevonden_nieuw = aantalgevonden_nieuw -1 " \
+                            "WHERE idbestandswijziging={idbestandswijziging} and zoekterm='{zoekterm}' " \
+                            .format(sch=schema, idbestandswijziging=idbestandswijziging, zoekterm=zoekterm)
+                connection.execute_sql(substract_sql_plus)
+        ml_comments = []
 
 
 def findMultiLineComments(tekst):
+    if tekst is None:
+        return []
     regels = tekst.split('\n')
     r = 0
     start_gevonden = False
