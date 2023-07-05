@@ -1,11 +1,60 @@
 -- alle authors
 select count(distinct author_id) from commitinfo c -- 1911
+select count(distinct auteur) from auteur_tellingen at2  -- 1515
+select count( distinct c.author_id)
+from commitinfo c
+where author_id not in (select distinct auteur from auteur_tellingen); -- 396
+-- auteurs die geen bestandswijzigingen hebben, dat wil zeggen: ze hebben geen (java) code geschreven.
+-- bevestigd met onderstaande query.  
+select count( distinct c.author_id), distinct author_id , p.naam, p.id as projectid 
+from commitinfo c
+    ,project p
+    ,bestandswijziging b 
+where p.id = c.idproject 
+and   b.idcommit = c.id 
+and author_id not in (select distinct auteur from auteur_tellingen)
+order by p.id; -- 0 
+              
 
 -- authors die multi-core commit uitvoeren
-select count(distinct author_id)                  -- 660 = 34%
-from commitinfo c 
- , java_parse_result jpr 
-where jpr.commit_id = c.id
+select count(distinct auteur)                  -- 371 op 1515  = 24.5%
+from auteur_tellingen at2 
+where aantal_bevestigd > 0;
+
+-- alle bestandswijzigingen
+select sum(aantal_totaal)
+from auteur_tellingen at2; -- 273.261
+-- waarvan door multi-core programmeurs 242.558 88.8%
+select sum(aantal_totaal)
+from auteur_tellingen at2
+where auteur in (select distinct auteur
+				 from auteur_tellingen at2 
+				 where aantal_bevestigd > 0);
+-- en de rest is dus : 30.703 11.2%
+select sum(aantal_totaal)
+from auteur_tellingen at2
+where auteur not in (select distinct auteur
+				     from auteur_tellingen at2 
+				     where aantal_bevestigd > 0);
+				
+-- aantal auteurs per project
+select projectid, count(auteur) as aantal_auteurs, sum(aantal_totaal) as bestandswijzing_per_project
+from   auteur_tellingen at2 
+group by at2.projectid
+order by projectid; 				    
+				    
+-- aantal multi-core auteurs per project, aantal en percentage multi-core wijzigingen per project.
+select projectid, count(auteur) as multi_core_auteurs, sum(aantal_totaal) as bestandswijzing_per_project, sum(aantal_bevestigd) as multicore_wijziging,
+       (( sum(aantal_bevestigd)::dec / sum(aantal_totaal)::dec )* 100) as perc_multicore
+from   auteur_tellingen at2 
+where auteur in (select distinct auteur
+				     from auteur_tellingen at2 
+				     where aantal_bevestigd > 0)
+group by at2.projectid
+order by projectid; 	
+
+
+				    
 
 -- geidentifeerde authors
 select count(distinct author_id)                  -- 496 = 26% van alles
@@ -16,10 +65,6 @@ and author_id < 900000000;
 
    
     
--- view om parse result met bestandswijziging te combineren
-select count(*) --bl., jpr.zoekterm, jpr.bw_id
-from bestandswijziging_lineage bl 
-left join java_parse_result jpr on bl.bestandswijziging  = jpr.bw_id ; 
 select count(*) from java_parse_result; 
 select count(*) from commitinfo c; -- 74396
 select count(*) from wijziging_lineage bl; --299109 

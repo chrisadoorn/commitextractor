@@ -29,6 +29,3 @@ CREATE INDEX bestandswijziging_zoekterm_idbestandswijziging_idx ON bestandswijzi
 CREATE INDEX bestandswijziging_zoekterm_zoekterm_idx ON bestandswijziging_zoekterm (zoekterm);
 CREATE INDEX bestandswijziging_zoekterm_ak_idx ON bestandswijziging_zoekterm (idbestandswijziging, zoekterm);
 
-
-alter table bestandswijziging_zoekterm
-add CONSTRAINT bestandswijziging_ak unique (idbestandswijziging, zoekterm);

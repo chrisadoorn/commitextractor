@@ -16,8 +16,9 @@ def __read_json(jsonfile) -> json:
     :param jsonfile: relative path to jsonfile downloaded from GHSearch
     :return: The content of the file, a JSON string
     """
-    if os.path.isfile(jsonfile):
-        f = open(jsonfile)
+    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),jsonfile))
+    if os.path.isfile(filename):
+        f = open(filename)
 
         # store the deserialized JSON-encoded in the variable data
         data = json.load(f)
@@ -25,6 +26,7 @@ def __read_json(jsonfile) -> json:
         return data
     else:
         logging.error('Het bestand ' + str(jsonfile) + ' kan niet gevonden worden')
+        logging.error('Het bestand ' + str(filename) + ' kan niet gevonden worden')
 
 
 def import_projects(jsondata: json, selectie_id: int) -> None:
