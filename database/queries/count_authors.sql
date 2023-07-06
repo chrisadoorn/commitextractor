@@ -17,20 +17,20 @@ order by p.id; -- 0
               
 
 -- authors die multi-core commit uitvoeren
-select count(distinct auteur)                  -- 371 op 1515  = 24.5%
+select count(distinct auteur)                  -- 301 op 1515  = 19.9%
 from auteur_tellingen at2 
 where aantal_bevestigd > 0;
 
 -- alle bestandswijzigingen
 select sum(aantal_totaal)
 from auteur_tellingen at2; -- 273.261
--- waarvan door multi-core programmeurs 242.558 88.8%
+-- waarvan door multi-core programmeurs 233.547 85.5%
 select sum(aantal_totaal)
 from auteur_tellingen at2
 where auteur in (select distinct auteur
 				 from auteur_tellingen at2 
 				 where aantal_bevestigd > 0);
--- en de rest is dus : 30.703 11.2%
+-- en de rest is dus : 39.714 14.5%
 select sum(aantal_totaal)
 from auteur_tellingen at2
 where auteur not in (select distinct auteur
@@ -41,11 +41,12 @@ where auteur not in (select distinct auteur
 select projectid, count(auteur) as aantal_auteurs, sum(aantal_totaal) as bestandswijzing_per_project
 from   auteur_tellingen at2 
 group by at2.projectid
-order by projectid; 				    
+order by 2 desc; 				    
 				    
 -- aantal multi-core auteurs per project, aantal en percentage multi-core wijzigingen per project.
 select projectid, count(auteur) as multi_core_auteurs, sum(aantal_totaal) as bestandswijzing_per_project, sum(aantal_bevestigd) as multicore_wijziging,
-       (( sum(aantal_bevestigd)::dec / sum(aantal_totaal)::dec )* 100) as perc_multicore
+       to_char((( sum(aantal_bevestigd)::dec / sum(aantal_totaal)::dec )* 100), '999.99') as perc_multicore,
+       to_char(( sum(aantal_bevestigd)::dec / count(auteur)::dec ), '999.99') as multicore_per_auteur
 from   auteur_tellingen at2 
 where auteur in (select distinct auteur
 				     from auteur_tellingen at2 
@@ -53,8 +54,21 @@ where auteur in (select distinct auteur
 group by at2.projectid
 order by projectid; 	
 
+-- aantal aantal en percentage multi-core wijzigingen per multi-core auteur.
+select auteur, count(auteur) as multi_core_auteurs, sum(aantal_totaal) as bestandswijzing_per_auteur, sum(aantal_bevestigd) as multicore_wijziging,
+       to_char((( sum(aantal_bevestigd)::dec / sum(aantal_totaal)::dec )* 100), '999.99') as perc_multicore
+from   auteur_tellingen at2 
+where auteur in (select distinct auteur
+				     from auteur_tellingen at2 
+				     where aantal_bevestigd > 0)				     
+group by at2.auteur
+-- having clause geeft 13 auteurs die uitsluitend multi-core geprogrammeerd hebben (5x1, 3x 2, 1x3, 3x4 en 1x15)
+-- 1x 15 = 114485052, microsoft/mssql-jdbc wat 71 programmeurs heeft, 
+--having sum(aantal_totaal) = sum(aantal_bevestigd)
+order by at2.auteur; 	
 
-				    
+-- de auteur met 15 bestandswijzigingen, alle multi-core
+select * from auteur_tellingen at2 where auteur = 66626;				    
 
 -- geidentifeerde authors
 select count(distinct author_id)                  -- 496 = 26% van alles
@@ -89,10 +103,11 @@ group by idproject, author_id
 order by idproject, author_id;
 
 -- aantallen multi-core commits per auteur per project ( zijn  er verhoudingsverschillen tussen projecten? )
-select count(auteur)
+select count(auteur), project 
 from wijziging_lineage wl
 where zoekterm is not null
-group by auteur, project;
+group by auteur, project
+order by project ;
 
 -- select andere commits per auteur per project 
 select count(auteur), auteur, project
@@ -104,20 +119,6 @@ group by auteur, project;
 select sum(aantal_kandidaat)
 from auteur_tellingen at2 
 
-update auteur_tellingen as qw
-set aantal_totaal = (select count(distinct(wl.bestandswijziging))
-	from wijziging_lineage wl
-	where qw.auteur = wl.auteur
-	and qw.projectid = wl.projectid
-) ;
-
-update auteur_tellingen as qw
-set aantal_kandidaat = (select count(distinct(wl.bestandswijziging))
-	from wijziging_lineage wl
-	where qw.auteur = wl.auteur
-	and qw.projectid = wl.projectid
-	and wl.zoekterm is not null
-) ;
 -- aanpasingen in verhouding tot tijdsduur project
 
 -- mc aanpassingen in verhouding tot andere aanpassingen
