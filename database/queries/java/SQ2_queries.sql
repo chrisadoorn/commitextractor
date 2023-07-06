@@ -13,7 +13,10 @@ select b.author_id, count(distinct(d.zoekterm)) as verschillende_zoektermen
 group by b.author_id
 order by verschillende_zoektermen desc;
 
--- herschreven met gebruik van de view:
+-- auteurs met meer dan 50 zoekwoorden, werkten bij 2 projecten.(google/guava, google/error-prone) $ bij beide. De 2 onbekende auteurs alleen bij google/guava.
+select * from auteur_tellingen at2 where auteur in (1703908, 900047421, 900014786, 478458, 101568, 2036304 )
+order by auteur ;
+
 select wl.auteur, count(distinct zoekterm) as verschillende_zoektermen
 from wijziging_lineage wl 
 group by wl.auteur
