@@ -11,7 +11,6 @@ PROCESSTAP = 'extractie'
 STATUS_MISLUKT = 'mislukt'
 STATUS_VERWERKT = 'verwerkt'
 
-
 # configurtion options
 extensions = configurator.get_extensions()
 files = configurator.get_files()
@@ -20,9 +19,9 @@ save_code_before = configurator.get_module_configurationitem_boolean(module='rep
 PeeWeeConnectionPool = {}
 
 INSERT_COMMITS_SQL = "insert into {schema}.commitinfo (idproject, commitdatumtijd, " \
-                       "hashvalue, username, emailaddress, remark) " \
-                       "values ({idproject}, '{commitdatumtijd}', " \
-                       "'{hashvalue}', '{username}', '{emailaddress}', {remark}) returning id;"
+                     "hashvalue, username, emailaddress, remark) " \
+                     "values ({idproject}, '{commitdatumtijd}', " \
+                     "'{hashvalue}', '{username}', '{emailaddress}', {remark}) returning id;"
 
 INSERT_FILES_SQL = "insert into {schema}.bestandswijziging " \
                    "(idcommit, filename, locatie, extensie, difftext, " \
@@ -50,18 +49,17 @@ def __extract_repository(process_identifier: str, projectlocation: str, project_
     print('start verwerking (' + str(project_id) + '):  ' + projectlocation + str(start))
     full_repository = Repository(projectlocation)
     for commit in full_repository.traverse_commits():
-        remark = __opkuizen_speciale_tekens(commit.msg, False)
-        sql = INSERT_COMMITS_SQL.format(schema=schema, idproject=project_id, commitdatumtijd=commit.committer_date,
-                                          hashvalue=commit.hash, username=hashing.make_hash(commit.author.name),
-                                          emailaddress=hashing.make_hash(commit.author.email), remark=remark)
         try:
+
+            remark = __opkuizen_speciale_tekens(commit.msg, False)
+            sql = INSERT_COMMITS_SQL.format(schema=schema, idproject=project_id, commitdatumtijd=commit.committer_date,
+                                            hashvalue=commit.hash, username=hashing.make_hash(commit.author.name),
+                                            emailaddress=hashing.make_hash(commit.author.email), remark=remark)
             c = connection.execute_sql(sql)
             nw_pk = c.fetchone()
             for file in commit.modified_files:
                 __save_bestandswijziging(connection, schema, file, nw_pk[0])
-        except UnicodeDecodeError as e_inner:
-            logging.exception(e_inner)
-        except ValueError as e_inner:
+        except (UnicodeDecodeError, ValueError, TypeError) as e_inner:
             logging.exception(e_inner)
 
     eind = datetime.now()
@@ -90,9 +88,7 @@ def __save_bestandswijziging(connection: PostgresqlDatabase, schema_in: str, fil
                                           locatie=file.new_path, extensie=extension, difftext=diff_text,
                                           tekstvooraf=tekstvooraf, tekstachteraf=tekstachteraf)
             connection.execute_sql(sql)
-        except UnicodeDecodeError as e_inner:
-            logging.exception(e_inner)
-        except ValueError as e_inner:
+        except (UnicodeDecodeError, ValueError, TypeError) as e_inner:
             logging.exception(e_inner)
 
 
