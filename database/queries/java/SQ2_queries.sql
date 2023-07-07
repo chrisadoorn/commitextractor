@@ -17,7 +17,32 @@ order by verschillende_zoektermen desc;
 select * from auteur_tellingen at2 where auteur in (1703908, 900047421, 900014786, 478458, 101568, 2036304 )
 order by auteur ;
 
-select wl.auteur, count(distinct zoekterm) as verschillende_zoektermen
+-- alternatieve query via view
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
 from wijziging_lineage wl 
 group by wl.auteur
 order by verschillende_zoektermen desc;
+
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+group by wl.auteur
+having count(distinct zoekterm)> 0
+order by verschillende_zoektermen desc; -- 660
+
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+group by wl.auteur
+having count(distinct zoekterm)> 9
+order by verschillende_zoektermen desc; -- 146
+
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+group by wl.auteur
+having count(distinct zoekterm)> 19
+order by verschillende_zoektermen desc; -- 44
+
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+group by wl.auteur
+having count(wl.auteur) > 0
+order by verschillende_zoektermen desc; -- 44
