@@ -70,11 +70,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'identificatie'
+set processtap = 'zoekterm_vinden'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
-where processtap = 'zoekterm_vinden'
+where processtap = 'java_parsing'
 and resultaat = 'mislukt';
 
 update verwerk_project 
@@ -102,6 +102,11 @@ update commitinfo
 set author_id = null 
 where idproject in (184852, 184840, 184844);   
 
+
+select count(*) 
+from bestandswijziging_zoekterm bz   -- 53049
+where falsepositive = false          -- 16928
+and afkeurreden is not null;         --  9256
 
 select 
 c.id, count(b.idcommit) as bestandswijzing_aantal
