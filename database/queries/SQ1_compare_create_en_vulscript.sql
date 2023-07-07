@@ -44,3 +44,18 @@ update SQ1_compare
 set comparatio = (cast(unieke_MC_auteurs AS DECIMAL)/unieke_auteurs) * 100
 where unieke_auteurs > 0; 
 
+-- toevoegen totaalregel 
+insert into SQ1_compare(projectid, projectnaam, unieke_auteurs)
+values(0, 'totaal', 0);
+update SQ1_compare set unieke_auteurs = (select count(distinct author_id) from commitinfo)
+where projectid = 0;
+update  SQ1_compare set unieke_MC_auteurs = (select count(distinct auteur)from auteur_tellingen
+where aantal_bevestigd > 0)
+where projectid = 0;
+update SQ1_compare 
+set comparatio = (cast(unieke_MC_auteurs AS DECIMAL)/unieke_auteurs) * 100
+where projectid = 0; 
+
+
+
+
