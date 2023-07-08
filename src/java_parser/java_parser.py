@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import tempfile
+import uuid
 from datetime import datetime
 
 import antlr4
@@ -31,6 +32,8 @@ def __reset_read_stderr(filename, original):
         for line in file.readlines():
             logging.warning(line)
     file.close()
+    if os.path.exists(filename):
+        os.remove(filename)
     return is_parse_error
 
 
@@ -49,7 +52,8 @@ def __redirect_stderr(filename: str) -> object:
     return filename, original
 
 
-def __get_treestring(text: str, procesidentifier: str) -> (str, bool):
+def __get_treestring(text: str) -> (str, bool):
+    procesidentifier = str(uuid.uuid4())
     filename = __get_filename(procesidentifier)
     original = __redirect_stderr(filename)
     inputstream = antlr4.InputStream(text)
@@ -130,7 +134,7 @@ def __analyze_project(projectnaam: str, projectid: int, procesidentifier:str) ->
             # maak nieuwe parsetrees
             try:
                 if not is_nieuw:
-                    temp_vooraf, parse_error_vooraf = __get_treestring(tekstvooraf, procesidentifier)
+                    temp_vooraf, parse_error_vooraf = __get_treestring(tekstvooraf)
                     if parse_error_vooraf:
                         logging.warning('parse error in tekst vooraf van bestandswijziging: ' + str(bw_id))
                     vooraf_tree = to_nltk_tree(temp_vooraf)
@@ -138,7 +142,7 @@ def __analyze_project(projectnaam: str, projectid: int, procesidentifier:str) ->
                     vooraf_tree = to_nltk_tree('()')
 
                 if not is_verwijderd:
-                    tempachteraf, parse_error_achteraf = __get_treestring(tekstachteraf, procesidentifier)
+                    tempachteraf, parse_error_achteraf = __get_treestring(tekstachteraf)
                     if parse_error_achteraf:
                         logging.warning('parse error in tekst achteraf van bestandswijziging: ' + str(bw_id))
 
