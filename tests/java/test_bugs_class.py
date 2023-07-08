@@ -72,3 +72,50 @@ class Test(unittest.TestCase):
         expected_results = ['blockstatement', 'blockstatement', 'blockstatement', 'blockstatement']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
+    def test_1042198(self):
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_1042198.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+        zoekterm = 'synchronized'
+
+        results = get_class_usage(ntlr_tree, zoekterm)
+        expected_results = ['blockstatement']
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
+
+    def test_11079304(self):
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_11079304.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+        zoekterm = 'Lock'
+
+        results = get_class_usage(ntlr_tree, zoekterm)
+        expected_results = ['import', 'annotation', 'annotation', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration']
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
+
+    def test_340155(self):
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_340155.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+        zoekterm = 'Thread'
+
+        results = get_class_usage(ntlr_tree, zoekterm)
+        expected_results = ['local_variable', 'instantation', 'static_use', 'identifier', 'identifier', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use']
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
+
+    def test_1606748(self):
+        # extends  java.util.TimerTask ipv extends TimerTask met een import van java.util.TimerTask
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_1606748.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+        zoekterm = 'TimerTask'
+
+        results = get_class_usage(ntlr_tree, zoekterm)
+        expected_results = ['extends']
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
+
+    @unittest.skip
+    def test_477935(self):
+        # classname wordt alleen genoemd. Heeft combinatie met parse error
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_477935.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+        zoekterm = 'ReentrantLock'
+
+        results = get_class_usage(ntlr_tree, zoekterm)
+        expected_results = ['import', 'piep']
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')

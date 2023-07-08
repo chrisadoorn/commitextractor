@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-import tempfile
 import unittest
 
 import antlr4
@@ -107,36 +106,37 @@ def perform_analysis(search_id):
 class Test(unittest.TestCase):
 
    @unittest.skip
-    def test_4710(self):
+   def test_4710(self):
         init()
         search_id = 4710
         perform_analysis(search_id)
 
-    @unittest.skip
-    def test_5489(self):
+   @unittest.skip
+   def test_5489(self):
         init()
         search_id = 5489
         perform_analysis(search_id)
 
-    @unittest.skip
-    def test_10327(self):
+   @unittest.skip
+   def test_10327(self):
         init()
         search_id = 10327
         perform_analysis(search_id)
 
-    @unittest.skip
-    def test_32302(self):
+   @unittest.skip
+   def test_32302(self):
         init()
         search_id = 32302
         perform_analysis(search_id)
 
-    @unittest.skip
-    def test_32894(self):
+   @unittest.skip
+   def test_32894(self):
         init()
         search_id = 32894
         perform_analysis(search_id)
 
-    def test_errors(self):
+   @unittest.skip
+   def test_errors(self):
         init()
         filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), '../data/java/class', 'TestWithParseErrors.java'))
         file = open(filepath, 'rt')

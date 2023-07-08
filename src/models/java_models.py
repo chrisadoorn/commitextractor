@@ -1,4 +1,4 @@
-from peewee import CharField, Model, IntegerField, AutoField, BooleanField, BigIntegerField
+from peewee import CharField, Model, IntegerField, BooleanField
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
 from src.utils import configurator

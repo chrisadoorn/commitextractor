@@ -16,7 +16,7 @@ def __is_extends_usage(path: list[str]) -> bool:
     """
     try:
         startindex = path.index('extends')
-        if startindex == 4:
+        if startindex >= 4:
             return path[startindex + 1] == 'class' and path[startindex + 2] == 'classDeclaration'
     except ValueError:
         return False
@@ -37,7 +37,6 @@ def __is_implements_usage(path: list[str]) -> bool:
         return startindex > 0
     except ValueError:
         return False
-
 
 
 def __is_instance_variable_usage(path: list[str]) -> bool:
@@ -104,7 +103,7 @@ def __is_method_argument_usage(path: list[str]) -> bool:
     """
     busy = 0
     for element in path:
-        if element == 'formalParameter':
+        if element in ['formalParameter', 'formalParameters']:
             busy = 1
             continue
         if element in ['constructorDeclaration', 'methodDeclaration']:
@@ -269,17 +268,34 @@ def __is_static_call(path: list[str]) -> bool:
 
 def __is_blockstatement_modifier(path: list[str]) -> bool:
     """
-    Static starts  always with searchword, then followed by  'statement', 'blockStatement'
+    Reserved keywords only ( synchronized, volatile) starts  always with searchword, then followed by  'statement', 'blockStatement'
     synchronized', 'modifier', 'classBodyDeclaration
     :param path:
     """
-    conditional_modifier = False
-    if len(path) < 3:
+    if path[0] not in ('volatile', 'synchronized'):
         return False
-    direct_modifier = path[1] == 'statement' and path[2] == 'blockStatement'
-    if len(path) > 4:
-        conditional_modifier = path[1] == 'statement' and path[2] == 'if' and path[3] == 'statement' and path[4] == 'blockStatement'
-    return direct_modifier or conditional_modifier
+
+    busy = 0
+    for element in path:
+        if element == 'statement':
+            if busy == 0:
+                busy = 1
+                continue
+            else:
+                busy = 0
+                continue
+        if element == 'blockStatement':
+            if busy == 1:
+                busy = 2
+                break
+            else:
+                busy = 0
+                continue
+        else:
+            busy = 0
+            continue
+    # default
+    return busy == 2
 
 
 def __is_classbody_modifier(path: list[str]) -> bool:
@@ -356,6 +372,15 @@ def __is_literal(path: list[str]) -> bool:
     literal_identifier = 'literal' in path
     return literal_identifier
 
+
+def __is_annotation(path: list[str]) -> bool:
+    """
+
+      :param path:
+      """
+    return '@' in path
+
+
 def __is_lone_identifier(path: list[str]) -> bool:
     """
       Only as last resort
@@ -364,8 +389,7 @@ def __is_lone_identifier(path: list[str]) -> bool:
     if len(path) < 2:
         return False
     next_is_identifier = path[1] == 'identifier' or path[1] == 'typeIdentifier'
-    return next_is_identifier and 'expression' in path
-
+    return next_is_identifier
 
 
 def __trim_path(path: list[str]) -> list[str]:
@@ -455,6 +479,9 @@ def determine_searchword_usage(paths: list[[str]], zoekterm: str) -> list[(str, 
             continue
         if __is_interface_definition(path):
             results.append('interface_definition')
+            continue
+        if __is_annotation(path):
+            results.append('annotation')
             continue
         if __is_lone_identifier(path):
             results.append('identifier')
