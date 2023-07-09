@@ -13,23 +13,24 @@ defmodule AstCreator.MakeAst do
     {:ok, %{:name => name_process, :value => 0}}
   end
 
-
   @impl true
   def handle_cast({:nextid, id}, state) do
     IO.puts(Map.get(state, :name))
     IO.inspect(id)
     bestands_wijziging = get_bw_by_id(id)
-     if bestands_wijziging != nil do
-        %AstCreator.AbstractSyntaxTree{
-          bestandswijziging_id: bestands_wijziging.id,
-          tekstvooraf: bestands_wijziging.tekstvooraf,
-          tekstachteraf: bestands_wijziging.tekstachteraf,
-          difftext: bestands_wijziging.difftext,
-          tekstvooraf_ast: getAstString(bestands_wijziging.tekstvooraf),
-          tekstachteraf_ast: getAstString(bestands_wijziging.tekstachteraf)
-        }
-        |> saveAst
+
+    if bestands_wijziging != nil do
+      %AstCreator.AbstractSyntaxTree{
+        bestandswijziging_id: bestands_wijziging.id,
+        tekstvooraf: bestands_wijziging.tekstvooraf,
+        tekstachteraf: bestands_wijziging.tekstachteraf,
+        difftext: bestands_wijziging.difftext,
+        tekstvooraf_ast: getAstString(bestands_wijziging.tekstvooraf),
+        tekstachteraf_ast: getAstString(bestands_wijziging.tekstachteraf)
+      }
+      |> saveAst
     end
+
     next_id = id
     AstCreator.Main.get_next(self())
     state = %{:name => Map.get(state, :name), :value => next_id}
@@ -41,7 +42,7 @@ defmodule AstCreator.MakeAst do
   end
 
   def get_bw_by_id(id) do
-    [h|_] = id
+    [h | _] = id
     AstCreator.Repo.get(AstCreator.Bestandswijziging, h)
   end
 
@@ -51,7 +52,7 @@ defmodule AstCreator.MakeAst do
         nil
 
       _ ->
-        case Code.string_to_quoted(tekst, [unescape: false ]) do
+        case Code.string_to_quoted(tekst, unescape: false) do
           {:ok, ast} -> inspect(ast, limit: :infinity)
           {:error, {line, error, token}} -> "syntax error, " <> inspect({line, error, token})
         end
@@ -61,5 +62,4 @@ defmodule AstCreator.MakeAst do
   def saveAst(tree) do
     AstCreator.Repo.insert(tree)
   end
-
 end

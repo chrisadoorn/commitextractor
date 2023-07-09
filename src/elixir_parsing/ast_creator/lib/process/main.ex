@@ -8,23 +8,25 @@ defmodule AstCreator.Main do
       left join v10.abstract_syntax_trees_v1 a on bw.id = a.bestandswijziging_id
       where a.id is null order by bw.id asc;
       """
+
     Ecto.Adapters.SQL.query(AstCreator.Repo, query, [])
   end
 
   def start() do
     IO.puts("starting main")
     {:ok, x} = get_ids()
-    GenServer.start(__MODULE__, x.rows, name: __MODULE__)
 
-
-    p1 = AstCreator.MakeAst.start("p1")
-    p2 = AstCreator.MakeAst.start("p2")
-    p3 = AstCreator.MakeAst.start("p3")
-    p4 = AstCreator.MakeAst.start("p4")
-    p5 = AstCreator.MakeAst.start("p5")
-    p6 = AstCreator.MakeAst.start("p6")
-    p7 = AstCreator.MakeAst.start("p7")
-    p8 = AstCreator.MakeAst.start("p8")
+    if x.rows != [] do
+      GenServer.start(__MODULE__, x.rows, name: __MODULE__)
+      p1 = AstCreator.MakeAst.start("p1")
+      p2 = AstCreator.MakeAst.start("p2")
+      p3 = AstCreator.MakeAst.start("p3")
+      p4 = AstCreator.MakeAst.start("p4")
+      p5 = AstCreator.MakeAst.start("p5")
+      p6 = AstCreator.MakeAst.start("p6")
+      p7 = AstCreator.MakeAst.start("p7")
+      p8 = AstCreator.MakeAst.start("p8")
+    end
   end
 
   @impl true
@@ -38,25 +40,27 @@ defmodule AstCreator.Main do
   end
 
   @impl true
+  def handle_call(:pop, _from, nil) do
+    {:reply, nil, nil}
+  end
+
+  @impl true
+  def handle_call(:pop, _from, []) do
+    {:reply, nil, nil}
+  end
+
+  @impl true
   def handle_cast({:push, element}, state) do
     {:noreply, [element | state]}
   end
 
   def get_next(pid) do
-    x =GenServer.call(__MODULE__, :pop)
-    AstCreator.MakeAst.cast(pid, {:nextid, x})
+    x = GenServer.call(__MODULE__, :pop)
+
+    if x == nil do
+      GenServer.stop(pid)
+    else
+      AstCreator.MakeAst.cast(pid, {:nextid, x})
+    end
   end
-
-
-
-
-
-
-
-
-
-
-
-
-
 end
