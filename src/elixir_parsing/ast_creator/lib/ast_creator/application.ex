@@ -8,8 +8,7 @@ defmodule AstCreator.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      AstCreator.Repo,
-      AstCreator.Worker
+      AstCreator.Repo
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
