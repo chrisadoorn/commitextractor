@@ -3,7 +3,7 @@ defmodule AstCreator.AbstractSyntaxTree do
 
   @schema_prefix "v10"
 
-  schema "abstract_syntax_trees_v1" do
+  schema "abstract_syntax_trees" do
     field(:bestandswijziging_id, :integer)
     field(:tekstvooraf, :string)
     field(:tekstachteraf, :string)

@@ -2,22 +2,20 @@ defmodule AstCreator.MakeAst do
   use GenServer
   import Ecto.Query, only: [from: 2]
 
-  def start(name_process) do
-    IO.puts("starting main")
-    GenServer.start(__MODULE__, name_process)
+  def start_link(name_process) do
+    GenServer.start_link(__MODULE__, name_process)
   end
 
   @impl true
   def init(name_process) do
-    AstCreator.Main.get_next(self())
+    get_next(self())
     {:ok, %{:name => name_process, :value => 0}}
   end
 
   @impl true
   def handle_cast({:nextid, id}, state) do
-    IO.puts(Map.get(state, :name))
-    IO.inspect(id)
     bestands_wijziging = get_bw_by_id(id)
+    IO.inspect(id)
 
     if bestands_wijziging != nil do
       %AstCreator.AbstractSyntaxTree{
@@ -32,7 +30,7 @@ defmodule AstCreator.MakeAst do
     end
 
     next_id = id
-    AstCreator.Main.get_next(self())
+    get_next(self())
     state = %{:name => Map.get(state, :name), :value => next_id}
     {:noreply, state}
   end
@@ -61,5 +59,15 @@ defmodule AstCreator.MakeAst do
 
   def saveAst(tree) do
     AstCreator.Repo.insert(tree)
+  end
+
+  def get_next(pid) do
+    x = AstCreator.Main.call()
+
+    if x == nil do
+      GenServer.stop(pid)
+    else
+      cast(pid, {:nextid, x})
+    end
   end
 end
