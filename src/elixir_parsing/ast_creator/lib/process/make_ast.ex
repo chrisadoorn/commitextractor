@@ -35,9 +35,19 @@ defmodule AstCreator.MakeAst do
     {:noreply, state}
   end
 
+  @impl true
+  def handle_cast({:noid, _}, state) do
+    {:noreply, state}
+  end
+
   def cast(pid, {:nextid, id}) do
     GenServer.cast(pid, {:nextid, id})
   end
+
+  def cast(pid, {:noid, _}) do
+    GenServer.cast(pid, {:noid, nil})
+  end
+
 
   def get_bw_by_id(id) do
     [h | _] = id
@@ -61,13 +71,13 @@ defmodule AstCreator.MakeAst do
     AstCreator.Repo.insert(tree)
   end
 
+
   def get_next(pid) do
     x = AstCreator.Main.call()
-
-    if x == nil do
-      GenServer.stop(pid)
-    else
+    if x != nil do
       cast(pid, {:nextid, x})
+    else
+      cast(pid, {:noid, x})
     end
   end
 end

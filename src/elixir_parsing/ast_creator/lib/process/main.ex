@@ -28,12 +28,7 @@ defmodule AstCreator.Main do
   end
 
   @impl true
-  def handle_call(:pop, _from, nil) do
-    {:reply, nil, nil}
-  end
-
-  @impl true
-  def handle_call(:pop, _from, []) do
+  def handle_call(:pop, _from, _) do
     {:reply, nil, nil}
   end
 
