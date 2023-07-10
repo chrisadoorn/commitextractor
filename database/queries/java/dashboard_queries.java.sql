@@ -50,6 +50,11 @@ where status = 'nieuw';
 update test.verwerk_project set status = 'nieuw'
 where naam = 'adyen/adyen-java-api-library';
 
+select count(*) from bestandswijziging_zoekterm bz ; -- 351302
+select count(*) from bestandswijziging_zoekterm bz 
+where falsepositive = false ; -- 133117
+
+
 
 select 
 p.id, p.naam, count(c.idproject) as commit_aantal
@@ -70,7 +75,7 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'zoekterm_vinden'
+set processtap = 'zoekterm_controleren'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
