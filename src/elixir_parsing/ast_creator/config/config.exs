@@ -9,4 +9,3 @@ config :ast_creator, AstCreator.Repo,
   hostname: "localhost",
   log: false,
   pool_size: 50
-

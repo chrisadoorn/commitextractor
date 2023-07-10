@@ -3,7 +3,7 @@ Deze map is voor experimenten Evert
 
 Query voor join project, commits en filechanges
 
-```postgresql
+```
 select g.name, ci.*, f.* from ghsearchselection g 
     join commitinformation ci on g.id = ci.id_project
     join filechanges f on ci.id_project = f.id_project 
@@ -11,7 +11,7 @@ select g.name, ci.*, f.* from ghsearchselection g
     order by commit_date_time;
 ```
 Zoek naar spawn 
-```postgresql
+```
 select g.name, ci.*, f.* from ghsearchselection g  
     join commitinformation ci on g.id = ci.id_project
     join filechanges f on ci.id_project = f.id_project 
@@ -384,14 +384,12 @@ dard library, as well as iex and mix, which are implemented as separate applicat
 exclude
 use Mix.Config
 
+Queries:
 
 ```
 SET SCHEMA 'v10';
 update verwerk_project set start_verwerking = null, einde_verwerking = null, processor = null, resultaat  = 'verwerkt', processtap = 'identificatie'
-```
 
-
-```
 SET SCHEMA 'v10';
 CREATE TABLE IF NOT EXISTS abstract_syntax_trees (
                                                      id BIGSERIAL PRIMARY KEY,
@@ -404,4 +402,24 @@ CREATE TABLE IF NOT EXISTS abstract_syntax_trees (
                                                      CONSTRAINT abstract_syntax_trees_fk FOREIGN KEY (bestandswijziging_id)
                                                          REFERENCES bestandswijziging(id) ON DELETE CASCADE
 );
+
+
+-- 1
+select bw.id, bw.filename, p.naam, c.idproject, c.author_id from bestandswijziging bw join commitinfo c on bw.idcommit = c.id join project p on c.idproject = p.id;
+
+
+select foo.naam, count(foo.author_id) from (select p.naam, c.author_id, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+group by p.naam, c.author_id
+order by p.naam
+) as foo group by foo.naam order by foo.naam;
+
+
+
+select p.naam, count(c.author_id) from bestandswijziging bw join commitinfo c on bw.idcommit = c.id join project p on c.idproject = p.id group by p.naam order by p.naam;
+
+select p.naam, c.author_id from bestandswijziging bw join commitinfo c on bw.idcommit = c.id join project p on c.idproject = p.id order by p.naam, c.author_id;
+
 ```
