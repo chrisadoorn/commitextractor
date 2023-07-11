@@ -171,8 +171,10 @@ def __analyze_project(projectnaam: str, projectid: int, procesidentifier:str) ->
 
 def analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm,
                          parse_error_vooraf, parse_error_achteraf):
-    # bepaal namespace alleen voor tekstafter. daar moet het goed gebruikt woren.
-    is_in_namespace = is_in_correct_namespace(achteraf_tree, packagenaam, zoekterm, categorie)
+    # bepaal namespace moet minstens 1x kloppen.
+    is_in_namespace_vooraf = is_in_correct_namespace(vooraf_tree, packagenaam, zoekterm, categorie)
+    is_in_namespace_achteraf = is_in_correct_namespace(achteraf_tree, packagenaam, zoekterm, categorie)
+    is_in_namespace = is_in_namespace_vooraf or is_in_namespace_achteraf
     # altijd gebruik bepalen voor vooraf en achteraf.
     usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm)
     usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm)
