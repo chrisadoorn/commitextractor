@@ -7,6 +7,7 @@ defmodule AstCreator.System do
 
   def init(_) do
     children = [
+    AstCreator.ProcessRegistry,
       %{
         id: AstCreator.Main,
         start: {AstCreator.Main, :start_link, [nil]}

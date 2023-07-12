@@ -423,3 +423,129 @@ select p.naam, count(c.author_id) from bestandswijziging bw join commitinfo c on
 select p.naam, c.author_id from bestandswijziging bw join commitinfo c on bw.idcommit = c.id join project p on c.idproject = p.id order by p.naam, c.author_id;
 
 ```
+Tellingen
+
+```
+-- 1
+select bw.id, bw.filename, p.naam, c.idproject, c.author_id
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+order by id;
+
+
+select p.id, p.naam, c.author_id
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+order by p.naam, c.author_id;
+
+select p.id, p.naam, c.author_id, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+group by p.id, p.naam, c.author_id
+order by p.naam;
+
+
+select foo.id, foo.naam, count(foo.author_id)
+from (select p.id, p.naam, c.author_id, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+group by p.id, p.naam, c.author_id
+order by p.naam) as foo
+group by foo.id, foo.naam
+order by foo.naam;
+
+
+select p.naam, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+group by p.naam
+order by p.naam;
+
+
+select p.naam, c.author_id, bwz.zoekterm
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+join bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+order by p.naam, c.author_id;
+
+
+select foo.id, foo.naam, foo.zoekterm, count(foo.author_id)
+from (select p.id, p.naam, c.author_id, bwz.zoekterm, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+join bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+where bwz.aantalgevonden_nieuw > bwz.aantalgevonden_oud
+group by p.id, p.naam, bwz.zoekterm, c.author_id
+order by p.naam) as foo
+group by foo.id, foo.naam, foo.zoekterm
+order by foo.naam;
+
+
+select p.id, p.naam, c.author_id, bwz.zoekterm, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+join bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+where bwz.aantalgevonden_nieuw > bwz.aantalgevonden_oud
+group by p.id, p.naam, bwz.zoekterm, c.author_id
+order by p.naam;
+
+
+select p.id, p.naam, c.author_id, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+join bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+where bwz.aantalgevonden_nieuw > bwz.aantalgevonden_oud
+group by p.id, p.naam, c.author_id
+order by p.naam;
+
+
+
+select foo.id as pr_id, foo.naam, count(foo.author_id)
+from (select p.id, p.naam, c.author_id, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+join bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+where bwz.aantalgevonden_nieuw > bwz.aantalgevonden_oud
+group by p.id, p.naam, c.author_id
+order by p.naam) as foo
+group by foo.id, foo.naam
+order by foo.naam;
+
+
+
+
+select p.naam, c.author_id, count(c.author_id)
+from bestandswijziging bw
+join commitinfo c on bw.idcommit = c.id
+join project p on c.idproject = p.id
+group by p.naam, c.author_id
+order by p.naam
+
+
+select bw.id, a.id from bestandswijziging bw
+left join abstract_syntax_trees_v1 a on bw.id = a.bestandswijziging_id
+where a.id is null
+
+delete from abstract_syntax_trees_v1 where tekstachteraf_ast = 'syntax error' or tekstvooraf_ast = 'syntax error'
+
+
+SET SCHEMA 'v10';
+update verwerk_project set start_verwerking = null, einde_verwerking = null, processor = null, resultaat  = 'verwerkt', processtap = 'identificatie'
+
+delete from bestandswijziging_zoekterm;
+delete from bestandswijziging_zoekterm_regelnummer;
+
+
+
+
+```

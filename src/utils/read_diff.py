@@ -69,28 +69,10 @@ class _ReadDiff(object):
         self.removed_lines = None
         self.new_lines = None
         self.lines = ""
-        self.find_key_words = find_key_words_interface
+        self.find_key_words_interface = find_key_words_interface
 
     def check_diff_text(self, chunk: str = '', words: list[str] = None) -> tuple[
-        list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
-
-        """
-        Read a diff chunk text, and return the new- and removed (un-empty) lines, together with the line number and
-        a set of found keywords.
-        The new lines are compared with the old lines, A new line contains a word if that word occurs more in the
-        new line then in the old line.
-        :param words: words to look for
-        :param chunk: diff text
-        :return: tuple of two lists. The first list contains tuples of (line number, line, set([keywords])) of
-        (un-empty) new lines. The second list contains tuples of (line number, line, set([keywords])) of (un-empty)
-        removed lines.
-        """
-        self.check_diff_text_no_check_with_removed(chunk, words)
-        self.__check_with_removed_lines()
-        return self.new_lines, self.removed_lines
-
-    def check_diff_text_no_check_with_removed(self, chunk: str = '', words: list[str] = None) -> tuple[
-        list[tuple[int, str, set[str]]], list[tuple[int, str, set[str]]]]:
+            list[tuple[int, str, list[str]]], list[tuple[int, str, list[str]]]]:
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
@@ -115,35 +97,6 @@ class _ReadDiff(object):
         for line in self.lines:
             self.__process_line(line, words)
         return self.new_lines, self.removed_lines
-
-    def __check_with_removed_lines(self) -> None:
-        temp_lines = []
-        for new_lnr, new_line, new_keys in self.new_lines:
-            self.__loop_through_removed_line(new_lnr, new_keys)
-            temp_lines.append((new_lnr, new_line, set(new_keys)))  # remove duplicates by creating a set
-        self.new_lines = temp_lines
-        temp_lines = []
-        for rem_lnr, rem_line, rem_keys in self.removed_lines:
-            temp_lines.append((rem_lnr, rem_line, set(rem_keys)))  # remove duplicates by creating a set
-        self.removed_lines = temp_lines
-
-    def __loop_through_removed_line(self, l_nr: int, new_keys: list[str]):
-        """
-        Check for occurrence of a keyword on the same line in the removed_lines and new_lines.
-        The new_line, after this method, contains the added keywords minus the keywords from the removed_line.
-        This because when a keyword is added and removed on the same line there is no change.
-        :param l_nr: line number
-        :param new_keys: list of keywords found on the line
-        :return: none, but the new_keys is changed
-        """
-        for rem_lnr, rem_line, rem_keys in self.removed_lines:
-            if rem_lnr == l_nr:
-                new_temp_keys = new_keys.copy()
-                rem_temp_keys = rem_keys.copy()
-                for key in new_temp_keys:
-                    if key in rem_temp_keys:
-                        new_keys.remove(key)
-                        rem_temp_keys.remove(key)
 
     def __process_line(self, line: str, words: list[str]) -> None:
         """
@@ -200,7 +153,7 @@ class _ReadDiff(object):
         if line.startswith('-') or line.startswith('+'):
             line = line[1:].strip()
             if len(line) > 0:
-                mc_list = self.find_key_words.find_key_words(line, words)
+                mc_list = self.find_key_words_interface.find_key_words(line, words)
         return line, mc_list
 
 
@@ -260,7 +213,7 @@ class ReadDiffElixir(_ReadDiff):
         super().__init__(self.__FindKeyWords())
 
     class __FindKeyWords(_FindKeyWordsInterface):
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_', '.']
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_']
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)

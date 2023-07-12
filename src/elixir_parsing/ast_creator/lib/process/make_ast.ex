@@ -2,14 +2,14 @@ defmodule AstCreator.MakeAst do
   use GenServer
   import Ecto.Query, only: [from: 2]
 
-  def start_link(name_process) do
-    GenServer.start_link(__MODULE__, name_process)
+  def start_link(worker_id) do
+    GenServer.start_link(__MODULE__, worker_id,name: via_tuple(worker_id))
   end
 
   @impl true
-  def init(name_process) do
-    get_next(self())
-    {:ok, %{:name => name_process, :value => 0}}
+  def init(worker_id) do
+    get_next(worker_id)
+    {:ok, %{:name => worker_id, :value => 0}}
   end
 
   @impl true
@@ -30,7 +30,7 @@ defmodule AstCreator.MakeAst do
     end
 
     next_id = id
-    get_next(self())
+    get_next(Map.get(state, :name))
     state = %{:name => Map.get(state, :name), :value => next_id}
     {:noreply, state}
   end
@@ -72,12 +72,18 @@ defmodule AstCreator.MakeAst do
   end
 
 
-  def get_next(pid) do
+  def get_next(worker_id) do
     x = AstCreator.Main.call()
     if x != nil do
-      cast(pid, {:nextid, x})
+      cast(via_tuple(worker_id), {:nextid, x})
     else
-      cast(pid, {:noid, x})
+      cast(via_tuple(worker_id), {:noid, x})
     end
   end
+
+  defp via_tuple(worker_id) do
+    AstCreator.ProcessRegistry.via_tuple({__MODULE__, worker_id})
+  end
+
+
 end

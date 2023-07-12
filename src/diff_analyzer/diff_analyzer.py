@@ -64,7 +64,7 @@ def analyze_by_project(projectname, project_id):
 
             # doorzoek de diff op de eerder gevonden zoektermen
 
-            (new_lines, removed_lines) = __get_read_diff().check_diff_text_no_check_with_removed(difftekst.difftext, zoektermlijst)
+            (new_lines, removed_lines) = __get_read_diff().check_diff_text(difftekst.difftext, zoektermlijst)
 
             # sla gevonden resultaten op per bestandswijziging
             BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging.id, regels_oud=len(removed_lines),
@@ -76,11 +76,13 @@ def analyze_by_project(projectname, project_id):
                 zoekterm = zoekterm
                 regelnrs_new = []
                 for (regelnr, line, keywords) in new_lines:
-                    if zoekterm in keywords:
+                    count = keywords.count(zoekterm)
+                    for i in range(count):
                         regelnrs_new.append(regelnr)
                 regelnrs_old = []
                 for (regelnr, line, keywords) in removed_lines:
-                    if zoekterm in keywords:
+                    count = keywords.count(zoekterm)
+                    for i in range(count):
                         regelnrs_old.append(regelnr)
 
                 bestandswijziging_zoekterm = BestandsWijzigingZoekterm()

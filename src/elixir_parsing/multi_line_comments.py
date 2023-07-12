@@ -17,26 +17,26 @@ def initialize():
                         encoding='utf-8')
 
 
-def verzamel_alle_primitieven_per_file():
+def check_op_multiline_comments():
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host='localhost', port=params_for_db.get('port'))
 
-    sql1 = "select distinct idbestandswijziging from {sch}.bestandswijziging_zoekterm bw_zt " \
+    bestands_wijziging_sql_dist = "select distinct idbestandswijziging from {sch}.bestandswijziging_zoekterm bw_zt " \
           "where bw_zt.falsepositive = false order by bw_zt.idbestandswijziging asc;".format(sch=schema)
 
-    sql2 = "select tekstvooraf, tekstachteraf from {sch}.bestandswijziging bw where id = {id};"
+    selecteer_teksten_sql = "select tekstvooraf, tekstachteraf from {sch}.bestandswijziging bw where id = {id};"
 
-    sql3 = "select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from {sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id};"
+    selecteer_zoekterm_regelnummers = "select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from {sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id};"
 
-    bestandswijziging_zoekterm_cursor = connection.execute_sql(sql1)
+    bestandswijziging_zoekterm_cursor = connection.execute_sql(bestands_wijziging_sql_dist)
 
     ml_comments = []
     for (idbestandswijziging,) in bestandswijziging_zoekterm_cursor.fetchall():  # per bestandswijziging
-        bestandswijziging_cursor = connection.execute_sql(sql2.format(sch=schema, id=idbestandswijziging))
+        bestandswijziging_cursor = connection.execute_sql(selecteer_teksten_sql.format(sch=schema, id=idbestandswijziging))
         (tekstvooraf, tekstachteraf) = bestandswijziging_cursor.fetchone()  # haal de tekst voor en na de wijziging op
         ml_comments_min =findMultiLineComments(tekstvooraf)  # lijst met multi-line comments voor de wijziging
         ml_comments_plus =findMultiLineComments(tekstachteraf)  # lijst met multi-line comments na de wijziging
-        regelnummers_cursor = connection.execute_sql(sql3.format(sch=schema, id=idbestandswijziging))
+        regelnummers_cursor = connection.execute_sql(selecteer_zoekterm_regelnummers.format(sch=schema, id=idbestandswijziging))
         for (id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in regelnummers_cursor.fetchall():  # zoektermen met regelnummers
             r = (id, idbestandswijziging, zoekterm, regelnummer, regelsoort)
             if regelsoort == 'oud':
@@ -96,4 +96,4 @@ def printMetRegels(tekst):
 
 
 if __name__ == '__main__':
-    verzamel_alle_primitieven_per_file()
+    check_op_multiline_comments()
