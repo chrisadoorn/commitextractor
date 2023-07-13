@@ -322,11 +322,42 @@ class ReadDiffRust(_ReadDiff):
     def __init__(self):
         super().__init__(self.__FindKeyWords())
 
-    class __FindKeyWords(_FindKeyWordsInterface):
-        # This list consist of characters allowed in the words we wou are looking for.
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
-                                                                                                                   '$']
+    def optimizing_toml_rust_files():
+        """
+        retrieves the list of bestandswijzigingen of .toml files for a project, reduces it to library-dependencies
+        updates difftest, tekstvooraf, tekstachteraf in table bestandswijzigng
+        """
+        for bestandswijziging in BestandsWijziging.select().where(BestandsWijziging.extensie == '.toml'):
+            if bestandswijziging.difftext is not None:
+                bestandswijziging.difftext = ReadDiffRust.clean_rust_toml(bestandswijziging.difftext)
+            if bestandswijziging.tekstachteraf is not None:
+                bestandswijziging.tekstachteraf = ReadDiffRust.clean_rust_toml(bestandswijziging.tekstachteraf)
+            if bestandswijziging.tekstvooraf is not None:
+                bestandswijziging.tekstvooraf = ReadDiffRust.clean_rust_toml(bestandswijziging.tekstvooraf)
+            bestandswijziging.save()
+    def clean_rust_toml(text: str) -> str:
+        """
+        reduces text to library-dependencies
+        """
+        if text is not None:
+            # strip line comment
+            pos_comment = text.find('[dependencies]')
+            if pos_comment > -1:
+                text = text[pos_comment:]
+            else:
+                text = ""
+            return text
 
+    class __FindKeyWords(_FindKeyWordsInterface):
+        # This list consist of characters allowed in the words we are looking for.
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['-','_']
+
+        """
+        Rust contains line comments starting with //, doc comments starting with /// or //! and      
+        multi-line  comments starting with /* and ending with */
+        Rust contains single and double quote literals
+        Todo: vergelijken met Java
+        """
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
             instances_found = []
