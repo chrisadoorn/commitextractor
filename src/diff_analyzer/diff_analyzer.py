@@ -5,7 +5,7 @@ from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzi
     insert_regelnummers_by_key, get_voor_bestandswijziging
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo, open_connection, close_connection
 from src.utils import db_postgresql, configurator
-from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust, _ReadDiff
+from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust, _ReadDiff, InvalidDiffText
 
 read_diff = None
 

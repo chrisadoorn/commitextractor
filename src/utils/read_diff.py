@@ -1,6 +1,8 @@
 import string
 from collections import deque
 
+from src.models.extracted_data_models import BestandsWijziging
+
 
 class InvalidDiffText(Exception):
     """Raised when the diff text is not valid"""
@@ -275,7 +277,7 @@ class ReadDiffRust(_ReadDiff):
     def __init__(self):
         super().__init__(self.__FindKeyWords())
 
-    def optimizing_toml_rust_files():
+    def optimizing_toml_rust_files(self):
         """
         retrieves the list of bestandswijzigingen of .toml files for a project, reduces it to library-dependencies
         updates difftest, tekstvooraf, tekstachteraf in table bestandswijzigng
