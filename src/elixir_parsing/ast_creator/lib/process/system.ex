@@ -1,7 +1,7 @@
 defmodule AstCreator.System do
   use Supervisor
   @nr_processes 30
-  def start_link do
+  def start_link(_) do
     Supervisor.start_link(__MODULE__, nil)
   end
 

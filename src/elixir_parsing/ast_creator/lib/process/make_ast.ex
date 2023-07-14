@@ -1,6 +1,5 @@
 defmodule AstCreator.MakeAst do
   use GenServer
-  import Ecto.Query, only: [from: 2]
 
   def start_link(worker_id) do
     GenServer.start_link(__MODULE__, worker_id,name: via_tuple(worker_id))
