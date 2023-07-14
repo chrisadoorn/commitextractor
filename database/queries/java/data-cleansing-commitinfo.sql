@@ -6,6 +6,7 @@ CREATE TABLE id_in_use (
 	idcommit int8 NOT NULL
 );
 
+truncate table id_in_use;
 
 insert into id_in_use(idcommit)
 SELECT DISTINCT b.idcommit
@@ -47,7 +48,7 @@ from wijziging_lineage wl; -- 1078
 -- 17 eerder fout gegaan.
 select * from project p 
 where idselectie = 1
-and id not in ( select distinct projectid from wijziging_lineage wl2)          -- alleen deze: 21 zonder bestandswijzigingen
+--and id not in ( select distinct projectid from wijziging_lineage wl2)          -- alleen deze: 21 zonder bestandswijzigingen
 and id in (select id from verwerk_project vp where resultaat = 'mislukt'); -- alleen deze: 17 eerder gefaald 
                                                                            --  not & in: 12 zonder bestandswijzigingen ( nooit gestart )
                                                                            --  in  & in: 5 met bestandswijzigingen. (halfweg gefaald)

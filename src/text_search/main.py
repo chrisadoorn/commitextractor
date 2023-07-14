@@ -2,8 +2,10 @@ import logging
 import os
 import uuid
 from datetime import datetime
-from src.utils import sanitychecker
+from src.utils import sanitychecker, configurator
 from src.text_search import parallelizer
+from src.utils.read_diff import ReadDiffRust
+
 
 #####################################
 #         define functions          #
@@ -12,6 +14,9 @@ from src.text_search import parallelizer
 
 def start_processing():
     try:
+        language = configurator.get_main_language()[0]
+        if language.upper() == 'RUST':
+            ReadDiffRust.optimizing_toml_rust_files()
         # connect to database
         parallelizer.start_text_search()
 
@@ -50,7 +55,6 @@ def start_with_checks():
 #####################################
 #         start of code             #
 #####################################
-# Deze module doorloopt de tabel verwerk_project waar status='verwerkt' en processtap='identificatie'
 if __name__ == '__main__':
     # initialiseer logging
     instance_uuid = str(uuid.uuid4())

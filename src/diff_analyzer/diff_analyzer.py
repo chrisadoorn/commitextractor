@@ -64,7 +64,11 @@ def analyze_by_project(projectname, project_id):
 
             # doorzoek de diff op de eerder gevonden zoektermen
 
-            (new_lines, removed_lines) = __get_read_diff().check_diff_text(difftekst.difftext, zoektermlijst)
+            try:
+                (new_lines, removed_lines) = __get_read_diff().check_diff_text(difftekst.difftext, zoektermlijst)
+            except InvalidDiffText as e:
+                logging.error('parseexception: ' + str(e))
+                continue
 
             # sla gevonden resultaten op per bestandswijziging
             BestandsWijzigingInfo.insert_or_update(parameter_id=bestandswijziging.id, regels_oud=len(removed_lines),
