@@ -13,7 +13,7 @@ group by v.status, v.resultaat, v.processtap
 
 UPDATE processor
 SET  status='geblokt'
-WHERE status='';
+WHERE status='actief';
 
 
 

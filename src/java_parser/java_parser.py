@@ -63,6 +63,9 @@ def __get_treestring(text: str) -> (str, bool):
     parser.setTrace(False)  # toggle trace logging to standard out
     tree = parser.compilationUnit()
     stringtree = tree.toStringTree(recog=parser)
+    # als er een leeg bestand was, of volledig uitgecommentarieerd, dan krijgen wij als waarde 'compilationUnit' terug
+    if stringtree == 'compilationUnit':
+        stringtree = '()'
     is_parse_error = __reset_read_stderr(filename, original)
 
     return stringtree, is_parse_error
