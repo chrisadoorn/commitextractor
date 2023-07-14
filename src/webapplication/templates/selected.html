@@ -12,8 +12,9 @@
                 <th scope="col">to github</th>
                 <th scope="col">name</th>
                 <th scope="col">comments</th>
-                <th scope="col">commits</th>
-                <th scope="col">contributors</th>
+                <th scope="col">#bestandswijzigingen</th>
+                <th scope="col">#identified authors</th>
+                <th scope="col">#contributors (github)</th>
                 <th scope="col">created_at</th>
                 <th scope="col">last_commit</th>
             </tr>
@@ -21,21 +22,22 @@
             <tbody>
             {% for project in latest_selection_list %}
             <tr>
-                <th scope="row" class="align-right">{{ project.id }}</th>
-                <td><a href="https://github.com/{{ project.naam }}" target="_blank">github.com/{{
-                    project.naam }}</a></td>
-                <td><a href="/showgithub/{{ project.id }}/commitsonly/">show imported commits</a><br>
-                    <a href="/showgithub/{{ project.id }}/detail/">show imported detail</a><br>
-                    <a href="/showgithub/{{ project.id }}/change/false/">show found changes</a><br>
-                    <a href="/showgithub/{{ project.id }}/change/true/">show false positives</a></td>
+                <th scope="row" class="align-right">{{ project[0] }}</th>
+                <td><a href="https://github.com/{{ project[1] }}" target="_blank">github.com/{{
+                    project[1] }}</a></td>
+                <td><a href="/showgithub/{{ project[0] }}/commitsonly/">show imported commits</a><br>
+                    <a href="/showgithub/{{ project[0] }}/detail/">show imported detail</a><br>
+                    <a href="/showgithub/{{ project[0] }}/change/false/">show found changes</a><br>
+                    <a href="/showgithub/{{ project[0] }}/change/true/">show false positives</a></td>
                 <td>
-                    <a onClick="newSrc({{project.id}}); return false;">opmerkingen
+                    <a onClick="newSrc({{project[0]}}); return false;">opmerkingen
                     </a>
                 </td>
-                <td class="align-right">{{ project.aantal_commits }}</td>
-                <td class="align-right">{{ project.contributors }}</td>
-                <td class="align-right">{{ project.create_date }}</td>
-                <td class="align-right">{{ project.last_commit }}</td>
+                <td class="align-right">{{ project[6] }}</td>
+                <td class="align-right">{{ project[5] }}</td>
+                <td class="align-right">{{ project[2] }}</td>
+                <td class="align-right">{{ project[3] }}</td>
+                <td class="align-right">{{ project[4] }}</td>
             </tr>
             {% endfor %}
             </tbody>

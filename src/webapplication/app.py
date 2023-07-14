@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from flask import Flask, render_template, request, jsonify
 
 from src.models.analyzed_data_models import Zoekterm
@@ -15,6 +17,18 @@ readDiff = ReadDiffElixir()
 zoektermen = [x.zoekwoord for x in Zoekterm.select(Zoekterm.zoekwoord).distinct()]
 
 
+@dataclass
+class BestandsWijzigingView:
+    id: int
+    idcommit: int
+    filename: str
+    difftext: str
+    tekstvooraf: str
+    tekstachteraf: str
+    tekstvooraf_ast: str
+    tekstachteraf_ast: str
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -22,7 +36,21 @@ def home():
 
 @app.route("/selected/")
 def form_gh_search():
-    ghs = Project.select().order_by(Project.id.asc())
+    sql = '''   
+    select subquery.id, subquery.naam, subquery.contributors, subquery.create_date, subquery.last_commit, 
+    count(subquery.author_id) as identified_authors,  sum(subquery.aantal_bestandswijzigingen) as aantal_bestandswijzigingen
+    from (select p.id, p.naam, p.contributors, p.create_date, p.last_commit,  c.author_id,  count(bw.id) as aantal_bestandswijzigingen
+        from {sch}.bestandswijziging bw
+               join {sch}.commitinfo c on bw.idcommit = c.id
+               join {sch}.project p on c.idproject = p.id
+        group by p.id, p.naam, c.author_id
+        order by p.naam) as subquery
+    group by subquery.id, subquery.naam, subquery.contributors, subquery.create_date, subquery.last_commit
+    order by subquery.id;
+    
+    '''.format(sch=pg_db_schema)
+    cursor = pg_db.execute_sql(sql)
+    ghs = cursor.fetchall()
     return render_template("selected.html", latest_selection_list=ghs)
 
 
@@ -33,7 +61,7 @@ def form_commits_for_projects(select_id):
               "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
               "and ci.id in " \
               "(select bw.idcommit from {sch}.bestandswijziging as bw " \
-              "where bw.extensie != '.md') " \
+              "where (bw.extensie = '.java' or bw.extensie = '.exs' or bw.extensie = '.ex' or bw.extensie = '.rs')) " \
               "limit {li} offset {os};".format(sch=pg_db_schema, li=10, os=0, idproject=select_id)
         cursor = pg_db.execute_sql(sql)
         ghs: Project = Project.select().where(Project.id == select_id)
@@ -42,8 +70,8 @@ def form_commits_for_projects(select_id):
             selections_with_mc = analyse_diff(id1)
             print(selections_with_mc)
             commits.append((id1, commitdatumtijd, author_id, remark, selections_with_mc))
-        return render_template("detail.html", commits=commits, selection=ghs[0], from_int=10, to_int=20,
-                               back_from_int=-10, back_to_int=0)
+        return render_template("detail.html", commits=commits, selection=ghs[0], from_int=10, to_int=20, back_from_int=-10,
+                            back_to_int=0)
     except Exception as e:
         print(e)
 
@@ -61,14 +89,14 @@ def form_changes_for_projects(select_id, false_positive):
         cursor = pg_db.execute_sql(sql)
         ghs: Project = Project.select().where(Project.id == select_id)
         commits: list[any] = []
-        for (bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-             remark, hashvalue, gecontroleerd, akkoord, opmerking, id) in cursor.fetchall():
+        for (bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark, hashvalue,
+             gecontroleerd, akkoord, opmerking, id) in cursor.fetchall():
             selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
             print(selections_with_mc)
             commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
                             hashvalue, gecontroleerd, akkoord, opmerking, id, selections_with_mc))
-        return render_template("change.html", commits=commits, selection=ghs[0], from_int=1, to_int=2,
-                               back_from_int=-1, back_to_int=0, false_positive=false_positive)
+        return render_template("change.html", commits=commits, selection=ghs[0], from_int=1, to_int=2, back_from_int=-1,
+                               back_to_int=0, false_positive=false_positive)
     except Exception as e:
         print(e)
 
@@ -80,14 +108,13 @@ def form_changes_for_projects_paging(select_id, from_int=0, to_int=1, false_posi
           "from {sch}.handmatige_check hc " \
           "where hc.falsepositive = {false_positive} " \
           "and hc.project_id = {idproject} " \
-          "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int,
-                                           idproject=select_id, false_positive=false_positive)
+          "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int, idproject=select_id,
+                                           false_positive=false_positive)
     cursor = pg_db.execute_sql(sql)
     ghs: Project = Project.select().where(Project.id == select_id)
     commits: list[any] = []
-    for (
-            bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd,
-            remark, hashvalue, gecontroleerd, akkoord, opmerking, id) in cursor.fetchall():
+    for (bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark, hashvalue,
+         gecontroleerd, akkoord, opmerking, id) in cursor.fetchall():
         selections_with_mc = analyse_diff_by_bwid(idbestandswijziging)
         print(selections_with_mc)
         commits.append((bz_id, zoekterm, falsepositive, regelnummers, idbestandswijziging, commitdatumtijd, remark,
@@ -122,7 +149,7 @@ def form_commits_for_projects_paging(select_id, from_int=0, to_int=10):
           "from {sch}.commitinfo as ci where ci.idproject = {idproject} " \
           "and ci.id in " \
           "(select bw.idcommit from {sch}.bestandswijziging as bw " \
-          "where (bw.extensie == '.java' or bw.extensie == '.exs' or bw.extensie == '.ex' or bw.extensie == '.rs') " \
+          "where (bw.extensie = '.java' or bw.extensie = '.exs' or bw.extensie = '.ex' or bw.extensie = '.rs')) " \
           "limit {li} offset {os};".format(sch=pg_db_schema, li=to_int - from_int, os=from_int, idproject=select_id)
     cursor = pg_db.execute_sql(sql)
     ghs: Project = Project.select().where(Project.id == select_id)
@@ -179,17 +206,18 @@ def manual_comments():
                        exclude_reason=manual_checking.exclude_reason)
 
 
-def bestandswijzigingen_to_list(selections):
+def bestandswijzigingen_to_list(selections: list[BestandsWijzigingView]):
     selections_list = []
     try:
         for sel in selections:
-            nl_netto, ol1 = readDiff.check_diff_text(sel.difftext, zoektermen)
-            nl, ol2 = readDiff.check_diff_text_no_check_with_removed(sel.difftext, zoektermen)
-            sel.diff_netto = create_string(nl_netto)
-            sel.diff_ol = create_string(ol2)
+            nl, ol = readDiff.check_diff_text(sel.difftext, zoektermen)
+            sel.diff_ol = create_string(ol)
             sel.diff_nl = create_string(nl)
             sel.simple_search = simple_search(sel.tekstachteraf)
             sel.tekstachteraf = add_line_numbers(sel.tekstachteraf)
+            sel.tekstvooraf = add_line_numbers(sel.tekstvooraf)
+            sel.tekstvooraf_ast = sel.tekstvooraf_ast
+            sel.tekstachteraf_ast = sel.tekstachteraf_ast
             selections_list.append(sel)
         return selections_list
     except Exception as e:
@@ -220,8 +248,28 @@ def simple_search(text: str):
 
 
 def analyse_diff(commit_id):
-    selections = BestandsWijziging.select().where(BestandsWijziging.idcommit == commit_id,
-                                                  BestandsWijziging.extensie != '.md')
+    if language == 'Elixir':
+        sql = '''
+        select bw.id, bw.idcommit, bw.filename, bw.difftext, bw.tekstvooraf, bw.tekstachteraf,ast.tekstvooraf_ast, ast.tekstachteraf_ast
+        from {sch}.bestandswijziging as bw
+        join {sch}.abstract_syntax_trees as ast on bw.id = ast.bestandswijziging_id
+        where bw.idcommit = {id};   
+        
+        '''.format(sch=pg_db_schema, id=commit_id)
+    else:
+        sql = '''
+        select bw.id, bw.idcommit, bw.filename, bw.difftext, bw.tekstvooraf, bw.tekstachteraf, null, null
+        from {sch}.bestandswijziging as bw
+        where bw.idcommit = {id};   
+    
+        '''.format(sch=pg_db_schema, id=commit_id)
+
+    selections = []
+
+    cursor = pg_db.execute_sql(sql)
+    for r in cursor.fetchall():
+        selections.append(BestandsWijzigingView(*r))
+
     return bestandswijzigingen_to_list(selections)
 
 
