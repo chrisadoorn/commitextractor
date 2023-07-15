@@ -5,7 +5,7 @@ from src.models.analyzed_data_models import BestandsWijzigingInfo, BestandsWijzi
     insert_regelnummers_by_key, get_voor_bestandswijziging
 from src.models.extracted_data_models import BestandsWijziging, CommitInfo, open_connection, close_connection
 from src.utils import db_postgresql, configurator
-from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust, _ReadDiff
+from src.utils.read_diff import ReadDiffElixir, ReadDiffJava, ReadDiffRust, _ReadDiff, InvalidDiffText
 
 read_diff = None
 
@@ -80,11 +80,13 @@ def analyze_by_project(projectname, project_id):
                 zoekterm = zoekterm
                 regelnrs_new = []
                 for (regelnr, line, keywords) in new_lines:
-                    if zoekterm in keywords:
+                    count = keywords.count(zoekterm)
+                    for i in range(count):
                         regelnrs_new.append(regelnr)
                 regelnrs_old = []
                 for (regelnr, line, keywords) in removed_lines:
-                    if zoekterm in keywords:
+                    count = keywords.count(zoekterm)
+                    for i in range(count):
                         regelnrs_old.append(regelnr)
 
                 bestandswijziging_zoekterm = BestandsWijzigingZoekterm()

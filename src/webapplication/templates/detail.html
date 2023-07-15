@@ -27,17 +27,16 @@
         <td colspan="4"> {% for selection in commit[4] %}
             <div class="content" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: stretch; margin: 5px">
                 <div style="margin: 5px">
-                    <div><b>difftext</b></div>
-                    {% if selection.difftext %}
+                    <div><b>{{ selection.filename }} before update</b></div>
+                    {% if selection.tekstvooraf %}
                     <div class="box">
-                        <pre>{{ selection.difftext }}</pre>
+                        <pre>{{ selection.tekstvooraf }}</pre>
                     </div>
                     {% else %}
                     <div>
-                        <pre>geen difftext, file verplaatst</pre>
+                        <pre>nieuw bestand</pre>
                     </div>
                     {% endif %}
-
                 </div>
                 <div style="margin: 5px">
                     <div><b>{{ selection.filename }} after update</b></div>
@@ -50,6 +49,31 @@
                         <pre>file verwijderd of verplaatst</pre>
                     </div>
                     {% endif %}
+                </div>
+                <div style="margin: 5px">
+                    <div><b>{{ selection.filename }} after update ast</b></div>
+                    {% if selection.tekstachteraf_ast %}
+                    <div class="box">
+                        <pre>{{ selection.tekstachteraf_ast }}</pre>
+                    </div>
+                    {% else %}
+                    <div>
+                        <pre>geen ast</pre>
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="margin: 5px">
+                    <div><b>difftext</b></div>
+                    {% if selection.difftext %}
+                    <div class="box">
+                        <pre>{{ selection.difftext }}</pre>
+                    </div>
+                    {% else %}
+                    <div>
+                        <pre>geen difftext, file verplaatst</pre>
+                    </div>
+                    {% endif %}
+
                 </div>
                 <div style="margin: 5px">
                     <div><b>changed or added lines with keywords</b></div>
