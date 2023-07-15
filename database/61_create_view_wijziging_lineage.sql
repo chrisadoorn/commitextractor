@@ -7,6 +7,7 @@ AS SELECT bz.zoekterm as zoekterm
       ,c.id as commitid
       ,p.id as projectid
       ,bz.id AS bestandswijzingzoekterm_id 
+      ,bz.falsepositive as falsepositive
 from bestandswijziging_zoekterm bz 
 right outer join bestandswijziging b on bz.idbestandswijziging = b.id
 join commitinfo c on b.idcommit = c.id
