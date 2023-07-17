@@ -18,12 +18,10 @@ def start_processing():
         db_postgresql.open_connection()
         author_identifier.identify_by_project(instance_uuid)
 
-
     except Exception as e:
         # stop processing
-        logging.info(
-            'Er zijn fouten geconstateerd tijdens de initialisatie. '
-            'Het programma wordt afgebroken. Zie details hieronder')
+        logging.info('Er zijn fouten geconstateerd tijdens de initialisatie. '
+                     'Het programma wordt afgebroken. Zie details hieronder')
         logging.info('##################################### START EXCEPTION #####################################')
         logging.error(str(e))
         logging.info('##################################### END EXCEPTION #####################################')
@@ -59,12 +57,11 @@ if __name__ == '__main__':
     instance_uuid = str(uuid.uuid4())
     # initialiseer logging
     dt = datetime.now()
-    filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'main.author_identifier.' + dt.strftime('%y%m%d-%H%M%S')
-                                             + '.' + instance_uuid + '.log'))
-    logging.basicConfig(filename=filename,
-                        format='%(asctime)s %(levelname)s: %(message)s',
-                        level=logging.INFO, encoding='utf-8')
+    filename = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'log',
+                                             'main.author_identifier.' + dt.strftime(
+                                                 '%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+    logging.basicConfig(filename=filename, format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO,
+                        encoding='utf-8')
 
     logging.info('Starting module author_identifier with procesid ' + instance_uuid)
 

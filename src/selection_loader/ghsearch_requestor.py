@@ -33,5 +33,5 @@ class GhSearchSampleRequester:
 if __name__ == '__main__':
     print("GhSearchSampleRequester gestart.")
     g = GhSearchSampleRequester()
-    g.get_sample("Elixir", (True, 10, 2))
+    g.get_sample("Elixir", (True, 0, 0))
     print("GhSearchSampleRequester klaar.")
