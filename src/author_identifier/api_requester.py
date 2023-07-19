@@ -144,11 +144,12 @@ def fetch_authors_by_project(projectid) -> None:
 
     schema = pg_db_schema
 
-    sql = ( "SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam " +
-                "FROM {schema}.commitinfo AS ci " +
-                "JOIN {schema}.project AS pr ON ci.idproject = pr.id " +
-                "WHERE ci.idproject = {projectid} " + "AND author_id is null ORDER BY ci.username, ci.emailaddress;").format(
-        schema=schema, projectid=projectid)
+    sql = """
+    SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam 
+        FROM {schema}.commitinfo AS ci 
+        JOIN {schema}.project AS pr ON ci.idproject = pr.id 
+    WHERE ci.idproject = {projectid} AND ci.author_id is null ORDER BY ci.username, ci.emailaddress;
+    """.format(schema=schema, projectid=projectid)
 
     cursor = pg_database.execute_sql(sql)
     counter = 1
@@ -171,7 +172,7 @@ def fetch_authors_by_project(projectid) -> None:
             existing_commit_info = CommitInfo().select().where(CommitInfo.idproject == id_project,
                                                                CommitInfo.username == username_hashed,
                                                                CommitInfo.emailaddress == email_address_hashed,
-                CommitInfo.author_id.is_null(False)).get_or_none()
+                                                               CommitInfo.author_id.is_null(False)).get_or_none()
             if existing_commit_info is not None:
                 author_id = existing_commit_info.author_id
             else:
@@ -184,7 +185,12 @@ def fetch_authors_by_project(projectid) -> None:
             logging.info("[New] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
             (commit_sha, author_login, author_id), error = __get_author_data_one_commit(project_name, sha)
             if author_id < 0:
-                author_id = (NO_AUTHOR_FOUND_START_ID + commit_info_id)
+                existing_commit_info = CommitInfo().select().where(CommitInfo.emailaddress == email_address_hashed,
+                                                                   CommitInfo.author_id >= NO_AUTHOR_FOUND_START_ID).get_or_none()
+                if existing_commit_info is not None:
+                    author_id = existing_commit_info.author_id
+                else:
+                    author_id = (NO_AUTHOR_FOUND_START_ID + commit_info_id)
                 logging.info("No author found in GitHub, new author id created:" + str(author_id))
             __update_commit_info(commit_info_id, author_id)
         temp_author_id = author_id

@@ -5,7 +5,6 @@ from src.utils import db_postgresql
 
 def identify_by_project(process_identifier: str) -> None:
     """
-
     :param process_identifier:
     """
     oude_processtap = 'extractie'

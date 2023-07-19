@@ -53,10 +53,6 @@ def __extract_repository(projectlocation: str, project_id: int) -> None:
         try:
             remark = __opkuizen_speciale_tekens(commit.msg, False)
 
-            # if "[bot]" in commit.author.name:
-            # logging.info('Commit: ' + commit.hash + ', overgeslagen, was [bot], author name = ' + commit.author.name)
-            #    continue
-
             username_hashed = hashing.make_hash(commit.author.name)
             emailaddress_hashed = hashing.make_hash(commit.author.email)
             sql = INSERT_COMMITS_SQL.format(schema=schema, idproject=project_id, commitdatumtijd=commit.committer_date,
