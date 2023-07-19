@@ -1,10 +1,9 @@
 import logging
 import os
+from peewee import PostgresqlDatabase, ProgrammingError
 from datetime import datetime
 
-from peewee import PostgresqlDatabase
 from pydriller import Repository, ModifiedFile
-
 from src.repo_extractor import hashing
 from src.utils import configurator, db_postgresql
 
@@ -17,7 +16,7 @@ extensions = configurator.get_extensions()
 files = configurator.get_files()
 save_code_before = configurator.get_module_configurationitem_boolean(module='repo_extractor', entry='save_before')
 
-connection = None
+PeeWeeConnectionPool = {}
 
 INSERT_COMMITS_SQL = "insert into {schema}.commitinfo (idproject, commitdatumtijd, " \
                      "hashvalue, username, emailaddress, remark) " \
@@ -34,7 +33,7 @@ INSERT_FILES_SQL = "insert into {schema}.bestandswijziging " \
 schema = ''
 
 
-def __extract_repository(projectlocation: str, project_id: int) -> None:
+def __extract_repository(process_identifier: str, projectlocation: str, project_id: int) -> None:
     """
     Process a project by using PyDriller.
     PyDriller downloads the project, and returns a list of all its commits. Each commit contains a list of its filechanges.
@@ -43,7 +42,7 @@ def __extract_repository(projectlocation: str, project_id: int) -> None:
                         If this is a local or network drive, the project will not be downloaded, but processed in place.
     :param project_id: The database id of the project
     """
-    global connection
+    connection = __get_connection_from_pool(process_identifier)
 
     start = datetime.now()
     logging.info('start verwerking (' + str(project_id) + '):  ' + projectlocation + str(start))
@@ -51,17 +50,15 @@ def __extract_repository(projectlocation: str, project_id: int) -> None:
     full_repository = Repository(projectlocation)
     for commit in full_repository.traverse_commits():
         try:
-            remark = __opkuizen_speciale_tekens(commit.msg, False)
 
-            username_hashed = hashing.make_hash(commit.author.name)
-            emailaddress_hashed = hashing.make_hash(commit.author.email)
+            remark = __opkuizen_speciale_tekens(commit.msg, False)
             sql = INSERT_COMMITS_SQL.format(schema=schema, idproject=project_id, commitdatumtijd=commit.committer_date,
-                                            hashvalue=commit.hash, username=username_hashed, emailaddress=emailaddress_hashed,
-                                            remark=remark)
+                                            hashvalue=commit.hash, username=hashing.make_hash(commit.author.name),
+                                            emailaddress=hashing.make_hash(commit.author.email), remark=remark)
             c = connection.execute_sql(sql)
             nw_pk = c.fetchone()
             for file in commit.modified_files:
-                __save_bestandswijziging(schema, file, nw_pk[0])
+                __save_bestandswijziging(connection, schema, file, nw_pk[0])
         except (UnicodeDecodeError, ValueError, TypeError) as e_inner:
             logging.exception(e_inner)
 
@@ -72,14 +69,14 @@ def __extract_repository(projectlocation: str, project_id: int) -> None:
     logging.info('verwerking ' + projectlocation + ' duurde ' + str(duur))
 
 
-def __save_bestandswijziging(schema_in: str, file: ModifiedFile, commit_id: int) -> None:
+def __save_bestandswijziging(connection: PostgresqlDatabase, schema_in: str, file: ModifiedFile,
+                             commit_id: int) -> None:
     """
     Checks if a bestandswijziging is of wanted in further analysis
     If so saves it into the database.
     :param file: PyDriller object: ModifiedFile
     :param commit_id: database id of commitinfo record
     """
-    global connection
     (do_safe, extension) = __file_selector(file)
     if do_safe:
         # sla op in database
@@ -91,7 +88,7 @@ def __save_bestandswijziging(schema_in: str, file: ModifiedFile, commit_id: int)
                                           locatie=file.new_path, extensie=extension, difftext=diff_text,
                                           tekstvooraf=tekstvooraf, tekstachteraf=tekstachteraf)
             connection.execute_sql(sql)
-        except (UnicodeDecodeError, ValueError, TypeError) as e_inner:
+        except (UnicodeDecodeError, ValueError, TypeError, ProgrammingError) as e_inner:
             logging.exception(e_inner)
 
 
@@ -123,8 +120,7 @@ def __file_selector(file: ModifiedFile) -> (bool, str):
 def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
     nieuwe_processtap = PROCESSTAP
     try:
-        __set_connection()
-        db_postgresql.open_connection()
+        db_connectie = db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
 
         volgend_project = db_postgresql.volgend_project(process_identifier, oude_processtap, nieuwe_processtap)
@@ -138,7 +134,7 @@ def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
             # Als dit foutgaat, dan kan dit aan het project liggen.
             # We stoppen dan met dit project, en starten een volgend project
             try:
-                __extract_repository(projectnaam, projectid)
+                __extract_repository(process_identifier, projectnaam, projectid)
                 verwerking_status = STATUS_VERWERKT
             # continue processing next project
             except Exception as e_inner:
@@ -161,7 +157,7 @@ def extract_repositories(process_identifier: str, oude_processtap: str) -> None:
 
 def __opkuizen_speciale_tekens(tekst, not_null):
     """
-    Speciale tekens toevoegen/aanpassen aan een string voor gebruik in een PSQL statement
+    Speciale tekens toevoegen aan een string voor gebruik in een PSQL statement
     """
     if tekst is None:
         if not_null:
@@ -175,13 +171,15 @@ def __opkuizen_speciale_tekens(tekst, not_null):
     return "'" + tekst.replace("'", "''").replace("%", "%%") + "'"
 
 
-def __set_connection():
-    global connection
-    if connection is None:
+def __get_connection_from_pool(process_identifier):
+    if process_identifier in PeeWeeConnectionPool:
+        connection = PeeWeeConnectionPool[process_identifier]
+    else:
         params_for_db = configurator.get_database_configuration()
         global schema
         schema = params_for_db.get('schema')
         connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'),
                                         password=params_for_db.get('password'), host=params_for_db.get('host'),
                                         port=params_for_db.get('port'))
+        PeeWeeConnectionPool[process_identifier] = connection
     return connection
