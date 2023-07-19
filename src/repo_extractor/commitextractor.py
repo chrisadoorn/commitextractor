@@ -1,6 +1,6 @@
 import logging
 import os
-from peewee import PostgresqlDatabase
+from peewee import PostgresqlDatabase, ProgrammingError
 from datetime import datetime
 
 from pydriller import Repository, ModifiedFile
@@ -88,7 +88,7 @@ def __save_bestandswijziging(connection: PostgresqlDatabase, schema_in: str, fil
                                           locatie=file.new_path, extensie=extension, difftext=diff_text,
                                           tekstvooraf=tekstvooraf, tekstachteraf=tekstachteraf)
             connection.execute_sql(sql)
-        except (UnicodeDecodeError, ValueError, TypeError) as e_inner:
+        except (UnicodeDecodeError, ValueError, TypeError, ProgrammingError) as e_inner:
             logging.exception(e_inner)
 
 
