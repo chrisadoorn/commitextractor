@@ -4,8 +4,8 @@ defmodule AstCreator.Main do
   def get_ids() do
     query =
       """
-      select bw.id from v10.bestandswijziging bw
-      left join v10.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
+      select bw.id from v11.bestandswijziging bw
+      left join v11.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
       where a.id is null order by bw.id asc;
       """
 

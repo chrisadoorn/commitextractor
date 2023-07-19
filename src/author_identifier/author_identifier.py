@@ -5,7 +5,6 @@ from src.utils import db_postgresql
 
 def identify_by_project(process_identifier: str) -> None:
     """
-
     :param process_identifier:
     """
     oude_processtap = 'extractie'
@@ -42,7 +41,7 @@ def identify_by_project(process_identifier: str) -> None:
         db_postgresql.deregistreer_processor(process_identifier)
 
     except Exception as e_outer:
-        logging.error('Er zijn fouten geconstateerd tijdens het loopen door de projectenlijst. Zie details hieronder')
+        logging.error('Er zijn fouten geconstateerd tijdens het lopen door de projectenlijst. Zie details hieronder')
         logging.exception(e_outer)
 
 

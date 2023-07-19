@@ -1,7 +1,7 @@
 defmodule AstCreator.AbstractSyntaxTree do
   use Ecto.Schema
 
-  @schema_prefix "v10"
+  @schema_prefix "v11"
 
   schema "abstract_syntax_trees" do
     field(:bestandswijziging_id, :integer)
