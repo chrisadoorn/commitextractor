@@ -1,7 +1,7 @@
 import os
 
 # zet hier de naam van het schema
-new_schema='pj3'
+new_schema='prod'
 
 scriptdir = os.path.dirname(__file__)
 

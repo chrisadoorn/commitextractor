@@ -7,11 +7,7 @@ A list of projects is first stored in the database. The projects in this list ar
 For each commit the files that are being changed are saved to database for further analysis by other functionality.
 
 #### Requirements
-This program needs: 
-* python runtime (3.11 or higher).
-* a connection to a postgresql database.
-* git to be in the Path
-* a working internet connection.
+See _installation.md_
 
 ## How to use
 First a list of projects has to be loaded. Next the commitextractor can be started. 
