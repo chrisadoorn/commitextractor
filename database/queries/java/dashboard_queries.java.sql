@@ -39,7 +39,10 @@ select count(1) from test.bestandswijziging;
 --set processor = null   ,start_extractie = null   ,einde_extractie = null   ,resultaat = null   ,status = 'nieuw';
    
 --delete from test.processor;   
-	
+select count(id) 
+from commitinfo c 
+where author_id is null;
+
 
 -- update test.verwerk_project
 -- set processor = null   ,start_extractie = null   ,einde_extractie = null   ,resultaat = null   ,status = 'nieuw'
@@ -75,11 +78,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'zoekterm_controleren'
+set processtap = 'extractie'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
-where processtap = 'java_parsing'
+where processtap = 'identificatie'
 and resultaat = 'mislukt';
 
 update verwerk_project 
@@ -212,3 +215,16 @@ where gecontroleerd = true;
 insert into bestandswijziging_zoekterm_regelnummer (idbestandswijziging, zoekterm, regelnummer, regelsoort)
 values ( 104939, 'Callable', unnest (ARRAY[12,13,3]), 'oud')
 
+
+-- verwijder bestandswijzigingen, commitinfo van mislukte projecten voor opnieuw proberen
+select id, naam from project
+where id in (select id from verwerk_project vp where resultaat = 'mislukt');
+
+delete from bestandswijziging 
+where idcommit in (
+select id from commitinfo c 
+where idproject in (select id from verwerk_project vp where resultaat = 'mislukt'));
+
+
+delete from commitinfo c 
+where idproject in (select id from verwerk_project vp where resultaat = 'mislukt');
