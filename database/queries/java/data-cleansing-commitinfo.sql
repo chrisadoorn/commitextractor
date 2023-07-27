@@ -48,17 +48,17 @@ ALTER TABLE IF EXISTS id_in_use
 -- stap 2
 -- controle hoeveel rijen hebben we?
 -- het verschil wordt geschoond          --  PRD1
-select count(*) from id_in_use;         -- 256759 
-select count(*) from commitinfo c;      -- 602573
+select count(*) from id_in_use;         -- 256759 --> 335060
+select count(*) from commitinfo c;      -- 602573 --> 460125
 
 select count(id) from commitinfo c
 where c.id not in
-( select v.idcommit from id_in_use v);  -- 345814
+( select v.idcommit from id_in_use v);  -- 345814 --> 125065
 
 -- stap 3 opschonen.
 delete from commitinfo c
 where c.id not in
-( select v.idcommit from id_in_use v);   -- 37418
+( select v.idcommit from id_in_use v);   -- 37418 --> 125065
 
 -- stap 4 opruimen
 
@@ -66,15 +66,13 @@ where c.id not in
 
 -- tel hoeveel projecten er wijzigingen hebben
 select count( distinct projectid )
-from wijziging_lineage wl; -- 1073
+from wijziging_lineage wl; -- 1090
+9 projecten zonder java code in .java files (wel in .pde, .md, ...  files)
+
 
 -- tel hoeveel er geen wijzigingen hebben
 -- 17 eerder fout gegaan.
 select * from project p 
 where idselectie = 1
---and id not in ( select distinct projectid from wijziging_lineage wl2)          -- alleen deze: 21 zonder bestandswijzigingen
-and id in (select id from verwerk_project vp where resultaat = 'mislukt'); -- alleen deze: 17 eerder gefaald 
-                                                                           --  not & in: 12 zonder bestandswijzigingen ( nooit gestart )
-                                                                           --  in  & in: 5 met bestandswijzigingen. (halfweg gefaald)
-
+and id not in ( select distinct projectid from wijziging_lineage wl2)          -- alleen deze: 9 zonder bestandswijzigingen
                                                                            --  not  & not: 9 zonder bestandswijzigingen, niet gefaald 
