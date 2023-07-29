@@ -549,3 +549,9 @@ delete from bestandswijziging_zoekterm_regelnummer;
 
 
 ```
+Other data cleaning
+Specifieke problemen
+hele grote bestanden
+
+select * from v11.bestandswijziging where length(tekstachteraf) >900000 ;
+select * from v11.bestandswijziging where tekstachteraf like '[{:%' or length(tekstachteraf) >900000;

@@ -1,4 +1,4 @@
-defmodule AstCreator.Main do
+defmodule AstCreator.GetFileChanges do
   use GenServer
 
   def get_ids() do
@@ -13,6 +13,7 @@ defmodule AstCreator.Main do
   end
 
   def start_link(_) do
+    IO.puts("starting main")
     {:ok, x} = get_ids()
     GenServer.start_link(__MODULE__, x.rows, name: __MODULE__)
   end
@@ -37,7 +38,7 @@ defmodule AstCreator.Main do
     {:noreply, [element | state]}
   end
 
-  def call() do
+  def next_filechange() do
     GenServer.call(__MODULE__, :pop)
   end
 end

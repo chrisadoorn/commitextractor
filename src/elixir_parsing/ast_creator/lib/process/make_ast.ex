@@ -1,7 +1,9 @@
 defmodule AstCreator.MakeAst do
   use GenServer
 
-  def start_link(worker_id) do
+  def start_link({worker_id}) do
+    str = to_string(worker_id)
+    IO.inspect("start makeAst #{str}")
     GenServer.start_link(__MODULE__, worker_id,name: via_tuple(worker_id))
   end
 
@@ -12,16 +14,15 @@ defmodule AstCreator.MakeAst do
   end
 
   @impl true
-  def handle_cast({:nextid, id}, state) do
+  def handle_cast({:nextid, [id|_]}, state) do
+    IO.puts("next id")
+    IO.puts(id)
     bestands_wijziging = get_bw_by_id(id)
-    IO.inspect(id)
-
     if bestands_wijziging != nil do
+      IO.puts("bw opgehaald")
+      IO.puts(bestands_wijziging.id)
       %AstCreator.AbstractSyntaxTree{
         bestandswijziging_id: bestands_wijziging.id,
-        tekstvooraf: bestands_wijziging.tekstvooraf,
-        tekstachteraf: bestands_wijziging.tekstachteraf,
-        difftext: bestands_wijziging.difftext,
         tekstvooraf_ast: getAstString(bestands_wijziging.tekstvooraf),
         tekstachteraf_ast: getAstString(bestands_wijziging.tekstachteraf)
       }
@@ -49,15 +50,13 @@ defmodule AstCreator.MakeAst do
 
 
   def get_bw_by_id(id) do
-    [h | _] = id
-    AstCreator.Repo.get(AstCreator.Bestandswijziging, h)
+    AstCreator.Repo.get(AstCreator.Bestandswijziging, id)
   end
 
   defp getAstString(tekst) do
     case tekst do
-      nil ->
-        nil
-
+      nil -> nil
+      "[{:" <> _  -> "data file"
       _ ->
         case Code.string_to_quoted(tekst, unescape: false) do
           {:ok, ast} -> inspect(ast, limit: :infinity)
@@ -67,12 +66,13 @@ defmodule AstCreator.MakeAst do
   end
 
   def saveAst(tree) do
+    IO.puts("called save")
     AstCreator.Repo.insert(tree)
   end
 
 
   def get_next(worker_id) do
-    x = AstCreator.Main.call()
+    x = AstCreator.GetFileChanges.next_filechange()
     if x != nil do
       cast(via_tuple(worker_id), {:nextid, x})
     else
