@@ -228,3 +228,14 @@ where idproject in (select id from verwerk_project vp where resultaat = 'mislukt
 
 delete from commitinfo c 
 where idproject in (select id from verwerk_project vp where resultaat = 'mislukt');
+
+
+-- wat is afgekeurd, en waarom
+select afkeurreden, falsepositive, count(afkeurreden) as aantal_afkeurreden, count(falsepositive)  
+from bestandswijziging_zoekterm bz 
+group by afkeurreden, falsepositive
+order by 3, 4;
+
+
+
+

@@ -1,5 +1,6 @@
 -- alle authors                                          -- PRD1
-select count(distinct author_id) from commitinfo c       -- 7678
+select count(distinct author_id) from commitinfo c       -- 10687, 6600 bekend, 4087 onbekend
+where author_id > 900000000                              -- 10383, 6602 bekend, 3781 onbekend na opnieuw draaien van author identification 
 select count(distinct auteur) from auteur_tellingen at2  -- 7678
 select count( distinct c.author_id)
 from commitinfo c
