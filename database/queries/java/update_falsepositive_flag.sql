@@ -10,6 +10,12 @@ select count(*) from wijziging_lineage wl ;     -- 2512590
 select count(*) from bestandswijziging b ;
 
 
+-- reset false positive flag voor parse stap
+update bestandswijziging_zoekterm
+set afkeurreden = null 
+   ,falsepositive = false 
+where afkeurreden  is not null;  
+
 -- parse exceptions 353
 update bestandswijziging_zoekterm 
 set falsepositive = true 
@@ -71,12 +77,39 @@ where id in (select id
 and falsepositive = false;
 
 
--- verhoudingsgewijs meer verwijderd? 
-select count(*) from bestandswijziging b  -- 2072141 totaal
--- uitsluiten van gevallen waar het zoekwoord in een andere namespace stond
+-- reset uitgesloten reden
+update bestandswijziging 
+set uitgesloten = false 
+   ,uitsluitreden = null
+where uitgesloten = true;
 
--- reset false positive flag voor parse stap
-update bestandswijziging_zoekterm
-set afkeurreden = null 
-   ,falsepositive = false 
-where afkeurreden  is not null;  
+
+-- update bestandswijziging, zet uitsluiting
+update bestandswijziging 
+set uitgesloten = true 
+   ,uitsluitreden = 'parse_exception'
+where id in (select distinct(idbestandswijziging)
+			from bestandswijziging_zoekterm bz 
+			where falsepositive = true 
+			and afkeurreden = 'parse_exception');   
+
+update bestandswijziging 
+set uitgesloten = true 
+   ,uitsluitreden = 'parse_error'
+where id in (select distinct(idbestandswijziging)
+			from bestandswijziging_zoekterm bz 
+			where falsepositive = true 
+			and afkeurreden = 'parse_error')
+and uitgesloten = false;   
+
+select uitsluitreden, count(uitsluitreden) as aantal
+from bestandswijziging b 
+where uitgesloten = true
+group by uitsluitreden;
+
+
+
+
+
+
+

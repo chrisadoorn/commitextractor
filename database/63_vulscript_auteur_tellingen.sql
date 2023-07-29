@@ -6,7 +6,7 @@ truncate table auteur_tellingen;
 insert into auteur_tellingen(auteur, project, projectid)
 select distinct auteur, project, projectid
 from wijziging_lineage
-where auteur is not null; -- 1596
+where auteur is not null; 
 
 
 -- update met tellingen
@@ -16,6 +16,7 @@ set aantal_totaal = (select count(distinct(bestandswijziging))
 	from wijziging_lineage wl
 	where qw.auteur = wl.auteur
 	and qw.projectid = wl.projectid
+	and wl.uitgesloten = false
 ) ;
 
 
@@ -26,6 +27,7 @@ set aantal_kandidaat = (select count(distinct(wl.bestandswijziging))
 	where qw.auteur = wl.auteur
 	and qw.projectid = wl.projectid
 	and wl.zoekterm is not null
+	and wl.uitgesloten = false
 ) ;
 
 
@@ -39,5 +41,6 @@ set aantal_bevestigd = (select count(distinct(wl.bestandswijziging))
 	and wl.bestandswijziging = bwz.idbestandswijziging
 	and wl.zoekterm = bwz.zoekterm
 	and bwz.falsepositive = false
+	and wl.uitgesloten = false
 ) ;
 

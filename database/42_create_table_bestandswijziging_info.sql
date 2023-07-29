@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS bestandswijziging_info
     id bigint NOT NULL,
     regels_oud integer default 0,
     regels_nieuw integer default 0,
+    uitgesloten boolean default false,
+    uitsluitreden character varying NULL,
     CONSTRAINT bestandswijziging_info_pk PRIMARY KEY (id),
     CONSTRAINT bestandswijziging_fk FOREIGN KEY (id)
         REFERENCES bestandswijziging(id) ON DELETE CASCADE
