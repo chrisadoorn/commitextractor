@@ -228,3 +228,29 @@ where idproject in (select id from verwerk_project vp where resultaat = 'mislukt
 
 delete from commitinfo c 
 where idproject in (select id from verwerk_project vp where resultaat = 'mislukt');
+
+
+-- wat is afgekeurd, en waarom
+select afkeurreden, falsepositive, count(afkeurreden) as aantal_afkeurreden, count(falsepositive)  
+from bestandswijziging_zoekterm bz 
+group by afkeurreden, falsepositive
+order by 3, 4;
+
+
+-- welke bestandswijzigingen zijn afgekeurd vanwege parse fouten?
+select distinct(idbestandswijziging)
+from bestandswijziging_zoekterm bz 
+where falsepositive = true 
+and afkeurreden in ('parse_exception', 'parse_error'); -- 2646
+
+-- andere afkeurredenen voor deze bestandswijzigingen
+select *
+from bestandswijziging_zoekterm bz 
+where (falsepositive = false 
+       or afkeurreden not in ('parse_exception', 'parse_error'))
+and bz.idbestandswijziging in ( select distinct(bz2.idbestandswijziging)
+								from bestandswijziging_zoekterm bz2 
+								where bz2.falsepositive = true 
+								and bz2.afkeurreden in ('parse_exception', 'parse_error')); 
+							
+

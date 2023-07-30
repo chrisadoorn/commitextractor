@@ -26,7 +26,7 @@ where a.id = b.idproject
 group by a.id, a.naam;
 
 -- update met tellingen
--- -- projecten en unieke MC-auteurs
+-- projecten en unieke MC-auteurs
 update SQ1_compare as sq1
 set unieke_MC_auteurs = (select count(distinct(b.author_id))
 	from project a,
