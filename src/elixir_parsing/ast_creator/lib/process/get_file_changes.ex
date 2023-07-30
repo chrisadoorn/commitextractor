@@ -6,7 +6,7 @@ defmodule AstCreator.GetFileChanges do
       """
       select bw.id from v11.bestandswijziging bw
       left join v11.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
-      where a.id is null order by bw.id asc;
+      where a.id is null  order by bw.id asc;
       """
 
     Ecto.Adapters.SQL.query(AstCreator.Repo, query, [])
