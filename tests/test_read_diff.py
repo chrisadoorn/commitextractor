@@ -222,6 +222,14 @@ class Test(unittest.TestCase):
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
+    def test_text_has_escaped_quotes(self):
+        read_diff = ReadDiffJava()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+        text = text + "+Hoi \"Hallo \\\" Hoi\""
+        (x, y) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (x[0][0], x[0][2]), (3, ["Hoi"]))
+
     def test_text_starts_with_an_expected_chunk_header_and_has_keywords_single_word_java(self):
         read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +2,1 @@" + "\n"

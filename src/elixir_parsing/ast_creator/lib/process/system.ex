@@ -2,6 +2,7 @@ defmodule AstCreator.System do
   use Supervisor
   @nr_processes 30
   def start_link(_) do
+    IO.puts("starting system")
     Supervisor.start_link(__MODULE__, nil)
   end
 
@@ -9,8 +10,8 @@ defmodule AstCreator.System do
     children = [
     AstCreator.ProcessRegistry,
       %{
-        id: AstCreator.Main,
-        start: {AstCreator.Main, :start_link, [nil]}
+        id: AstCreator.GetFileChanges,
+        start: {AstCreator.GetFileChanges, :start_link, [nil]}
       }
     ]
 

@@ -1,4 +1,4 @@
-defmodule AstCreator.Main do
+defmodule AstCreator.GetFileChanges do
   use GenServer
 
   def get_ids() do
@@ -6,13 +6,14 @@ defmodule AstCreator.Main do
       """
       select bw.id from v11.bestandswijziging bw
       left join v11.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
-      where a.id is null order by bw.id asc;
+      where a.id is null  order by bw.id asc;
       """
 
     Ecto.Adapters.SQL.query(AstCreator.Repo, query, [])
   end
 
   def start_link(_) do
+    IO.puts("starting main")
     {:ok, x} = get_ids()
     GenServer.start_link(__MODULE__, x.rows, name: __MODULE__)
   end
@@ -37,7 +38,7 @@ defmodule AstCreator.Main do
     {:noreply, [element | state]}
   end
 
-  def call() do
+  def next_filechange() do
     GenServer.call(__MODULE__, :pop)
   end
 end

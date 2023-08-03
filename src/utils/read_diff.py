@@ -31,8 +31,13 @@ class _FindKeyWordsInterface:
             return c
 
     def double_quote_literal(self, line_list: deque) -> str | None:
+        # escape_char_found = False
         while line_list:
             c = line_list.popleft() if line_list else ''
+            if c == '\\':
+                c = line_list.popleft() if line_list else ''
+                if c == '"':
+                    continue
             if c == '':
                 return self.stop()
             if c == '"':
