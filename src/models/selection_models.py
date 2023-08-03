@@ -47,3 +47,8 @@ class Project(BaseModel):
     number_of_languages = IntegerField(null=True)
     languages = TextField(null=True)
     aantal_commits = IntegerField(null=True)
+
+class Zoekterm(BaseModel):
+    id = AutoField(primary_key=True)
+    extensie = CharField(null=True)
+    zoekwoord = CharField(null=True)
