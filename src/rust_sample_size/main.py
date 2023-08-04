@@ -11,7 +11,6 @@ from src.utils import db_postgresql, sanitychecker
 #         define functions          #
 #####################################
 
-
 def start_processing():
     try:
         # connect to database
@@ -48,7 +47,7 @@ def start_with_checks():
         start_processing()
 
     finally:
-        logging.info('Stopping module author_identifier')
+        logging.info('Stopping module setSampling')
 
 
 #####################################
@@ -60,12 +59,12 @@ if __name__ == '__main__':
     # initialiseer logging
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'main.author_identifier.' + dt.strftime('%y%m%d-%H%M%S')
+                                             '../..', 'log', 'main.setSampling.' + dt.strftime('%y%m%d-%H%M%S')
                                              + '.' + instance_uuid + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
 
-    logging.info('Starting module author_identifier with procesid ' + instance_uuid)
+    logging.info('Starting module setSampling with procesid ' + instance_uuid)
 
     start_with_checks()
