@@ -2,9 +2,8 @@ import logging
 import os
 import uuid
 from datetime import datetime
-from src.utils import sanitychecker, configurator
+from src.utils import sanitychecker
 from src.text_search import parallelizer
-from src.utils.read_diff import ReadDiffRust
 
 
 #####################################
@@ -14,9 +13,6 @@ from src.utils.read_diff import ReadDiffRust
 
 def start_processing():
     try:
-        language = configurator.get_main_language()[0]
-        if language.upper() == 'RUST':
-            ReadDiffRust.optimizing_toml_rust_files()
         # connect to database
         parallelizer.start_text_search()
 

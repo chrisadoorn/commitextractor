@@ -1,12 +1,17 @@
+Prequisites:
+Created complete schema (via database/py_scripts.py) in PostGreSQL
+Running database
+Filled-in commitextractor.ini & commitextractor.seed
+
 Step 1:
-Download projects from GH-Search in Json-format
-Input: selectioncriteria
+Download projects from seart-ghs in Json-format
+Input: selectioncriteria in seart-ghs form
 Output: Json
 
 Step 2a:
 Run load_ghsearch.py
 Input:
-Json from from step 1 (define filename in variable load_ghsearch-importfile in commitextractor.ini)
+Json-file from from step 1 (define filename in variable load_ghsearch-importfile in commitextractor.ini)
 Output:
 Projects in table project
 Selectiecriteria in table selectie
@@ -15,7 +20,7 @@ Projects in table verwerk_project (resultaat=verwerkt, Processtap = selectie, st
 Step 2b (optional):
 Run setSampleSize.py
 Input:
-define confidencelevel in variable confidencelevelsample in commitextractor.ini)
+define sampleLevel in variable sampleLevel in commitextractor.ini
 Output:
 Projects in table project & verwerk_project are reduced to the desired sample-size
 
@@ -29,7 +34,7 @@ FileChanges and commitinfo in table project bestandswijziging and commitinfo (us
 Projects in table verwerk_project (resultaat=verwerkt, Processtap = extractie, status = gereed)
 
 Step 4:
-Run author_identifier/main.py Retrieve the author of a filechange
+Run author_identifier/main.py to retrieve the author of a filechange
 Input:
 personal access token (variable github-personal_access_token in commitextractor.ini)
 Output:
@@ -49,11 +54,18 @@ Run diff_analyzer/main.py to eliminate false positives from step 5a
 Input:
 variables in text_search in commitextractor.ini: loglevel, run_parallel (number of parallel processes), vorige_stap
 Output:
-Projects in table verwerk_project (resultaat=verwerkt, Processtap = zoekterm_vinden, status = gereed)
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = zoekterm_controleren, status = gereed)
 Found false_positives, aantalgevonden_oud, aantalgevonden_nieuw in table project bestandswijziging_zoekterm
 Found regelnummers in table
 
-
+Step 5b:
+Run xxx_parser/main.py to further eliminate false positives from step 5a
+Input:
+variables in text_search in commitextractor.ini: loglevel, run_parallel (number of parallel processes), vorige_stap
+Output:
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = zoekterm_controleren2, status = gereed)
+Found false_positives, aantalgevonden_oud, aantalgevonden_nieuw in table project bestandswijziging_zoekterm
+Found regelnummers in table
 
 
 
