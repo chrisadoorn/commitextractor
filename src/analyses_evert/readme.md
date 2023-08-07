@@ -555,3 +555,48 @@ hele grote bestanden
 
 select * from v11.bestandswijziging where length(tekstachteraf) >900000 ;
 select * from v11.bestandswijziging where tekstachteraf like '[{:%' or length(tekstachteraf) >900000;
+
+de stappen zijn dus:
+1: sample ophalen van seart ghs en importeren in de database
+2: Pydriller gebruiken om de commits te importeren
+3: schoonmaken van de data
+        a. grote bestanden verwijderen
+        b. bestanden met syntax error verwijderen kan pas na de AST
+        c. commits zonder bestanden verwijderen
+
+
+
+opruimen data:
+
+delete from v11.abstract_syntax_trees ast
+where tekstachteraf_ast like 'data file%' or tekstachteraf_ast like 'syntax error%';
+
+update v11.bestandswijziging set not_remove = 1
+from v11.abstract_syntax_trees ast
+where v11.bestandswijziging.id = ast.bestandswijziging_id;
+
+delete from v11.bestandswijziging bzw
+where bzw.not_remove is null;
+
+select ci.idproject, count(*) as c from v11.commitinfo ci
+left join v11.bestandswijziging bw on ci.id = bw.idcommit
+group by ci.idproject
+order by c
+
+update v11.commitinfo ci set nr_of_files =
+(
+select count(id) from v11.bestandswijziging bw
+where bw.idcommit = ci.id
+);
+
+delete from v11.commitinfo
+where nr_of_files = 0
+
+update v11.project pr set aantal_commits =
+(
+select count(id) from v11.commitinfo ci
+where pr.id = ci.idproject
+);
+
+delete from v11.project
+where aantal_commits = 0

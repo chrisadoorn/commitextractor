@@ -31,10 +31,9 @@ class _FindKeyWordsInterface:
             return c
 
     def double_quote_literal(self, line_list: deque) -> str | None:
-        # escape_char_found = False
         while line_list:
             c = line_list.popleft() if line_list else ''
-            if c == '\\':
+            if c == '\\':  # handle escape character
                 c = line_list.popleft() if line_list else ''
                 if c == '"':
                     continue
@@ -79,7 +78,7 @@ class _ReadDiff(object):
         self.find_key_words_interface = find_key_words_interface
 
     def check_diff_text(self, chunk: str = '', words: list[str] = None) -> tuple[
-            list[tuple[int, str, list[str]]], list[tuple[int, str, list[str]]]]:
+        list[tuple[int, str, list[str]]], list[tuple[int, str, list[str]]]]:
         """
         Read a diff chunk text, and return the new and removed un-empty lines, together with the line number and
         an array of found keywords.
@@ -217,7 +216,7 @@ class ReadDiffJava(_ReadDiff):
 class ReadDiffElixir(_ReadDiff):
 
     def __init__(self):
-        super().__init__(self.__FindKeyWords())
+        super().__init__(self.__FindKeyWords())  # inject the FindKeyWords class
 
     class __FindKeyWords(_FindKeyWordsInterface):
         identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_']
@@ -227,20 +226,19 @@ class ReadDiffElixir(_ReadDiff):
             instances_found = []
             while line_list:
                 c = line_list.popleft() if line_list else ''
-                if c == '':
+                if c == '':  # end of line
                     break
 
-                if c == '#':
+                if c == '#':  # start of comment
                     break
 
-                if c == '~':
+                if c == '~':  # start of sigil
                     if self.sigil(c, line_list) is None:
                         break
                     continue
 
-                if c == '"':
-                    if self.double_quote_literal(line_list) is None:
-                        break
+                if c == '"':  # start of double quote literal, filter
+                    self.double_quote_literal(line_list)
                     continue
 
                 if c == '\'':
@@ -256,6 +254,28 @@ class ReadDiffElixir(_ReadDiff):
                     if w in text_to_find:
                         instances_found.append(w)
             return instances_found
+
+        def double_quote_literal(self, line_list: deque) -> str | None:
+            temp_text = ''
+            c = ''
+            while line_list:
+                c = line_list.popleft() if line_list else ''
+                if c == '\\':  # handle escape character
+                    c = line_list.popleft() if line_list else ''
+                    if c == '"':
+                        continue
+                temp_text += c
+                if c == '':  # end of line
+                    break
+                if c == '"':
+                    break
+
+            if c != '"':
+                z = deque(temp_text)
+                while z:
+                    pop_z = z.pop()
+                    line_list.appendleft(pop_z)
+            return c
 
         def sigil(self, c, line_list: deque) -> str | None:
             next_c = line_list.popleft() if line_list else ''
@@ -295,6 +315,7 @@ class ReadDiffRust(_ReadDiff):
             if bestandswijziging.tekstvooraf is not None:
                 bestandswijziging.tekstvooraf = ReadDiffRust.clean_rust_toml(bestandswijziging.tekstvooraf)
             bestandswijziging.save()
+
     def clean_rust_toml(text: str) -> str:
         """
         reduces text to library-dependencies
@@ -310,7 +331,8 @@ class ReadDiffRust(_ReadDiff):
 
     class __FindKeyWords(_FindKeyWordsInterface):
         # This list consist of characters allowed in the words we are looking for.
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['-','_']
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['-',
+                                                                                                                   '_']
 
         """
         Rust contains line comments starting with //, doc comments starting with /// or //! and      
@@ -318,6 +340,7 @@ class ReadDiffRust(_ReadDiff):
         Rust contains single and double quote literals
         Todo: vergelijken met Java
         """
+
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
             line_list = deque(text)
             instances_found = []
