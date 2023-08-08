@@ -48,7 +48,8 @@ def import_keywords(jsondata: json) -> None:
     for zoekterm in jsondata:
         zoekterm_details = Zoekterm()
         zoekterm_details.extensie = zoekterm.get('extensie') or None
-        zoekterm_details.zoekwoord = zoekterm.get('zoekwoord') or None
+        #gebruik van package in broncode wordt voorafgegaan door keyword use
+        zoekterm_details.zoekwoord = "use " + zoekterm.get('zoekwoord') or None
         try:
             zoekterm_details.save()
         except ValueError as e_outer:
@@ -83,11 +84,26 @@ def insert_hardcoded_keywords() -> None:
 
     zoekterm_details = Zoekterm()
     zoekterm_details.create(extensie=".rs", zoekwoord=".await")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::thread")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::os::raw::Thread")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::marker::sync")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::marker::Send")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::thread")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::os::raw::Thread")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::marker::sync")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::marker::Send")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::sync")
     zoekterm_details.create(extensie=".rs", zoekwoord="std::thread")
     zoekterm_details.create(extensie=".rs", zoekwoord="std::os::raw::Thread")
     zoekterm_details.create(extensie=".rs", zoekwoord="std::marker::sync")
     zoekterm_details.create(extensie=".rs", zoekwoord="std::marker::Send")
     zoekterm_details.create(extensie=".rs", zoekwoord="std::sync")
+    zoekterm_details.create(extensie=".rs", zoekwoord="::std::thread")
+    zoekterm_details.create(extensie=".rs", zoekwoord="::std::os::raw::Thread")
+    zoekterm_details.create(extensie=".rs", zoekwoord="::std::marker::sync")
+    zoekterm_details.create(extensie=".rs", zoekwoord="::std::marker::Send")
+    zoekterm_details.create(extensie=".rs", zoekwoord="::std::sync")
 
 
 def load_importfile(importfile: str) -> None:

@@ -1,0 +1,18 @@
+def hello(s):
+    /* say a nice hello! */
+        /* say a nice hello2! 
+         and do something*/
+        // say a nice hello3! 
+    print("Hi, 
+        {s}!")    
+    "Hi, {s}!"
+    'Hi, {s}!'
+    print(f"Hi, 
+        {s}!")      
+    print(f"Hi,{s}!") |> IO.puts
+    print("#hello")
+    """
+"This is a
+multiline
+quoted string."
+"""

@@ -55,17 +55,16 @@ Input:
 variables in text_search in commitextractor.ini: loglevel, run_parallel (number of parallel processes), vorige_stap
 Output:
 Projects in table verwerk_project (resultaat=verwerkt, Processtap = zoekterm_controleren, status = gereed)
-Found false_positives, aantalgevonden_oud, aantalgevonden_nieuw in table project bestandswijziging_zoekterm
-Found regelnummers in table
+Update table project bestandswijziging_zoekterm with false_positives, aantalgevonden_oud, aantalgevonden_nieuw
+Update table project bestandswijziging_info with regels_oud and regels_nieuw
 
 Step 5b:
 Run xxx_parser/main.py to further eliminate false positives from step 5a
 Input:
 variables in text_search in commitextractor.ini: loglevel, run_parallel (number of parallel processes), vorige_stap
 Output:
-Projects in table verwerk_project (resultaat=verwerkt, Processtap = zoekterm_controleren2, status = gereed)
-Found false_positives, aantalgevonden_oud, aantalgevonden_nieuw in table project bestandswijziging_zoekterm
-Found regelnummers in table
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = fulltext_controleren, status = gereed)
+Update table project bestandswijziging_zoekterm with false_positives
 
 
 

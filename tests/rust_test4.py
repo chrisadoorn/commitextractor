@@ -1,9 +1,32 @@
+import logging
 import string
+
+from src.models.analyzed_data_models import Zoekterm
+from src.utils import db_postgresql
+from src.utils.configurator import get_database_configuration
+from src.models.extracted_data_models import BestandsWijziging
+from src.utils import db_postgresql, configurator
+from src.utils.read_diff import ReadDiffRust, ReadDiffElixir
 from collections import deque
 
-from src.models.extracted_data_models import BestandsWijziging
+global db_connectie
+schema = get_database_configuration().get('schema')
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+zoekterm_list = []
 class InvalidDiffText(Exception):
     """Raised when the diff text is not valid"""
     pass
@@ -158,135 +181,29 @@ class _ReadDiff(object):
                 mc_list = self.find_key_words_interface.find_key_words(line, words)
         return line, mc_list
 
-
-class ReadDiffJava(_ReadDiff):
-
-    def __init__(self):
-        super().__init__(self.__FindKeyWords())
-
-    class __FindKeyWords(_FindKeyWordsInterface):
-        # This list consist of characters allowed in the words we wou are looking for.
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
-                                                                                                                   '$']
-
-        def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
-            line_list = deque(text)
-            instances_found = []
-            while line_list:
-                c = line_list.popleft() if line_list else ''
-                if c == '':
-                    break
-
-                if c == '/':
-                    if self.line_comment(c, line_list) is None:
-                        break
-                    continue
-
-                if c == '*':
-                    c = self.end_block_comment(line_list)
-                    if c is None:
-                        break
-                    if c == '/':
-                        instances_found = []
-
-                if c == '"':
-                    if self.double_quote_literal(line_list) is None:
-                        break
-                    continue
-
-                if c == '\'':
-                    if self.single_quote_literal(line_list) is None:
-                        break
-                    continue
-
-                if c is None:
-                    break
-
-                if c in self.identifier_alphabet:
-                    w = self.concat(line_list, c)
-                    if w in text_to_find:
-                        instances_found.append(w)
-            return instances_found
-
-
-class ReadDiffElixir(_ReadDiff):
-
-    def __init__(self):
-        super().__init__(self.__FindKeyWords())
-
-    class __FindKeyWords(_FindKeyWordsInterface):
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + ['_']
-
-        def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
-            line_list = deque(text)
-            instances_found = []
-            while line_list:
-                c = line_list.popleft() if line_list else ''
-                if c == '':
-                    break
-
-                if c == '#':
-                    break
-
-                if c == '~':
-                    if self.sigil(c, line_list) is None:
-                        break
-                    continue
-
-                if c == '"':
-                    if self.double_quote_literal(line_list) is None:
-                        break
-                    continue
-
-                if c == '\'':
-                    if self.single_quote_literal(line_list) is None:
-                        break
-                    continue
-
-                if c is None:
-                    break
-
-                if c in self.identifier_alphabet:
-                    w = self.concat(line_list, c)
-                    if w in text_to_find:
-                        instances_found.append(w)
-            return instances_found
-
-        def sigil(self, c, line_list: deque) -> str | None:
-            next_c = line_list.popleft() if line_list else ''
-            if next_c == '':
-                return self.stop()
-            if next_c not in ['c', 'C', 's', 'S']:
-                line_list.appendleft(next_c)  # put back the character,so it can be popped again in the next iteration
-                return c
-            double_next_c = line_list.popleft() if line_list else ''
-            if double_next_c == '' or double_next_c not in ['(', '{']:
-                line_list.appendleft(double_next_c)  # put back the character for the next iteration
-                line_list.appendleft(next_c)  # put back the character for the next iteration
-                return c
-            while line_list:
-                triple_next_c = line_list.popleft() if line_list else ''
-                if triple_next_c == '':
-                    return self.stop()
-                if double_next_c == '(' and triple_next_c == ')' or double_next_c == '{' and triple_next_c == '}':
-                    return double_next_c
-
-
+"""_ReadDiff als parameter dus dit wordt de parent class"""
 class ReadDiffRust(_ReadDiff):
 
+    """init wordt automatisch opgeroepen als er een instantie wordt aangemaakt"""
     def __init__(self):
+        print("init")
         super().__init__(self.__FindKeyWords())
 
     class __FindKeyWords(_FindKeyWordsInterface):
+        print("class __FindKeyWords")
         # This list consist of characters allowed in the words we are looking for.
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['-','_',':','{','}',',']
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['-','_',':','::']
+
 
         """
-        Rust contains line comments starting with //, doc comments starting with /// or //! 
+        Rust contains line comments starting with //, doc comments starting with /// or //! and      
+        multi-line  comments starting with /* and ending with */
         Rust contains single and double quote literals
         """
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:
+            print("Nu find_key_words")
             line_list = deque(text)
+            print("line_list " + str(line_list))
             instances_found = []
             while line_list:
                 c = line_list.popleft() if line_list else ''
@@ -294,11 +211,13 @@ class ReadDiffRust(_ReadDiff):
                     break
 
                 if c == '/':
+                    print("line_comment " + str(line_list))
                     if self.line_comment(c, line_list) is None:
                         break
                     continue
 
                 if c == '*':
+                    print("end_block_comment " + str(line_list))
                     c = self.end_block_comment(line_list)
                     if c is None:
                         break
@@ -306,11 +225,13 @@ class ReadDiffRust(_ReadDiff):
                         instances_found = []
 
                 if c == '"':
+                    print("double_quote_literal " + str(line_list))
                     if self.double_quote_literal(line_list) is None:
                         break
                     continue
 
                 if c == '\'':
+                    print("single_quote_literal " + str(line_list))
                     if self.single_quote_literal(line_list) is None:
                         break
                     continue
@@ -319,18 +240,109 @@ class ReadDiffRust(_ReadDiff):
                     break
 
                 if c in self.identifier_alphabet:
+                    print("concat " + str(line_list))
                     w = self.concat(line_list, c)
-                    value1, value2 = check(w, text_to_find);
-                    if value2:
-                        instances_found.append(value1)
+                    if w[:11] == "std::thread":
+                        w = w[:11]
+                    if w[:17] == "std::marker::sync":
+                        w = w[:17]
+                    if w[:17] == "std::marker::Send":
+                        w = w[:17]
+                    print("text_to_find " + str(text_to_find))
+                    print ("Ascii?  " + str(str(text_to_find).isascii()))
+                    print("w " + str(w))
+                    if w in text_to_find:
+                        print("append " + str(w))
+                        instances_found.append(w)
             return instances_found
 
-def check(word, sequence) -> (str,bool):
-    found = False
-    for index, item in enumerate(sequence):
-        testword = word[:len(sequence[int(f"{index}")])]
-        if item == testword:
-            found = True
-            break
-    return (testword,found)
+    @staticmethod
+    def read_diff_file(filepath):
+        file = open(filepath, 'rt')
+        chunk = file.read()
+        file.close()
+        return chunk
 
+if __name__ == '__main__':
+    read_diff = ReadDiffRust()
+    keywords = ["std::thread"]
+    diff_text = read_diff.read_diff_file(filepath='./read_diff_rust_test.txt')
+    (new_lines, old_lines) = read_diff.check_diff_text(diff_text, keywords)
+    print("new_lines" + str(new_lines))
+    print("old_lines" + str(old_lines))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def __get_bestandswijzigingen_list():
+    """
+    retrieves the list of bestandswijzigingen for a project containing a certain keyword.
+    :param zoekterm: Zoekterm object
+    :param project_id:
+    :return: List of tuples, the first element containing the id of a bestandswijzigng
+    """
+    language = configurator.get_main_language()[0]
+    if language.upper() == 'RUST':
+        print("optimising rust Toml files")
+        __optimizing_toml_rust_files()
+
+def __optimizing_toml_rust_files ():
+    """
+    retrieves the list of bestandswijzigingen of .toml files for a project, reduces it to library-dependencies
+    :return: updates difftest, tekstvooraf, tekstachteraf in table bestandswijzigng
+    """
+    for bestandswijziging in BestandsWijziging.select().where(BestandsWijziging.extensie == '.toml' and BestandsWijziging.idcommit == '78'):
+        if bestandswijziging.difftext is not None:
+            print("bestandswijziging.difftext\n" + bestandswijziging.difftext)
+            print("opkuis bestandswijziging.difftext\n " + ReadDiffRust.clean_rust_toml(bestandswijziging.difftext))
+            bestandswijziging.difftext = ReadDiffRust.clean_rust_toml(bestandswijziging.difftext)
+
+        if bestandswijziging.tekstachteraf is not None:
+            print("bestandswijziging.tekstachteraf\n " + str(bestandswijziging.tekstachteraf))
+            print("opkuis bestandswijziging.tekstachteraf\n " + ReadDiffRust.clean_rust_toml(bestandswijziging.tekstachteraf))
+            bestandswijziging.tekstachteraf = ReadDiffRust.clean_rust_toml(bestandswijziging.tekstachteraf)
+
+        if bestandswijziging.tekstvooraf is not None:
+            print("bestandswijziging.tekstvooraf\n " + str(bestandswijziging.tekstvooraf))
+            print("opkuis bestandswijziging.tekstvooraf\n " + ReadDiffRust.clean_rust_toml(bestandswijziging.tekstvooraf))
+            bestandswijziging.tekstvooraf = ReadDiffRust.clean_rust_toml(bestandswijziging.tekstvooraf)

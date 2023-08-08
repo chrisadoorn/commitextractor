@@ -1,4 +1,4 @@
---bij meerdere keren draaien GhSearch
+--tabel (en andere tabellen eraan gelieerd) leegmaken en herstarten id
 TRUNCATE test.selectie RESTART IDENTITY cascade;
 TRUNCATE test.project RESTART IDENTITY cascade;
 TRUNCATE test.verwerk_project RESTART IDENTITY cascade;
@@ -20,3 +20,26 @@ set processtap = 'selectie'
    ,status = 'gereed'
 where processtap = 'extractie';
 
+-- tellen gebruik zoekterm
+select count(b.id)
+from test.bestandswijziging b
+where b.extensie = '.rs'
+  and b.difftext like '%use runtime-tokio%'
+
+-- opzoeken difftext na vinden zoekterm
+select bz.idbestandswijziging, b.difftext
+from test.bestandswijziging_zoekterm bz,
+	 test.bestandswijziging b
+where bz.idbestandswijziging = b.id
+	 and bz.idbestandswijziging = '553'
+
+--opzoeken projectid,naam & commitid na vinden zoekterm
+select c.idproject, d.naam, c.id
+from test.bestandswijziging_zoekterm bz,
+	 test.bestandswijziging b,
+	 test.commitinfo c,
+	 test.project d
+where bz.idbestandswijziging = b.id
+	 and bz.idbestandswijziging = '839'
+	 and b.idcommit = c.id
+	 and c.idproject = d.id
