@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS SQ1_compare
 )
 TABLESPACE pg_default;
 
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE auteur_tellingen TO appl;
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE SQ1_compare TO appl;
 
 COMMENT ON TABLE auteur_tellingen
     IS 'SQ1: How is the usage of multi-core programming primitives distributed among programmers? Table for comparison between authors and MC-authors in a project'
