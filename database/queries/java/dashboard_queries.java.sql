@@ -253,4 +253,14 @@ and bz.idbestandswijziging in ( select distinct(bz2.idbestandswijziging)
 								where bz2.falsepositive = true 
 								and bz2.afkeurreden in ('parse_exception', 'parse_error')); 
 							
+select tekstachteraf  
+from bestandswijziging b 
+where b.id = 1093503;
 
+
+select *
+from java_parse_result jpr 
+ where jpr.usage_list_achteraf like '%identifier%';
+-- where jpr.bw_id = 64541;
+
+							

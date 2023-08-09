@@ -87,7 +87,9 @@ class Test(unittest.TestCase):
         zoekterm = 'Lock'
 
         results = get_class_usage(ntlr_tree, zoekterm)
-        expected_results = ['import', 'annotation', 'annotation', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration']
+        expected_results = ['import', 'annotation', 'annotation', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation',
+                            'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration', 'annotation', 'type_declaration',
+                            'annotation', 'type_declaration']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
     def test_340155(self):
@@ -96,7 +98,9 @@ class Test(unittest.TestCase):
         zoekterm = 'Thread'
 
         results = get_class_usage(ntlr_tree, zoekterm)
-        expected_results = ['local_variable', 'instantation', 'static_use', 'identifier', 'identifier', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use']
+        expected_results = ['local_variable', 'instantation', 'static_use', 'identifier', 'identifier', 'local_variable', 'static_use',
+                            'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable', 'static_use', 'local_variable',
+                            'static_use']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
 
     def test_1606748(self):
@@ -118,4 +122,47 @@ class Test(unittest.TestCase):
 
         results = get_class_usage(ntlr_tree, zoekterm)
         expected_results = ['import', 'piep']
+        unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')
+
+    def test_826028(self):
+        # public class SubmissionPublisher<T> implements Flow.Publisher<T>, AutoCloseable
+        # probleem is dat niet Flow.Publisher de inhoud van een leave is, maar Flow en publisher naast elkaar in leaves staan.
+        zoekterm = 'Flow.Publisher'
+        zoektermsplit = zoekterm.split('.')
+        zoekterm2 = zoektermsplit[len(zoektermsplit) - 1]
+
+        zoekterm = 'Flow'
+        zoektermsplit = zoekterm.split('.')
+        zoekterm3 = zoektermsplit[len(zoektermsplit) - 1]
+
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_826028.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+
+        results2 = get_class_usage(ntlr_tree, zoekterm2)
+        expected_results2 = ['implements']
+        unittest.TestCase.assertEqual(self, expected_results2, results2, 'onverwachte resultaten gevonden')
+
+    def test_421092(self):
+        # import static org.awaitility.Awaitility.await;
+        # probleem import is herkend. Maar er is geen gebruik gevonden.
+        zoekterm = 'org.awaitility'
+
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_421092.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+
+        results2 = get_class_usage(ntlr_tree, zoekterm)
+        expected_results2 = []
+        unittest.TestCase.assertEqual(self, expected_results2, results2, 'onverwachte resultaten gevonden')
+
+    def test_333852(self):
+        # import static org.awaitility.Awaitility.await;
+        # probleem import is herkend. Maar er is geen gebruik gevonden.
+        zoekterm = '@Lock'
+        zoekterm = zoekterm[1:]
+
+        tree_string = get_treestring_from_file(RELATIVE_PATH, 'bug_333852.java')
+        ntlr_tree = to_nltk_tree(tree_string)
+
+        results = get_class_usage(ntlr_tree, zoekterm)
+        expected_results = ['import', 'annotation', 'annotation', 'annotation', 'annotation']
         unittest.TestCase.assertEqual(self, expected_results, results, 'onverwachte resultaten gevonden')

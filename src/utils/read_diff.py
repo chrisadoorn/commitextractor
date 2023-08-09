@@ -170,8 +170,8 @@ class ReadDiffJava(_ReadDiff):
         super().__init__(self.__FindKeyWords())
 
     class __FindKeyWords(_FindKeyWordsInterface):
-        # This list consist of characters allowed in the words we wou are looking for.
-        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_',
+        # This list consist of characters allowed in the words we are looking for.
+        identifier_alphabet = list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) + ['_', '.', '@',
                                                                                                                    '$']
 
         def find_key_words(self, text: str = '', text_to_find: list[str] = None) -> list[str]:

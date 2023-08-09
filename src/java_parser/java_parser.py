@@ -110,7 +110,7 @@ def compare_usage(usage_list_vooraf: [str], usage_list_achteraf: [str]) -> (bool
     return (vooraf_usage_ontbreekt, achteraf_nieuw_usage, (vooraf_usage_ontbreekt or achteraf_nieuw_usage))
 
 
-def __analyze_project(projectnaam: str, projectid: int, procesidentifier:str) -> None:
+def __analyze_project(projectnaam: str, projectid: int, procesidentifier: str) -> None:
     start = datetime.now()
     logging.info('start verwerking (' + str(projectid) + '):  ' + projectnaam)
 
@@ -172,15 +172,31 @@ def __analyze_project(projectnaam: str, projectid: int, procesidentifier:str) ->
     print(duur)
 
 
+def corrigeer_zoekterm(zoekterm: str, categorie: str) -> str:
+    if categorie in ['classes', 'interface']:
+        # zoek op gebruik laatste term van bv ReentrantReadWriteLock.ReadLock
+        zoektermsplit = zoekterm.split('.')
+        return zoektermsplit[len(zoektermsplit) - 1]
+    if categorie == 'annotation':
+        # verwijder het @teken
+        return zoekterm[1:]
+
+    # default
+    return zoekterm
+
+
 def analyseer_parsetrees(achteraf_tree, bw_id, bzw_id, categorie, commit_id, is_nieuw, is_verwijderd, packagenaam, vooraf_tree, zoekterm,
                          parse_error_vooraf, parse_error_achteraf):
     # bepaal namespace moet minstens 1x kloppen.
     is_in_namespace_vooraf = is_in_correct_namespace(vooraf_tree, packagenaam, zoekterm, categorie)
     is_in_namespace_achteraf = is_in_correct_namespace(achteraf_tree, packagenaam, zoekterm, categorie)
     is_in_namespace = is_in_namespace_vooraf or is_in_namespace_achteraf
+    # zoeken op zoekterm werkt niet goed voor zoektermen met een punt.
+    zoekterm_gecorrigeerd = corrigeer_zoekterm(zoekterm, categorie)
+
     # altijd gebruik bepalen voor vooraf en achteraf.
-    usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm)
-    usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm)
+    usage_list_achteraf = __get_usage_zoekterm(achteraf_tree, zoekterm_gecorrigeerd)
+    usage_list_vooraf = __get_usage_zoekterm(vooraf_tree, zoekterm_gecorrigeerd)
     (vooraf_usage_ontbreekt, achteraf_nieuw_usage, is_gebruik_gewijzigd) = compare_usage(usage_list_vooraf, usage_list_achteraf)
 
     # onverwacht resultaat loggen
@@ -214,6 +230,9 @@ def is_in_correct_namespace(tree: Tree, packagenaam: str, zoekterm: str, categor
         is_imported = parsetree_searcher.find_import_library(tree, zoekterm, False)
     elif categorie == 'keywords':
         is_imported = True
+    elif categorie == 'annotation':
+        gecorrigeerd = corrigeer_zoekterm(zoekterm, categorie)
+        is_imported = parsetree_searcher.find_import(tree, packagenaam, gecorrigeerd, False)
     elif packagenaam == 'java.lang':
         is_imported = not parsetree_searcher.find_alternative_import(tree, packagenaam, zoekterm, False)
     else:

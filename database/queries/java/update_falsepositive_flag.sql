@@ -76,6 +76,17 @@ where id in (select id
 			 and   is_in_namespace = false)            
 and falsepositive = false;
 
+-- update gebruik libraries
+update bestandswijziging_zoekterm 
+set falsepositive = true 
+   ,afkeurreden = 'onjuist_gebruik_libraries'
+where id in(select id
+			from java_parse_result 
+			where zoekterm in (select zoekterm
+							   from java_zoekterm jz 
+							   where categorie = 'libraries')
+			and is_in_namespace = false) ;
+
 
 -- reset uitgesloten reden
 update bestandswijziging 
