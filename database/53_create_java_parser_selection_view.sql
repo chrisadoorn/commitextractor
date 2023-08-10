@@ -13,14 +13,9 @@ and     bz.idbestandswijziging = b.id
 and     ( bz.falsepositive = false
 		 -- omdat de diff analyzer niet om kan gaan als er een punt(.) of een ad (@) teken in het keyword voorkomt 
          -- wordt zolang dit niet is opgelost, hier gefixt door deze or op te nemen. 
-         or bz.zoekterm in (select jz.zoekterm 
-					from java_zoekterm jz 
-					where jz.zoekterm not in (select jpr.zoekterm 
-											  	from java_parse_result jpr
-					    						  	,bestandswijziging_zoekterm bz 
-												where jpr.id = bz.id
-												and bz.falsepositive = false
-												group by jpr.zoekterm))
+         or bz.zoekterm in (select zoekterm
+                    from java_zoekterm jz
+                    where zoekterm like '%.%' or zoekterm like '@%')
         )
 order by bw_id;
 

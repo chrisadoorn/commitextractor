@@ -46,6 +46,14 @@ def find_import(node: Tree, packagenaam: str, classname: str, found: bool) -> bo
             expected_name = 'import' + packagenaam + '.' + classname + ';'
             expected_wildcard = 'import' + packagenaam + '.*;'
             found = import_statement == expected_name or import_statement == expected_wildcard
+            if not found:
+                # als classname een punt bevat dan kan de import zowel compleet, als via het gedeelte voor de punt
+                # import java.util.Collections; werkt voor Collections.synchronizedList
+                # import java.util.Collections.synchronizedList;  werkt ook voor Collections.synchronizedList;
+                if classname.find('.') > -1:
+                    first_part = classname.split('.')[0]
+                    expected_shortname = 'import' + packagenaam + '.' + first_part + ';'
+                    found = import_statement == expected_shortname
 
         if node.label() == 'packageDeclaration':
             leaves_list = node.leaves()
@@ -107,7 +115,8 @@ def find_import_library(node: Tree, packagenaam: str, found: bool) -> bool:
             leaves_list = node.leaves()
             import_statement = ''.join(leaves_list)
             expected_name = 'import' + packagenaam + '.'
-            found = import_statement.startswith(expected_name)
+            expected_static_name =  'import' + 'static' +  packagenaam + '.'
+            found = import_statement.startswith(expected_name) or import_statement.startswith(expected_static_name)
 
         if node.label() == 'packageDeclaration':
             leaves_list = node.leaves()

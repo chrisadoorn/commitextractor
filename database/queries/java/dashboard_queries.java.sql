@@ -78,11 +78,11 @@ where id = 184823;
 
 -- opnieuw uitvoeren van uitgevallen stap
 update verwerk_project 
-set processtap = 'extractie'
+set processtap = 'zoekterm_controleren'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
-where processtap = 'identificatie'
+where processtap = 'java_parsing'
 and resultaat = 'mislukt';
 
 update verwerk_project 
@@ -90,13 +90,13 @@ set processtap = 'extractie'
    ,resultaat = 'verwerkt'
 where id in (184852, 184840, 184844);   
 
---opnieuw uitvoeren van zoeken_fijn
+--opnieuw uitvoeren van parsen
 update verwerk_project 
-set processtap = 'zoekterm_vinden'
+set processtap = 'zoekterm_controleren'
    ,resultaat = 'verwerkt'
    ,processor = null
    ,status = 'gereed'
-where processtap = 'zoekterm_controleren'
+where processtap = 'java_parsing'
 and resultaat = 'verwerkt';
 
 
@@ -253,9 +253,9 @@ and bz.idbestandswijziging in ( select distinct(bz2.idbestandswijziging)
 								where bz2.falsepositive = true 
 								and bz2.afkeurreden in ('parse_exception', 'parse_error')); 
 							
-select tekstachteraf  
+select difftext,  tekstvooraf , tekstachteraf  
 from bestandswijziging b 
-where b.id = 1093503;
+where b.id = 1030290;
 
 
 select *
