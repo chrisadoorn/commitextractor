@@ -25,9 +25,11 @@ order by verschillende_zoektermen desc;
 
 select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
 from wijziging_lineage wl 
+where wl.falsepositive = false 
+and   wl.uitgesloten = false
 group by wl.auteur
 having count(distinct zoekterm)> 0
-order by verschillende_zoektermen desc; -- 660
+order by verschillende_zoektermen desc; -- 3079
 
 select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
 from wijziging_lineage wl 
