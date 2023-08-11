@@ -13,6 +13,13 @@ and bz.falsepositive = false
 group by jpr.zoekterm
 order by aantal desc;
 
+select wl.zoekterm , count(wl.zoekterm) as aantal 
+from wijziging_lineage wl
+where wl.falsepositive = false 
+and   wl.uitgesloten = false 
+group by wl.zoekterm
+order by aantal desc;
+
 -- zoektermen die niet gevonden zijn: 3 stuks: io.reactivex.rxjava2, io.projectreacto en AsyncBoxView.ChildState
 select * 
 from java_zoekterm jz 
@@ -35,13 +42,41 @@ where zoekterm in (select jz.zoekterm
 												group by jpr.zoekterm))
 group by zoekterm ;
 
+-- primitives use by programmer
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+where wl.falsepositive = false 
+and   wl.uitgesloten = false
+group by wl.auteur
+having count(distinct zoekterm)> 0
+order by verschillende_zoektermen desc; -- 3079 klopt met aantal mc programmers.
 
+-- 10 of meer zoektermen gebruikt
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+where wl.falsepositive = false 
+and   wl.uitgesloten = false
+group by wl.auteur
+having count(distinct zoekterm)> 9
+order by verschillende_zoektermen desc; -- 418
 
--- reset de selectie voor zoektermen met punten en @
-update bestandswijziging_zoekterm
-set afkeurreden = 'niet_afgekeurd',
-    falsepositive = false
-where zoekterm in ( select zoekterm
-                    from java_zoekterm jz
-                    where zoekterm like '%.%' or zoekterm like '@%')
+-- 1 tot 3 zoektermen gebruikt
+select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+from wijziging_lineage wl 
+where wl.falsepositive = false 
+and   wl.uitgesloten = false
+group by wl.auteur
+having count(distinct zoekterm) between 1 and 1
+order by verschillende_zoektermen desc; -- 1939 tussen 1 en 3
+
+-- aantal auteurs die x verschillende zoektermen gebruiken. 
+select sq.verschillende_zoektermen, count(sq.verschillende_zoektermen)
+from ( select wl.auteur as auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen 
+		from wijziging_lineage wl 
+		where wl.falsepositive = false 
+		and   wl.uitgesloten = false
+		group by wl.auteur) as sq
+group by sq.verschillende_zoektermen
+order by sq.verschillende_zoektermen asc;
+
 
