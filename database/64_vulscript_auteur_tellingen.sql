@@ -16,6 +16,8 @@ set aantal_totaal = (select count(distinct(bestandswijziging))
 	where qw.auteur = wl.auteur
 	and qw.projectid = wl.projectid
 	and wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false)
 ) ;
 
 
@@ -27,6 +29,8 @@ set aantal_kandidaat = (select count(distinct(wl.bestandswijziging))
 	and qw.projectid = wl.projectid
 	and wl.zoekterm is not null
 	and wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false)
 ) ;
 
 
@@ -41,6 +45,8 @@ set aantal_bevestigd = (select count(distinct(wl.bestandswijziging))
 	and wl.zoekterm = bwz.zoekterm
 	and bwz.falsepositive = false
 	and wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false)
 ) ;
 
 -- totaal aantallen bestandswijzingen per auteur per project
@@ -51,6 +57,8 @@ set aantal_ns_totaal = (select count(distinct(bestandswijziging))
 	where qw.auteur = wl.auteur
 	and qw.projectid = wl.projectid
 	and wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false)
 	and wl.commitid not in (select sc.idcommit
 	                        from suspicious_commit sc
 	                        where sc.aantal > 99)
@@ -65,6 +73,8 @@ set aantal_ns_kandidaat = (select count(distinct(wl.bestandswijziging))
 	and qw.projectid = wl.projectid
 	and wl.zoekterm is not null
 	and wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false)
 	and wl.commitid not in (select sc.idcommit
 	                        from suspicious_commit sc
 	                        where sc.aantal > 99)
@@ -82,6 +92,8 @@ set aantal_ns_bevestigd = (select count(distinct(wl.bestandswijziging))
 	and wl.zoekterm = bwz.zoekterm
 	and bwz.falsepositive = false
 	and wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false)
 	and wl.commitid not in (select sc.idcommit
 	                        from suspicious_commit sc
 	                        where sc.aantal > 99)

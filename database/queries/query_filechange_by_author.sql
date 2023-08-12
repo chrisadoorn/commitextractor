@@ -119,3 +119,19 @@ and commitid in (select idcommit
                    where sc.aantal > 99);
                   
 -- deel multi_core_file_change door number_of_programmers voor multi core file changes by programmer
+
+-- query 9a: alles met uitzondering van verplaatste files
+select count(distinct(wl.auteur)) as number_of_programmers
+	from wijziging_lineage wl
+	where wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false);
+                  
+select count(distinct(bestandswijziging)) as file_changes
+	from wijziging_lineage wl
+	where wl.uitgesloten = false
+	and (wl.vooraf_leeg = false 
+	     or wl.achteraf_leeg = false);
+	     
+-- deel file_changes door number_of_programmers voor file changes by programmer
+-- omdat verplaatste bestanden niet uitmaken, 
