@@ -65,3 +65,57 @@ where auteur in (select distinct auteur
 		from auteur_tellingen at2
 		where aantal_bevestigd > 0)
 and auteur > 900000000;
+
+-- query 6a uitsluiting suspicious commits totaal:
+select count(distinct auteur) as number_of_programmers, sum(aantal_ns_totaal) as file_changes, 
+to_char(( sum(aantal_ns_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
+from auteur_tellingen at2
+where aantal_ns_totaal > 0;
+
+--query 6b: 
+select sum(aantal_ns_bevestigd) as multi_core_file_change, count(distinct auteur) as number_of_programmers,
+to_char(( sum(aantal_ns_bevestigd)::dec / count(distinct auteur)::dec ), '999.99') as avg_mc_programmer
+from auteur_tellingen at2
+where aantal_ns_totaal > 0;
+
+-- query 7a uitsluiting suspicious commits multi-core:
+select count(distinct auteur) as number_of_programmers, sum(aantal_ns_totaal) as file_changes, 
+to_char(( sum(aantal_ns_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
+from auteur_tellingen at2
+where auteur in (select distinct auteur
+from auteur_tellingen at2
+where aantal_ns_bevestigd > 0)
+and aantal_ns_totaal > 0;
+-- query 7b  uitsluiting suspicious commits multi-core:
+select sum(aantal_ns_bevestigd) as multi_core_file_change, count(distinct auteur) as number_of_programmers,
+to_char(( sum(aantal_ns_bevestigd)::dec / count(distinct auteur)::dec ), '999.99') as avg_mc_programmer
+from auteur_tellingen at2
+where auteur in (select distinct auteur
+from auteur_tellingen at2
+where aantal_ns_bevestigd > 0)
+and aantal_ns_totaal > 0;
+
+
+-- query 8 uitsluitend suspicious commits totaal:
+select count(distinct author_id) as number_of_programmers
+from commitinfo c 
+where id in (select idcommit
+             from suspicious_commit sc
+             where sc.aantal > 99);
+
+select count(idcommit) as file_changes
+from bestandswijziging b 
+where idcommit in (select idcommit
+                   from suspicious_commit sc
+                   where sc.aantal > 99);
+
+-- deel file_changes door number_of_programmers voor file changes by programmer
+select count(distinct bestandswijziging) as multi_core_file_change
+from wijziging_lineage wl 
+where falsepositive = false 
+and uitgesloten = false
+and commitid in (select idcommit
+                   from suspicious_commit sc
+                   where sc.aantal > 99);
+                  
+-- deel multi_core_file_change door number_of_programmers voor multi core file changes by programmer

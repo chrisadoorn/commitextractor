@@ -33,5 +33,5 @@ from ( select wl.auteur as auteur, count(wl.auteur)as aantal_gebruik ,count(dist
 		and   wl.uitgesloten = false
 		group by wl.auteur) as sq
 group by sq.verschillende_zoektermen
-order by sq.verschillende_zoektermen asc;
+order by sq.verschillende_zoektermen desc;
 
