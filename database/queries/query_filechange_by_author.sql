@@ -1,21 +1,21 @@
--- query 1a:
+-- query 1a : all programmers
 select count(distinct auteur) as number_of_programmers, sum(aantal_totaal) as file_changes, 
 to_char(( sum(aantal_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
 from auteur_tellingen at2;
 
--- query 1b:
+-- query 1b: all programmers
 select sum(aantal_bevestigd) as multi_core_file_change, count(distinct auteur) as number_of_programmers,
 to_char(( sum(aantal_bevestigd)::dec / count(distinct auteur)::dec ), '999.99') as avg_mc_programmer
 from auteur_tellingen at2;
 
--- query 2a:
+-- query 2a: multi-core
 select count(distinct auteur) as number_of_programmers, sum(aantal_totaal) as file_changes, 
 to_char(( sum(aantal_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
 from auteur_tellingen at2
 where auteur in (select distinct auteur
 from auteur_tellingen at2
 where aantal_bevestigd > 0);
--- query 2b:
+-- query 2b: multi-core
 select sum(aantal_bevestigd) as multi_core_file_change, count(distinct auteur) as number_of_programmers,
 to_char(( sum(aantal_bevestigd)::dec / count(distinct auteur)::dec ), '999.99') as avg_mc_programmer
 from auteur_tellingen at2
@@ -23,16 +23,16 @@ where auteur in (select distinct auteur
 from auteur_tellingen at2
 where aantal_bevestigd > 0);
 
--- query 3a:
+-- query 3a: non multi-core
 select count(distinct auteur) as number_of_programmers, sum(aantal_totaal) as file_changes, 
 to_char(( sum(aantal_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
 from auteur_tellingen at2
 where auteur not in (select distinct auteur
 from auteur_tellingen at2
 where aantal_bevestigd > 0);
--- query 3b:
+-- query 3b: non multi-core n.v.t 
 
--- query 4a:
+-- query 4a: identified multi-core programmers
 select count(distinct auteur) as number_of_programmers, sum(aantal_totaal) as file_changes, 
 to_char(( sum(aantal_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
 from auteur_tellingen at2
@@ -40,7 +40,7 @@ where auteur in (select distinct auteur
 		from auteur_tellingen at2
 		where aantal_bevestigd > 0)
 and auteur < 900000000;
--- query 4b:
+-- query 4b: identified multi-core programmers
 select sum(aantal_bevestigd) as multi_core_file_change, count(distinct auteur) as number_of_programmers,
 to_char(( sum(aantal_bevestigd)::dec / count(distinct auteur)::dec ), '999.99') as avg_mc_programmer
 from auteur_tellingen at2
@@ -49,7 +49,7 @@ where auteur in (select distinct auteur
 		where aantal_bevestigd > 0)
 and auteur < 900000000;
 
--- query 5a:
+-- query 5a: unidentified multi-core programmers
 select count(distinct auteur) as number_of_programmers, sum(aantal_totaal) as file_changes, 
 to_char(( sum(aantal_totaal)::dec / count(distinct auteur)::dec ), '999.99') as avg_programmer
 from auteur_tellingen at2
@@ -57,7 +57,7 @@ where auteur in (select distinct auteur
 		from auteur_tellingen at2
 		where aantal_bevestigd > 0)
 and auteur > 900000000;
--- query 5b:
+-- query 5b: unidentified multi-core programmers
 select sum(aantal_bevestigd) as multi_core_file_change, count(distinct auteur) as number_of_programmers,
 to_char(( sum(aantal_bevestigd)::dec / count(distinct auteur)::dec ), '999.99') as avg_mc_programmer
 from auteur_tellingen at2
@@ -120,18 +120,14 @@ and commitid in (select idcommit
                   
 -- deel multi_core_file_change door number_of_programmers voor multi core file changes by programmer
 
--- query 9a: alles met uitzondering van verplaatste files
+-- query 9a: alles included moved files 
 select count(distinct(wl.auteur)) as number_of_programmers
 	from wijziging_lineage wl
 	where wl.uitgesloten = false
-	and (wl.vooraf_leeg = false 
-	     or wl.achteraf_leeg = false);
                   
 select count(distinct(bestandswijziging)) as file_changes
 	from wijziging_lineage wl
 	where wl.uitgesloten = false
-	and (wl.vooraf_leeg = false 
-	     or wl.achteraf_leeg = false);
 	     
 -- deel file_changes door number_of_programmers voor file changes by programmer
--- omdat verplaatste bestanden niet uitmaken, 
+-- omdat verplaatste bestanden niet uitmaken, voor aantal gevonden multi-core commits, dit uit 1b overnemen. 

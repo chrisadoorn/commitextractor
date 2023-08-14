@@ -1,6 +1,12 @@
 --SQ.2 What is the correlation between multi-core programming primitives and the
 -- percentage of programmers using them?
 
+-- totaal aantal gebruikte zoektermen:
+select count(wl.zoekterm) as totaal_aantal_gebruik 
+from wijziging_lineage wl
+where wl.falsepositive = false 
+and   wl.uitgesloten = false ;
+
 -- hoe vaak wordt welke zoekterm gebruikt?
 select wl.zoekterm , count(wl.zoekterm) as aantal_gebruik 
 from wijziging_lineage wl
@@ -17,8 +23,8 @@ and   wl.uitgesloten = false
 group by wl.zoekterm
 order by aantal_auteurs desc;
 
--- hoeveel verschillende zoektermen gebruikt een enkele auteur?
-select wl.auteur, count(distinct zoekterm) as verschillende_zoektermen
+-- hoeveel verschillende zoektermen gebruikt een enkele auteur? En hoe vaak gebruikt hij deze zoektermen ( niet uitgesplitst)
+select wl.auteur, count(distinct zoekterm) as verschillende_zoektermen, count(wl.auteur)as aantal_gebruik
 from wijziging_lineage wl
 where wl.falsepositive = false 
 and   wl.uitgesloten = false
@@ -33,5 +39,6 @@ from ( select wl.auteur as auteur, count(wl.auteur)as aantal_gebruik ,count(dist
 		and   wl.uitgesloten = false
 		group by wl.auteur) as sq
 group by sq.verschillende_zoektermen
-order by sq.verschillende_zoektermen desc;
+order by sq.verschillende_zoektermen asc;
+
 
