@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS compare_jaar
  )
 TABLESPACE pg_default;
 
+grant select on compare_jaar to appl;
+
 -- herbeginnen
 truncate table compare_jaar;
 
@@ -32,7 +34,3 @@ set avg_mc_commit = (cast(count_mc_commit as dec)  / cast(count_all_commit as de
 
 select * from compare_jaar
 order by jaar asc;
-
-
-
-                 	

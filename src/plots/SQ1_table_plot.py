@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from peewee import *
-from scipy.optimize import curve_fit
 
 from src.models.selection_models import pg_db_schema
 from src.utils import configurator
