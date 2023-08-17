@@ -26,7 +26,7 @@ order by idproject asc
 --per project en per auteur # aantal verschillende zoektermen + frequentie ervan
 select idproject, author_id, b.zoekterm, count(bz.id)
 from test.bestandswijziging_zoekterm bz,
-     test.bestandswijziging_zoekterm b,
+     test.bestandswijziging b,
 	 test.commitinfo ci
 where bz.idbestandswijziging = b.id
      and b.id = ci.id
