@@ -1,10 +1,14 @@
 import os
+import re
 from collections import deque
 from datetime import datetime
 from peewee import *
 
 from src.utils import configurator
 from src.utils.configurator import get_database_configuration
+
+from nltk.grammar import CFG
+import nltk
 
 dt = datetime.now()
 filename = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', 'log', 'main.' + str(dt) + '.log'))
@@ -54,6 +58,26 @@ No valid match:
 
 """
 
+def testGrammar():
+    simple_grammar = CFG.fromstring("""
+S -> NP VP
+PP -> P NP
+NP -> Det N | NP PP
+VP -> V NP | VP PP
+Det -> 'a' | 'the'
+N -> 'dog' | 'cat'
+V -> 'chased' | 'sat'
+P -> 'on' | 'in'
+    """)
+    print(simple_grammar)
+    print(simple_grammar.start())
+    print(simple_grammar.productions())
+
+    CFG.check_coverage(simple_grammar, ['the', 'dog', 'sat'])
+    parser = nltk.ChartParser(simple_grammar)
+    x =parser.chart_parse(['the', 'dog', 'sat'])
+    z = 1
+
 
 def retrieveAsts():
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
@@ -64,7 +88,7 @@ def retrieveAsts():
     from {sch}.abstract_syntax_trees ast
     join {sch}.bestandswijziging_zoekterm bwz on ast.bestandswijziging_id = bwz.idbestandswijziging
     join {sch}.bestandswijziging bw on ast.bestandswijziging_id = bw.id
-    where (bwz.aantalgevonden_oud > 0 or bwz.aantalgevonden_nieuw > 0)  order by ast.bestandswijziging_id
+    where (bwz.aantalgevonden_oud > 0 or bwz.aantalgevonden_nieuw > 0) order by ast.bestandswijziging_id  
     limit 1000;
     """.format(sch=schema)
 
@@ -85,49 +109,28 @@ def retrieveAsts():
             print(regelnummer, zoekterm, regelsoort)
 
         print("__vooraf__")
-        voor= analyse_ast(tekstvooraf_ast)
+        voor = analyse_ast(tekstvooraf_ast)
         print("__achteraf__")
-        na= analyse_ast(tekstachteraf_ast)
-
-   #    for (a, b) in yy:
-   #        print(" left part: " + str(a))
-   #        print(" right part: " + str(b))
-   #        insert_sql = """
-   #        insert into {sch}.keywords_found_in_asts (bestandswijziging_id, line_number, lefthand_side, righthand_side, primitive_call)
-   #            values (
-   #            {bestandswijziging_id} ,
-   #            {line_number} ,
-   #            {left_hand_side},
-   #            {righthand_side},
-   #            '{primitive_call}'
-   #            )
-   #        """.format(sch=schema, bestandswijziging_id=bestandswijziging_id, line_number=0
-   #                   , left_hand_side=__opkuizen_speciale_tekens(a), righthand_side=__opkuizen_speciale_tekens(b),
-   #                   primitive_call='')
-   #        #  connection.execute_sql(insert_sql)
+        na = analyse_ast(tekstachteraf_ast)
 
 
-   # https://github.com/elixir-lang/elixir/blob/main/lib/elixir/src/elixir_parser.yrl
+# https://github.com/elixir-lang/elixir/blob/main/lib/elixir/src/elixir_parser.yrl
 def analyse_ast(text_containing_ast):
-    first_terms = []
     if text_containing_ast is None:
-        return [],[]
+        return [], []
     lines = text_containing_ast.splitlines()
     for line in lines:
         line_list = deque(line)
         if line_list[0] == '{':  # ast nust start with '{'
-            print(line)
-            find_type_of_action(line_list)
-            # xxx = read_first_terms_of_AST_tuple(line_list)
-            # first_terms.extend(xxx)
+            results = find_type_of_action(line_list)   # xxx = read_first_terms_of_AST_tuple(line_list)  # first_terms.extend(xxx)
+            print(results)
         else:
             print("geen ast")
-            return [],[]
-
-    return first_terms
+            return [], []
 
 
-def find_type_of_action(line_list):
+def find_type_of_action(line_list) -> list[tuple[str, int, str]]:  # opzoek naar {:action
+    found_actions = []
     while line_list:
         char = read_next(line_list)
         if char is None:
@@ -139,21 +142,23 @@ def find_type_of_action(line_list):
             if char is None:
                 break
             if char == ':':
-                a,b,c = read_action(line_list)
-                if a != 'other':
-                    print(a,b,c)
+                word, line_number, elixir_tuple = read_action(line_list)
+                if word != 'other':
+                    found_actions.append((word, line_number, elixir_tuple))
             else:
                 put_back(line_list, char)
+    return found_actions
+
 
 def read_next(line_list):
-     return line_list.popleft() if line_list else None
+    return line_list.popleft() if line_list else None
 
 
 def put_back(line_list, ch):
     line_list.appendleft(ch)
 
 
-def read_action(line_list):
+def read_action(line_list) -> (str, int, str):
     collected = ''
     read = True
     while read:
@@ -163,8 +168,8 @@ def read_action(line_list):
             continue
         collected += char
     if collected in ['use', '.', 'spawn', 'spawn_link', 'spawn_monitor', 'send', 'receive']:
-        n, t = read_use(line_list)
-        return collected, n, t
+        line_number, elixir_tuple = read_use(line_list)
+        return collected, line_number, elixir_tuple
     else:
         return 'other', 0, ''
 
@@ -230,103 +235,6 @@ def read_aliasses(line_list):
     return text
 
 
-def read_first_terms_of_AST_tuple(line_list)  :   # each nested tuple start with '{:', the term after that until the first ',' are collected
-    first_terms = []
-    qualified_parts = []
-    term = ''
-    while line_list:
-        char = line_list.popleft()
-        if term == '' and char == ' ':  # skip whitespace
-            continue
-        if char == '{':  # end of first term
-            prev_char = char
-            char = line_list.popleft() if line_list else ''
-            if char == ':':
-                term += char
-                continue
-            else:
-                line_list.appendleft(char)
-                char = prev_char
-        if term != '' and char == ',':
-            line_number = read_second_term(line_list)
-            if line_number > 0:
-                first_terms.append((term, line_number))
-                if term == ':.':  # is the dot
-                    x = getkwalified_parts(line_list)
-                    qualified_parts.append(x)
-                    # print(x)
-            term = ''
-        elif term != '':
-            term += char
-    return first_terms, qualified_parts
-
-
-def read_second_term(line_list):  # linenummbers
-        term = ''
-        while line_list:
-            char = line_list.popleft() if line_list else ''
-            if char == '':
-                break
-            if term == '' and char == ' ':  # skip whitespace
-                continue
-            if term != '' and char == ',':  # end of first term
-                break
-            else:
-               term += char
-
-        return get_line_number(term)
-
-
-def get_line_number(term):
-    if term == '[]':
-        return 0
-    term = term.replace('[line:', '')
-    term = term.replace(']', '')
-    try:
-        return int(term)
-    except ValueError:
-        return -9
-
-
-def getkwalified_parts(line_list):
-    term = ''
-    left_part = ''
-    right_part = ''
-    while line_list:
-        char = line_list.popleft() if line_list else ''
-        if char == '':
-            return left_part, right_part
-        if term == '' and char == ' ':  # skip whitespace
-            continue
-        if char == '[':
-            return (get_one_hand_side(line_list, 'left'),
-                    get_one_hand_side(line_list, 'right'))
-
-    return left_part, right_part
-
-
-def get_one_hand_side(line_list, left_or_right = 'left'):
-    term = ''
-    brackets = deque('')
-    while line_list:  # lees tussen [ en ]
-        char = line_list.popleft() if line_list else ''
-        if char == '':
-            return term
-        if term == '' and char == ' ':  # skip whitespace
-            continue
-        if char ==  '{':   # start of tuple
-            brackets.append(char)
-        if char == '}':
-            if brackets:
-                brackets.pop()
-        if left_or_right == 'left' and char == ',' and not brackets:
-            return term
-        if left_or_right == 'right' and char == ']' and not brackets:
-            return term
-        else:
-            term += char
-
-
 # types of mc usage:
 # direct call of primitive
 # use of behaviour
@@ -342,7 +250,7 @@ def get_one_hand_side(line_list, left_or_right = 'left'):
 # 2 element tuples containing above {1.23 :atom}
 
 
-def __opkuizen_speciale_tekens(tekst,not_null = False):
+def __opkuizen_speciale_tekens(tekst, not_null=False):
     """
     Speciale tekens toevoegen aan een string voor gebruik in een PSQL statement
     """
@@ -358,7 +266,5 @@ def __opkuizen_speciale_tekens(tekst,not_null = False):
     return "'" + tekst.replace("'", "''").replace("%", "%%") + "'"
 
 
-
-
 if __name__ == '__main__':
-    retrieveAsts()
+    testGrammar()

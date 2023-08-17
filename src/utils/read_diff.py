@@ -45,6 +45,10 @@ class _FindKeyWordsInterface:
     def single_quote_literal(self, line_list: deque) -> str | None:
         while line_list:
             c = line_list.popleft() if line_list else ''
+            if c == '\\':  # handle escape character
+                c = line_list.popleft() if line_list else ''
+                if c == "'":
+                    continue
             if c == '':
                 return self.stop()
             if c == '\'':
@@ -237,13 +241,8 @@ class ReadDiffElixir(_ReadDiff):
                         break
                     continue
 
-                if c == '"':  # start of double quote literal, filter
-                    self.double_quote_literal(line_list)
-                    continue
-
-                if c == '\'':
-                    if self.single_quote_literal(line_list) is None:
-                        break
+                if c == '"' or c == "'":  # start of double quote literal, filter
+                    self.__quote_literal(line_list, c)
                     continue
 
                 if c is None:
@@ -255,22 +254,22 @@ class ReadDiffElixir(_ReadDiff):
                         instances_found.append(w)
             return instances_found
 
-        def double_quote_literal(self, line_list: deque) -> str | None:
+        def __quote_literal(self, line_list: deque, type_of_quote="'") -> str | None:
             temp_text = ''
             c = ''
             while line_list:
                 c = line_list.popleft() if line_list else ''
                 if c == '\\':  # handle escape character
                     c = line_list.popleft() if line_list else ''
-                    if c == '"':
+                    if c == type_of_quote:
                         continue
                 temp_text += c
                 if c == '':  # end of line
                     break
-                if c == '"':
+                if c == type_of_quote:
                     break
 
-            if c != '"':
+            if c != type_of_quote:
                 z = deque(temp_text)
                 while z:
                     pop_z = z.pop()

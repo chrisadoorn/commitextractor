@@ -10,8 +10,8 @@ defmodule AstCreator.System do
     children = [
     AstCreator.ProcessRegistry,
       %{
-        id: AstCreator.GetFileChanges,
-        start: {AstCreator.GetFileChanges, :start_link, [nil]}
+        id: AstCreator.GetFileChangesWithoutTokens,
+        start: {AstCreator.GetFileChangesWithoutTokens, :start_link, [nil]}
       }
     ]
 
@@ -20,7 +20,7 @@ defmodule AstCreator.System do
   end
 
   defp worker_spec(worker_id) do
-    default_worker_spec = {AstCreator.MakeAst, {worker_id}}
+    default_worker_spec = {AstCreator.MakeTokens, {worker_id}}
     Supervisor.child_spec(default_worker_spec, id: worker_id)
   end
 end
