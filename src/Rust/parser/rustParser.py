@@ -11,7 +11,6 @@ class InvalidFullText(Exception):
 
 def parse_fulltext_by_project(projectname, project_id):
     start = datetime.now()
-    global false_positive, afkeur_reden
     logging.info(
         f'start verwerking ({str(project_id)}):  {projectname}{str(start)}'
     )
@@ -47,14 +46,15 @@ def parse_fulltext_by_project(projectname, project_id):
                 for zoekterm in zoektermlijst:
                     zoekterm2 = zoekterm.replace("%)", "")
                     if zoekterm2 not in fulltext:
-                        false_positive = 'True'
+                        false_positive = True
                         afkeur_reden = 'parser'
+                        # zien of de primitieven wel in de juiste namespace zitten
                         if (zoekterm2 in ('channel::', 'sync_channel(', 'sync_channel::', '.send(',
                                          '.recv()')) and 'mpsc::' not in fulltext:
-                            false_positive = 'True'
+                            false_positive = True
                             afkeur_reden = 'package'
                     else:
-                        false_positive = 'False'
+                        false_positive = False
                         afkeur_reden = ''
             except InvalidFullText as e:
                 logging.error(f'parseexception: {str(e)}')
@@ -62,6 +62,7 @@ def parse_fulltext_by_project(projectname, project_id):
 
             # sla gevonden resultaten op per zoekterm in bestandswijziging
             for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw) in bwz_lijst:
+                print("bwz_id " + str(bwz_id) + " zoekterm " + zoekterm + " false_positive " + str(false_positive) + " afkeur_reden " + afkeur_reden)
                 bestandswijziging_zoekterm = BestandsWijzigingZoekterm()
                 bestandswijziging_zoekterm.id = bwz_id
                 bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
