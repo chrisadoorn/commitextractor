@@ -19,7 +19,7 @@ SAMPLELEVEL = 'sampleLevel'
 GHSEARCH = 'load_ghsearch'
 
 INI_FILE = \
-    os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'var', 'commitextractor.ini'))
+    os.path.realpath(os.path.join(os.path.dirname(__file__), '../../..', 'var', 'commitextractor.ini'))
 
 #####################################
 #            functions              #

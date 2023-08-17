@@ -83,28 +83,38 @@ def insert_hardcoded_keywords() -> None:
     logging.info('Starting hardcoded insert')
 
     zoekterm_details = Zoekterm()
-    zoekterm_details.create(extensie=".rs", zoekwoord=".await")
+    """zoekterm_details.create(extensie=".rs", zoekwoord=".await")
     zoekterm_details.create(extensie=".rs", zoekwoord="use std::thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use std::os::raw::Thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use std::marker::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use std::marker::Send")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::os::raw::Thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::marker::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::marker::Send")
-    zoekterm_details.create(extensie=".rs", zoekwoord="use ::std::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::os::raw::Thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::marker::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::marker::Send")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="::std::thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="::std::os::raw::Thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="::std::marker::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="::std::marker::Send")
-    zoekterm_details.create(extensie=".rs", zoekwoord="::std::sync")
-
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::*")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::Arc")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::Barrier")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::Mutex")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::Condvar")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::Once")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::OnceLockUse")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::RwLock")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::mspc::*")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::mspc::channel")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::mspc::Sync_channel")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::mspc::Sender")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::mspc::SyncSender")
+    zoekterm_details.create(extensie=".rs", zoekwoord="use std::sync::mspc::Receiver")
+    """
+    zoekterm_details.create(extensie=".rs", zoekwoord="thread::spawn")
+    zoekterm_details.create(extensie=".rs", zoekwoord="thread::Builder::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Arc::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Barrier::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Condvar::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Mutex::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Once::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="OnceLock::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="RwLock:: new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="channel()")
+    zoekterm_details.create(extensie=".rs", zoekwoord="channel::")
+    zoekterm_details.create(extensie=".rs", zoekwoord="sync_channel(%)")
+    zoekterm_details.create(extensie=".rs", zoekwoord="sync_channel::")
+    zoekterm_details.create(extensie=".rs", zoekwoord=".send(%)")
+    zoekterm_details.create(extensie=".rs", zoekwoord=".recv()")
 
 def load_importfile(importfile: str) -> None:
     """
@@ -133,7 +143,7 @@ def __initialize() -> None:
     loglevel = configurator.get_module_configurationitem(module='load_keywords', entry='loglevel')
 
     log_filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                                 '..', '..', 'log',
+                                                 '../..', '..', 'log',
                                                  'load_keywords.' + dt.strftime('%y%m%d-%H%M%S') + '.log'))
 
     logging.basicConfig(filename=log_filename,

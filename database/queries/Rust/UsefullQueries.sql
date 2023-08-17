@@ -20,6 +20,14 @@ set processtap = 'selectie'
    ,status = 'gereed'
 where processtap = 'extractie';
 
+-- manueel op mislukt zetten van oneindige verwerkingen die stopgezet zijn
+update test.verwerk_project
+set processtap = 'extractie'
+   ,resultaat = 'mislukt'
+   ,processor = null
+   ,status = 'gereed'
+where processtap = 'extractie' and status = 'bezig';
+
 -- tellen gebruik zoekterm
 select count(b.id)
 from test.bestandswijziging b
@@ -43,3 +51,19 @@ where bz.idbestandswijziging = b.id
 	 and bz.idbestandswijziging = '839'
 	 and b.idcommit = c.id
 	 and c.idproject = d.id
+
+--unieke projecten met MC primitieven
+select count(distinct(idproject))
+from test.bestandswijziging_zoekterm bz,
+     test.bestandswijziging_zoekterm b,
+	 test.commitinfo ci
+where bz.idbestandswijziging = b.id
+     and b.id = ci.id
+
+--simulatie text-search
+select b.id
+from test.bestandswijziging b,
+     test.commitinfo c
+where b.idcommit = c.id and
+      b.extensie = '.rs' and
+      b.difftext like '%" + zoekterm.zoekwoord + "%'"

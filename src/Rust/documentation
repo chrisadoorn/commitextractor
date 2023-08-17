@@ -1,0 +1,82 @@
+Prequisites:
+Created complete schema (via database/py_scripts.py) in PostGreSQL
+Running database
+Filled-in commitextractor.ini & commitextractor.seed
+Json-file with concurrency libraries (from www.crates.io)
+
+**********************************Get repositories (commits and content) and GitHub-authors****************************************************************
+Step 1:
+Download projects from seart-ghs in Json-format
+Input: selectioncriteria in seart-ghs form
+Output: Json
+
+Step 2a:
+Run load_ghsearch.py
+Input:
+Json-file from from step 1 (define filename in variable load_ghsearch-importfile in commitextractor.ini)
+Output:
+Projects in table project
+Selectiecriteria in table selectie
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = selectie, status = gereed)
+
+Step 2b:
+Run setSampleSize.py
+Input:
+define sampleLevel in variable sampleLevel in commitextractor.ini
+Output:
+Projects in table project & verwerk_project are reduced to the desired sample-size
+
+Step 3:
+Run repo_extractor/main.py to extract projectinfo using PyDriller-python extension
+Input:
+variables in repo-extractor in commitextractor.ini (loglevel, run_parallel (number of parallel processes), vorige_stap, list_extensions, save_before
+Seed file in var/commitextractor.seed
+Output:
+FileChanges and commitinfo in table project bestandswijziging and commitinfo (username and emailaddress are anonymised)
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = extractie, status = gereed)
+
+Step 4:
+Run author_identifier/main.py to retrieve the author of a filechange
+Input:
+personal access token (variable github-personal_access_token in commitextractor.ini)
+Output:
+Column Author_id in table commitinfo
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = identificatie, status = gereed)
+
+**********************************Find keywords********************************************************************************************************
+Step 5a:
+Run Rust/Keywords/UploadKeywords.py to upload sought for multicore primitives (keywords)
+Input:
+variables in function insert_hardcoded_keywords: extension of file and keyword
+Json-file with concurrency libraries (from www.crates.io)
+Output:
+Keywords in table zoekterm
+
+Step 5b:
+Run text_search/main.py to find multicore primitives (keywords)
+Input:
+variables in text_search in commitextractor.ini: loglevel, run_parallel (number of parallel processes), vorige_stap
+Output:
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = zoekterm_vinden, status = gereed)
+Found keywords in table project bestandswijziging_zoekterm
+
+Step 5c:
+Run Rust.parser/main.py to eliminate false positives from step 5b
+Input:
+variables in text_search in commitextractor.ini: loglevel, run_parallel (number of parallel processes), vorige_stap
+Output:
+Projects in table verwerk_project (resultaat=verwerkt, Processtap = fulltext_controleren, status = gereed)
+Update table project bestandswijziging_zoekterm with false_positives
+
+**********************************Make reports********************************************************************************************************
+
+Step 6:
+Run reports database/queries/rust/ReportQueries.sql
+SQ1:
+SQ2:
+SQ3:
+
+
+
+
+

@@ -3,7 +3,7 @@ import os
 import uuid
 from datetime import datetime
 
-from src.rust_sample_size import setSampleSize
+from src.Rust.sample_size import setSampleSize
 from src.utils import db_postgresql, sanitychecker
 
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # initialiseer logging
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'main.setSampling.' + dt.strftime('%y%m%d-%H%M%S')
+                                             '../../..', 'log', 'main.setSampling.' + dt.strftime('%y%m%d-%H%M%S')
                                              + '.' + instance_uuid + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
