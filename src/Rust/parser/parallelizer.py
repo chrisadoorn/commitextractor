@@ -14,7 +14,7 @@ def _start_rust_parser(nummer=0):
     process_identifier = str(uuid.uuid4())
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log',
+                                             '../../..', 'log',
                                              'processor.' + dt.strftime(
                                                  '%y%m%d-%H%M%S') + '.' + process_identifier + '.log'))
     logging.basicConfig(filename=filename,

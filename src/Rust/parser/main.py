@@ -56,18 +56,17 @@ if __name__ == '__main__':
     instance_uuid = str(uuid.uuid4())
     # initialiseer logging
     dt = datetime.now()
-    loglevel = configurator.get_module_configurationitem(module='parser', entry='loglevel')
-
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../../..', 'log', 'rustparser.' + dt.strftime(
-                                             '%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+                                             '../../..', 'log', 'rust_parser.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
-                        level=loglevel, encoding='utf-8')
+                        level=logging.INFO, encoding='utf-8')
 
-    logging.info(f'Starting Rust application parser with procesid {instance_uuid}')
+    logging.info('Starting application rust_parser with procesid ' + instance_uuid)
 
     # freeze_support om de processen parallel te kunnen laten werken.
     freeze_support()
 
     start_with_checks()
+

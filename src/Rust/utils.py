@@ -4,6 +4,8 @@ import re
 ##########################PARSER#############################################################
 #takes a text and removes single and multiline comments and literals
 def parseText(source_code : str) -> str:
+    #reduce wrong string-eliminations because of lifetime anntotations
+    source_code = re.sub(r'<[^>]*>', '', source_code)
     # Define parsers for strings and comments
     commentparser = cppStyleComment
     multilineparser = QuotedString("'", multiline=True) | QuotedString('"', multiline=True)
@@ -18,7 +20,6 @@ def CleanUpFullText(script: str) -> str:
         line = re.sub(r'\s+', ' ', line).lstrip().rstrip()
         output_lines.append(line)
     return '\n'.join(output_lines)
-
 
 ##########################DIFFTEXT#############################################################
 #clean up lines not preceded by +, empty lines, remove multiple spaces with a single space and remove single line comments and literals

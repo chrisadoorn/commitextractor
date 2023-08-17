@@ -11,7 +11,7 @@ class InvalidFullText(Exception):
 
 def parse_fulltext_by_project(projectname, project_id):
     start = datetime.now()
-    global read_diff, false_positive, afkeur_reden
+    global false_positive, afkeur_reden
     logging.info(
         f'start verwerking ({str(project_id)}):  {projectname}{str(start)}'
     )
@@ -27,26 +27,32 @@ def parse_fulltext_by_project(projectname, project_id):
 
             # haal de gevonden zoektermen voor deze bestandswijziging op
             bwz_lijst = get_voor_bestandswijziging(bestandswijziging.id)
+            # geen zoekterm, dan door naar de volgende
             if len(bwz_lijst) == 0:
-                # geen zoekterm, dan door naar de volgende
                 continue
 
-            zoektermlijst = [
-                zoekterm
-                for bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden in bwz_lijst
-            ]
+            zoektermlijst = []
+            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud,
+                 aantalgevonden_nieuw) in bwz_lijst:
+                zoektermlijst.append(zoekterm)
+
             # haal de full text op
-            fulltext = BestandsWijziging.select(BestandsWijziging.tekstachteraf).where(
-                BestandsWijziging.id == bestandswijziging.id)
+            (tekst_achteraf,) = (BestandsWijziging.select(BestandsWijziging.tekstachteraf).where(
+                BestandsWijziging.id == bestandswijziging.id))
             # kuis de full text op
-            fulltext = parseText(fulltext)
+            fulltext = parseText(tekst_achteraf.tekstachteraf)
 
             # per zoekterm zien of deze nog voorkomt
             try:
                 for zoekterm in zoektermlijst:
-                    if zoekterm not in fulltext:
+                    zoekterm2 = zoekterm.replace("%)", "")
+                    if zoekterm2 not in fulltext:
                         false_positive = 'True'
                         afkeur_reden = 'parser'
+                        if (zoekterm2 in ('channel::', 'sync_channel(', 'sync_channel::', '.send(',
+                                         '.recv()')) and 'mpsc::' not in fulltext:
+                            false_positive = 'True'
+                            afkeur_reden = 'package'
                     else:
                         false_positive = 'False'
                         afkeur_reden = ''
@@ -55,14 +61,13 @@ def parse_fulltext_by_project(projectname, project_id):
                 continue
 
             # sla gevonden resultaten op per zoekterm in bestandswijziging
-            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden) in bwz_lijst:
-                zoekterm = zoekterm
+            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw) in bwz_lijst:
                 bestandswijziging_zoekterm = BestandsWijzigingZoekterm()
                 bestandswijziging_zoekterm.id = bwz_id
                 bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
-                bestandswijziging_zoekterm.afkeurreden = afkeur_reden
                 bestandswijziging_zoekterm.zoekterm = zoekterm
                 bestandswijziging_zoekterm.falsepositive = false_positive
+                bestandswijziging_zoekterm.afkeurreden = afkeur_reden
                 bestandswijziging_zoekterm.save()
 
     close_connection()  # nodig bij gebruik PooledPostgresqlExtDatabase
