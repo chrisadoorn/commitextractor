@@ -6,6 +6,7 @@ from datetime import datetime
 from pydriller import Repository, ModifiedFile
 from src.repo_extractor import hashing
 from src.utils import configurator, db_postgresql
+from src.Rust.utils import CleanUpDiffText
 
 PROCESSTAP = 'extractie'
 STATUS_MISLUKT = 'mislukt'
@@ -82,7 +83,10 @@ def __save_bestandswijziging(connection: PostgresqlDatabase, schema_in: str, fil
         # sla op in database
         try:
             tekstvooraf = __opkuizen_speciale_tekens(file.content_before, False) if save_code_before else 'null'
-            diff_text = __opkuizen_speciale_tekens(file.diff, True)
+            if configurator.get_main_language()[0].upper() == 'RUST':
+                diff_text = __opkuizen_speciale_tekens(CleanUpDiffText(file.diff), True)
+            else:
+                diff_text = __opkuizen_speciale_tekens(file.diff, True)
             tekstachteraf = __opkuizen_speciale_tekens(file.content, False)
             sql = INSERT_FILES_SQL.format(schema=schema_in, idcommit=commit_id, filename=file.filename,
                                           locatie=file.new_path, extensie=extension, difftext=diff_text,
