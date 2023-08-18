@@ -1,3 +1,4 @@
+import locale
 import matplotlib.pyplot as plt
 from peewee import *
 
@@ -45,14 +46,18 @@ def create_diagram_usage_by_year():
     fig, ax = plt.subplots()
     ax.bar(jaren, mc_commits, label="Multi-core")
     ax.bar(jaren, all_commits, bottom=mc_commits, label="Other")
-    ax.set_ylabel("Number of commits")
+    ax.set_ylabel("Number of file changes")
     ax.legend(loc='upper left', ncols=2)
+    # format numbers to show dots
+    current_values = plt.gca().get_yticks()
+    locale.setlocale(locale.LC_ALL, '')
+    plt.gca().set_yticklabels(["{:n}".format(int(x)) for x in current_values])
 
     # second axis with a line
     ax2 = ax.twinx()
     ax2.plot(jaren, averages)
-    ax2.set_ylabel('percentage multi-core of all commits')
-    ax2.set_ylim(0, 50)
+    ax2.set_ylabel('percentage multi-core of all file changes')
+    ax2.set_ylim(0, 100)
     ax2.legend(['percentage multi-core'], loc="upper right")
 
     plt.title("Multi-core usage throughout the years")
