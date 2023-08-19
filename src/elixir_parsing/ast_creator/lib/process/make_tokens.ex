@@ -56,7 +56,7 @@ defmodule AstCreator.MakeTokens do
     AstCreator.Repo.get_by(AstCreator.AbstractSyntaxTree, bestandswijziging_id: id)
   end
 
-  defp getTokenString(tekst) do
+  def getTokenString(tekst) do
     case tekst do
       nil -> nil
       _ ->

@@ -558,11 +558,12 @@ select * from v11.bestandswijziging where tekstachteraf like '[{:%' or length(te
 
 de stappen zijn dus:
 1: sample ophalen van seart ghs en importeren in de database
-2: Pydriller gebruiken om de commits te importeren
+2: Pydriller gebruiken om de commits te importeren, [bot] verwijderen
 3: schoonmaken van de data
         a. grote bestanden verwijderen
         b. bestanden met syntax error verwijderen kan pas na de AST
-        c. commits zonder bestanden verwijderen
+        c. commits zonder bestanden verwijderen, alles met diff_text = null of diff_text = ''
+
 
 
 
