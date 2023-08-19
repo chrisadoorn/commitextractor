@@ -469,9 +469,3 @@ class Test(unittest.TestCase):
         chunk = file.read()
         file.close()
         return chunk
-    @staticmethod
-    def read_diff_file(filepath):
-        file = open(filepath, 'rt')
-        chunk = file.read()
-        file.close()
-        return chunk
