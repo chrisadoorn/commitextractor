@@ -94,6 +94,8 @@ def analyze_by_project(projectname, project_id):
                 bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
                 bestandswijziging_zoekterm.zoekterm = zoekterm
                 bestandswijziging_zoekterm.falsepositive = (len(regelnrs_old) == 0 and len(regelnrs_new) == 0)
+                if bestandswijziging_zoekterm.falsepositive:
+                    bestandswijziging_zoekterm.afkeurreden = 'diff_analyzer'
                 bestandswijziging_zoekterm.aantalgevonden_oud = len(regelnrs_old)
                 bestandswijziging_zoekterm.aantalgevonden_nieuw = len(regelnrs_new)
                 bestandswijziging_zoekterm.save()

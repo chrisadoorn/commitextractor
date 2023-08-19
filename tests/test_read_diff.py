@@ -90,21 +90,11 @@ class Test(unittest.TestCase):
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
-    def test_text_starts_with_an_expected_chunk_header_java(self):
-        keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi"]
-        read_diff = ReadDiffElixir()
-        try:
-            text = "@@ -1,1 +2,1 @@Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi"
-            x = read_diff.check_diff_text(text, keywords)
-            print(x)
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
     def test_text_starts_with_an_expected_chunk_header_netto_added_keyword(self):
         read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +1,1 @@" + "\n"
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi #Hallo\"Hoi" + "\n"
             text = text + "-Hoi #Hallo\"Hoi" + "\n"
             nl, ol = read_diff.check_diff_text(text, ["Hoi"])
@@ -114,7 +104,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi Hoi #Hallo\"Hoi Hoi Hoi" + "\n"
             text = text + "-Hoi #Hallo\"Hoi" + "\n"
             nl, ol = read_diff.check_diff_text(text, ["Hoi"])
@@ -124,7 +114,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi Hoi #Hallo\"Hoi Hoi Hoi" + "\n"
             text = text + "-Test 123" + "\n"
             text = text + "-Hoi #Hallo\"Hoi" + "\n"
@@ -135,12 +125,12 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
     def test_text_starts_with_an_expected_chunk_header_and_has_keywords(self):
-        keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi"]
+        keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi", "Hoi.dag_Hoi"]
         read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +2,1 @@" + "\n"
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ HoiHoi \"//\" Hallo Hoi"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, [(3, ['Hallo', 'Hoi'])], [(x[0][0][0], x[0][0][2])])
@@ -148,18 +138,18 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+   Hoi Hallo Hoi" + "\n"
             text = text + "- Doeidag_Hoi Hoi.dag_Hoi" + "\n"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, 2, len(x))
             unittest.TestCase.assertEqual(self, [(3, ['Hoi', 'Hallo', 'Hoi'])], [(x[0][0][0], x[0][0][2])])
-            unittest.TestCase.assertEqual(self, [(2, ['Hoi', 'dag_Hoi'])], [(x[1][0][0], x[1][0][2])])
+            unittest.TestCase.assertEqual(self, [(2, ["Hoi.dag_Hoi"])], [(x[1][0][0], x[1][0][2])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ //Hoi Hallo Hoi" + "\n"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, [(3, [])], [(x[0][0][0], x[0][0][2])])
@@ -167,14 +157,14 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi //Hallo Hoi" + "\n"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, [(3, ['Hoi'])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi /* Hallo Hoi" + "\n"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, [(3, ['Hoi'])], [(x[0][0][0], x[0][0][2])])
@@ -182,7 +172,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi \"/* Hallo Hoi" + "\n"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, [(3, ['Hoi'])], [(x[0][0][0], x[0][0][2])])
@@ -190,7 +180,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ hoi \"/* Hallo Hoi" + "\n"
             x = read_diff.check_diff_text(text, keywords)
             unittest.TestCase.assertEqual(self, [(3, [])], [(x[0][0][0], x[0][0][2])])
@@ -198,34 +188,34 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Anders bla = 12, c=2; string=\"Hallo Hoi\",  Hallo \"Hallo Doeidag\"_Hoi Hoi.dag_Hoi \n"
             x = read_diff.check_diff_text(text, keywords)
-            unittest.TestCase.assertEqual(self, [(3, ['Hallo', 'Hoi', 'dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
+            unittest.TestCase.assertEqual(self, [(3, ['Hallo', 'Hoi.dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Anders bla = 12, c=2; string=\"Hallo Hoi\",  Hallo \"Hallo Doeidag\"_Hoi*/ Hoi.dag_Hoi \n"
             x = read_diff.check_diff_text(text, keywords)
-            unittest.TestCase.assertEqual(self, [(3, ['Hoi', 'dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
+            unittest.TestCase.assertEqual(self, [(3, ['Hoi.dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Anders bla = 12, c=2; string=\"Hallo Hoi\",  " \
                           "Hallo(\"Hallo Doeidag\"_Hoi\"*/\" Hoi.dag_Hoi \n"
             x = read_diff.check_diff_text(text, keywords)
-            unittest.TestCase.assertEqual(self, [(3, ['Hallo', 'Hoi', 'dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
+            unittest.TestCase.assertEqual(self, [(3, ['Hallo', 'Hoi.dag_Hoi'])], [(x[0][0][0], x[0][0][2])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
     def test_text_has_escaped_quotes(self):
         read_diff = ReadDiffJava()
         textheader = "@@ -1,1 +2,1 @@" + "\n"
-        text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+        text = textheader + "Same line that was not changed\n"
         text = text + "+Hoi \"Hallo \\\" Hoi\""
         (x, y) = read_diff.check_diff_text(text, ["Hoi"])
         unittest.TestCase.assertEqual(self, (x[0][0], x[0][2]), (3, ["Hoi"]))
@@ -235,7 +225,7 @@ class Test(unittest.TestCase):
         textheader = "@@ -1,1 +2,1 @@" + "\n"
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi Hallo Hoi*/"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
@@ -245,7 +235,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi Hallo Hoi*/HoiHoi Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
@@ -255,7 +245,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+HoiHalloHoi HoiHoiHoiHoiHoiHoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
@@ -265,7 +255,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi \"//\" HalloHoi Hallo Hoi "
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
@@ -275,7 +265,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi Hallo Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
@@ -285,7 +275,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi \"Hallo Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
@@ -295,7 +285,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi\"Hallo\"Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
@@ -305,7 +295,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+ Hoi//Hallo\"Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
@@ -315,7 +305,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+// Hoi//Hallo\"Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
@@ -325,7 +315,7 @@ class Test(unittest.TestCase):
             self.fail("Unexpected InvalidDiffText exception")
 
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi/*Hallo\"Hoi"
             x = read_diff.check_diff_text(text, ["Hoi"])
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
@@ -333,180 +323,145 @@ class Test(unittest.TestCase):
             unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
+    def test_text_starts_with_an_expected_chunk_header_java_no_exception_expected(self):
+        keywords = ["Hoi", "Hallo", "Doei", "Dag_Hoi", "dag_Hoi"]
+        read_diff = ReadDiffElixir()
+        try:
+            text = "@@ -1,1 +2,1 @@Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi"
+            read_diff.check_diff_text(text, keywords)
+        except InvalidDiffText:
+            self.fail("Unexpected InvalidDiffText exception")
 
-    def test_text_starts_with_an_expected_chunk_header_and_has_keywords_single_word_elixir(self):
+    def test_text_ends_with_triple_quotes_keyword_should_not_be_excluded(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "+Hoi Hallo\"\"\""
+        (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (newlines[0][0], newlines[0][2]), (2, ["Hoi"]))
+
+    def test_text_begins_with_triple_quotes_keyword_should_not_be_excluded(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "+\"\"\" Hoi"
+        (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (newlines[0][0], newlines[0][2]), (2, ["Hoi"]))
+
+    def test_text_ends_with_triple_single_quotes_keyword_should_not_be_excluded(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "+Hoi = '''"
+        (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (newlines[0][0], newlines[0][2]), (2, ["Hoi"]))
+
+    def test_text_begins_with_triple_single_quotes_keyword_should_not_be_excluded(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "+''' |> Hoi"
+        (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (newlines[0][0], newlines[0][2]), (2, ["Hoi"]))
+
+    def test_text_has_no_ending_double_quote_should_not_exclude_keyword(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "+\" Hoi"
+        (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (newlines[0][0], newlines[0][2]), (2, ["Hoi"]))
+
+    def test_text_has_no_ending_single_quote_should_not_exclude_keyword(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        text = textheader + "+'Hoi"
+        (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi"])
+        unittest.TestCase.assertEqual(self, (newlines[0][0], newlines[0][2]), (2, ["Hoi"]))
+
+    def test_text_has_multiple_keywords_all_should_be_returned(self):
         read_diff = ReadDiffElixir()
         textheader = "@@ -1,1 +2,1 @@" + "\n"
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi/*Hallo\"Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hallo"])])
+            (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi", "Hallo"])
+            unittest.TestCase.assertEqual(self, newlines[0][0], 3)
+            unittest.TestCase.assertListEqual(self, newlines[0][2], ["Hoi", "Hallo", "Hoi"])
+
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
+    def test_text_has_multiple_keywords_before_and_after_a_string_both_should_be_found(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi \"Hallo\"Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
+            (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi", "Hallo"])
+            unittest.TestCase.assertEqual(self, newlines[0][0], 3),
+            unittest.TestCase.assertListEqual(self, newlines[0][2], ["Hoi", "Hoi"])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
+    def test_text_has_one_valid_keyword_rest_should_not_be_found(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+Hoi #Hallo\"Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
+            (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi", "Hallo"])
+            unittest.TestCase.assertEqual(self, newlines[0][0], 3)
+            unittest.TestCase.assertListEqual(self, newlines[0][2], ["Hoi"])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
+    def test_text_has_no_valid_keyword_non_should_be_found(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
         try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
+            text = textheader + "Same line that was not changed\n"
             text = text + "+#Hoi #Hallo\"Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
+            (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi", "Hallo"])
+            unittest.TestCase.assertEqual(self, [(newlines[0][0], newlines[0][2])], [(3, [])])
+        except InvalidDiffText:
+            self.fail("Unexpected InvalidDiffText exception")
+
+    def test_text_contains_part_of_a_multiline_string_all_keywords_should_be_found(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        try:
+            text = textheader + "Same line that was not changed\n"
+            text = text + "+Hoi Hallo\"Hoi"
+            (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi", "Hallo"])
+            unittest.TestCase.assertEqual(self, newlines[0][0], 3)
+            unittest.TestCase.assertListEqual(self, newlines[0][2], ["Hoi", "Hallo", "Hoi"])
+        except InvalidDiffText:
+            self.fail("Unexpected InvalidDiffText exception")
+
+    def test_text_contains_part_of_a_multiline_charlist_all_keywords_should_be_found(self):
+        read_diff = ReadDiffElixir()
+        textheader = "@@ -1,1 +2,1 @@" + "\n"
+        try:
+            text = textheader + "Same line that was not changed\n"
+            text = text + "+Hoi Hallo'Hoi"
+            (newlines, old_lines) = read_diff.check_diff_text(text, ["Hoi", "Hallo"])
+            unittest.TestCase.assertEqual(self, newlines[0][0], 3)
+            unittest.TestCase.assertListEqual(self, newlines[0][2], ["Hoi", "Hallo", "Hoi"])
         except InvalidDiffText:
             self.fail("Unexpected InvalidDiffText exception")
 
     def test_elixir(self):
         diff_text = self.read_diff_file(filepath='data/read_diff_elixir.txt')
-        keywords = ["use", "Mix.Project", "def", "project", "do", "app", "plug_server", "server", "elixir",
+        keywords = ["use",  "def", "project", "do", "app", "plug_server", "server", "elixir",
                     "build_embedded", "application", "applications", "cowboy", "plug", "mod", "App", "env",
                     "cowboy_port", "end"]
         read_diff = ReadDiffElixir()
         (new_lines, old_lines) = read_diff.check_diff_text(diff_text, keywords)
-        x = new_lines
-        y = old_lines
+
         expected_nl = [(5, '[app: :server,', ['app', 'server']),
                        (17, '[applications: [:cowboy, :plug],', ['applications', 'cowboy', 'plug']),
                        (18, 'mod: {App, []},', ['mod', 'App']),
                        (19, 'env: [cowboy_port: 9292]]', ['env', 'cowboy_port'])]
         expected_ol = [(5, '[app: :plug_server,', ['app', 'plug_server']),
                        (17, '[applications: [:cowboy, :plug]]', ['applications', 'cowboy', 'plug'])]
-        self.assertEqual(x, expected_nl)
-        self.assertEqual(y, expected_ol)
-
-    def test_sigil_tests_elixir(self):
-        read_diff = ReadDiffElixir()
-        textheader = "@@ -1,1 +2,1 @@" + "\n"
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hallo Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hallo"])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~S(Hallo)Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~C(Hallo)Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~s(Hallo)Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~s Hallo Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hallo"])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi ~s Hallo Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hallo"])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~c(Hallo)Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~s(Hallo"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi~c(Hallo"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi 'Hallo'Hoi"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi", "Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, [])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
-
-        try:
-            text = textheader + "Hoi Hallo Doeidag_Hoi Hoi.dag_Hoi" + "\n"
-            text = text + "+Hoi 'Hallo'Hallo"
-            x = read_diff.check_diff_text(text, ["Hoi"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hoi"])])
-            x = read_diff.check_diff_text(text, ["Hallo"])
-            unittest.TestCase.assertEqual(self, [(x[0][0][0], x[0][0][2])], [(3, ["Hallo"])])
-        except InvalidDiffText:
-            self.fail("Unexpected InvalidDiffText exception")
+        self.assertEqual(new_lines, expected_nl)
+        self.assertEqual(old_lines, expected_ol)
 
     @staticmethod
     def read_diff_file(filepath):
