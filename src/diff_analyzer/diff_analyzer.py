@@ -112,7 +112,7 @@ def analyze_by_project(projectname, project_id):
 
 def analyze(process_identifier):
     oude_processtap = 'zoekterm_vinden'
-    nieuwe_processtap = 'zoekterm_controleren'
+    nieuwe_processtap = ' '
 
     try:
         db_postgresql.open_connection()

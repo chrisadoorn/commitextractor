@@ -2,20 +2,20 @@ import logging
 import os
 import uuid
 from datetime import datetime
-from src.utils import sanitychecker, configurator
-from src.text_search import parallelizer
+from multiprocessing import freeze_support
+
+from src.utils import db_postgresql, sanitychecker, configurator
+from src.Rust.parser import parallelizer
 
 
 #####################################
 #         define functions          #
 #####################################
-
-
 def start_processing():
     try:
         # connect to database
-        parallelizer.start_text_search()
-
+        db_postgresql.open_connection()
+        parallelizer.start_rust_parser_processen()
     except Exception as e:
         # stop processing
         logging.info(
@@ -37,7 +37,7 @@ def start_with_checks():
     try:
 
         # check if environment is configured properly
-        sane = sanitychecker.check_dependencies('text_search')
+        sane = sanitychecker.check_dependencies('rust_parser')
         if not sane:
             logging.info('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
             raise Exception('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
@@ -45,7 +45,7 @@ def start_with_checks():
         start_processing()
 
     finally:
-        logging.info('Stopping module zoekterm_vinden')
+        logging.info('Stopping application parser')
 
 
 #####################################
@@ -57,12 +57,16 @@ if __name__ == '__main__':
     # initialiseer logging
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'main.zoekterm_vinden.' + dt.strftime('%y%m%d-%H%M%S')
-                                             + '.' + instance_uuid + '.log'))
+                                             '../../..', 'log', 'rust_parser.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
+
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
 
-    logging.info('Starting module zoekterm_vinden with procesid ' + instance_uuid)
+    logging.info('Starting application rust_parser with procesid ' + instance_uuid)
+
+    # freeze_support om de processen parallel te kunnen laten werken.
+    freeze_support()
 
     start_with_checks()
+

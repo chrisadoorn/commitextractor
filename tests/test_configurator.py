@@ -27,7 +27,7 @@ class Test(unittest.TestCase):
     # test of een import lijst opgehaald kan worden
     def test_ghsearch_importfile(self):
         configurator.set_inifile(TEST_INI_FILE)
-        verwacht = 'data/test_ghsearch.json'
+        verwacht = '../../tests/data/test_ghsearch.json'
         resultaat = configurator.get_ghsearch_importfile()
         unittest.TestCase.assertEqual(self, verwacht, resultaat, 'ghsearch importfile niet correct!')
 

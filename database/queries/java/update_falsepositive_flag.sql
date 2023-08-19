@@ -1,22 +1,22 @@
 
-select count(*) from java_parse_result;				 -- 159115
-select count(*) from java_parser_selection_view jpsv;-- 159468
+select count(*) from java_parse_result;				 -- 162050
+select count(*) from java_parser_selection_view jpsv;-- 162407
 select count(*) from bestandswijziging_zoekterm;	 -- 426487
 select count(*) from bestandswijziging_zoekterm
-where  falsepositive = false ;                      -- 159468 Zou gelijk moeten zijn aan jpsv count
+where  falsepositive = false ;                      -- 162407 Zou gelijk moeten zijn aan jpsv count
 select count(*) from java_parser_selection_view sv 
-where sv.id not in (select id from java_parse_result);  -- 353 (= 159468 - 159115 ) = uitval tijdens parse step = 2.2% 
+where sv.id not in (select id from java_parse_result);  -- 357 (= 162407 - 162050 ) = uitval tijdens parse step = 2.2% 
 select count(*) from wijziging_lineage wl ;     -- 2512590
-select count(*) from bestandswijziging b ;
+select count(*) from bestandswijziging b ;      -- 2349006
 
 
 -- reset false positive flag voor parse stap
 update bestandswijziging_zoekterm
 set afkeurreden = null 
    ,falsepositive = false 
-where afkeurreden  is not null;  
+where afkeurreden is not null;  
 
--- parse exceptions 353
+-- parse exceptions 357
 update bestandswijziging_zoekterm 
 set falsepositive = true 
    ,afkeurreden = 'parse_exception'
@@ -26,7 +26,7 @@ where id in (select id
                               from java_parse_result))            
 and falsepositive = false;
 
--- parse erors --315
+-- parse erors --318
 select count(*) 
 from java_parse_result
 where (parse_error_vooraf = true 
@@ -47,7 +47,7 @@ where id in (select id
 and falsepositive = false;
 
 
--- verwijderd uitsluiten   --22215
+-- verwijderd uitsluiten   --22569
 select count(*) from java_parse_result jpr 
 where is_verwijderd = true;
 
@@ -62,7 +62,7 @@ and falsepositive = false;
 
             
             
--- niet in namespace uitsluiten --12975
+-- niet in namespace uitsluiten --13443
 select count(*) from java_parse_result jpr 
 where is_verwijderd = false 
 and   is_in_namespace = false;
@@ -75,6 +75,18 @@ where id in (select id
              where is_verwijderd = false 
 			 and   is_in_namespace = false)            
 and falsepositive = false;
+
+-- update gebruik libraries 20
+update bestandswijziging_zoekterm 
+set falsepositive = true 
+   ,afkeurreden = 'onjuist_gebruik_libraries'
+where id in(select id
+			from java_parse_result 
+			where zoekterm in (select zoekterm
+							   from java_zoekterm jz 
+							   where categorie = 'libraries')
+			and is_verwijderd = false 
+		    and is_in_namespace = false) ;
 
 
 -- reset uitgesloten reden

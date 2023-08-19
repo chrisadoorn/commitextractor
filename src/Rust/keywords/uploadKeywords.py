@@ -48,7 +48,8 @@ def import_keywords(jsondata: json) -> None:
     for zoekterm in jsondata:
         zoekterm_details = Zoekterm()
         zoekterm_details.extensie = zoekterm.get('extensie') or None
-        zoekterm_details.zoekwoord = zoekterm.get('zoekwoord') or None
+        #gebruik van package in broncode wordt voorafgegaan door keyword use
+        zoekterm_details.zoekwoord = "use " + zoekterm.get('zoekwoord') or None
         try:
             zoekterm_details.save()
         except ValueError as e_outer:
@@ -82,13 +83,23 @@ def insert_hardcoded_keywords() -> None:
     logging.info('Starting hardcoded insert')
 
     zoekterm_details = Zoekterm()
-    zoekterm_details.create(extensie=".rs", zoekwoord=".await")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::os::raw::Thread")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::marker::sync")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::marker::Send")
-    zoekterm_details.create(extensie=".rs", zoekwoord="std::sync")
 
+    zoekterm_details.create(extensie=".rs", zoekwoord=".await")
+    zoekterm_details.create(extensie=".rs", zoekwoord="thread::spawn")
+    zoekterm_details.create(extensie=".rs", zoekwoord="thread::Builder::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Arc::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Barrier::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Condvar::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Mutex::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="Once::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="OnceLock::new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="RwLock:: new")
+    zoekterm_details.create(extensie=".rs", zoekwoord="channel()")
+    zoekterm_details.create(extensie=".rs", zoekwoord="channel::")
+    zoekterm_details.create(extensie=".rs", zoekwoord="sync_channel(%)")
+    zoekterm_details.create(extensie=".rs", zoekwoord="sync_channel::")
+    zoekterm_details.create(extensie=".rs", zoekwoord=".send(%)")
+    zoekterm_details.create(extensie=".rs", zoekwoord=".recv()")
 
 def load_importfile(importfile: str) -> None:
     """
@@ -117,7 +128,7 @@ def __initialize() -> None:
     loglevel = configurator.get_module_configurationitem(module='load_keywords', entry='loglevel')
 
     log_filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                                 '..', '..', 'log',
+                                                 '../../../../../../..', '..', 'log',
                                                  'load_keywords.' + dt.strftime('%y%m%d-%H%M%S') + '.log'))
 
     logging.basicConfig(filename=log_filename,

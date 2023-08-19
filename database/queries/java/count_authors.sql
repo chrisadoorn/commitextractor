@@ -96,13 +96,13 @@ and auteur < 900000000;
 select * from auteur_tellingen at2 where auteur = 66626;				    
 
 -- geidentifeerde authors
-select count(distinct author_id)                  -- 4923 = 64.1% van alles
+select count(distinct author_id)                  -- 6602 = 64.1% van alles
 from commitinfo c                                 --     = % van authors die mc doen
 where 
 author_id < 900000000;
 
 -- ongeidentifeerde authors
-select count(distinct author_id)                  -- 2755 = 35.8% van alles
+select count(distinct author_id)                  -- 3781 = 35.8% van alles
 from commitinfo c                                 --     = % van authors die mc doen
 -- , java_parse_result jpr 
 --where jpr.commit_id = c.id

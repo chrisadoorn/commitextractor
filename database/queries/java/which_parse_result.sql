@@ -1,10 +1,10 @@
-select count(*) from java_parse_result jpr;              -- totaal : 132815
+select count(*) from java_parse_result jpr;              -- totaal : 162050
 select count(distinct bw_id) from java_parse_result jpr; -- totaal :  85016
 
 -- uitsluiten van gevallen waar een parse error optrad: 
 --  vergelijking voor en achteraf levert onbetrouwbare resultaten
 select count(*) from java_parse_result jpr 
-where parse_error_vooraf is true or parse_error_achteraf = true; -- 349 afgekeurd (0.2%)
+where parse_error_vooraf is true or parse_error_achteraf = true; -- 387 afgekeurd (0.2%)
 
 -- uitsluiten van gevallen waar tekstachteraf leeg is. ( bestand verwijderd, multi-core statement wijziging is incidenteel)
 select count(distinct bw_id) from java_parse_result jpr -- 10028 (11.8 %)
@@ -69,4 +69,21 @@ and    is_in_namespace = true
 and  ( vooraf_usage_ontbreekt = true
        or achteraf_nieuw_usage = true )
 and    is_verwijderd = true
+
+select * from java_parser_selection_view jpr 
+where zoekterm = '@Lock';
+
+select * from java_parse_result jpr 
+where zoekterm = 'Collections.synchronizedList'
+order by bw_id ASC;
+
+select * from java_parse_result jpr 
+where zoekterm in ( select zoekterm 
+                    from java_zoekterm jz
+                    where categorie = 'libraries');
+
+select count(*) from java_parser_selection_view;
+select naam
+from project p 
+where id = 60803;
 

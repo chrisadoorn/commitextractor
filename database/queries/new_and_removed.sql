@@ -1,8 +1,12 @@
 
 -- queries: all filechanges 
-select count(*)  as total from bestandswijziging b;
+select count(*)  as total from bestandswijziging b
+where b.uitgesloten = false;  
+
 select count(*)  as new_file from bestandswijziging b
-where tekstvooraf is null;  
+where tekstvooraf is null
+and b.uitgesloten = false;  
+  
 -- omkering: hoe zit het met de verwijderingen? 
 select count(*) as removed from bestandswijziging b
 where tekstachteraf is null; 
@@ -15,14 +19,17 @@ select count(distinct bestandswijziging)  as total
 from wijziging_lineage wl
     ,bestandswijziging b 
 where b.id = wl.bestandswijziging 
-and   falsepositive = false;
+and   falsepositive = false
+and b.uitgesloten = false;  
+;
 
 select count(distinct bestandswijziging)  as new_file 
 from wijziging_lineage wl
     ,bestandswijziging b 
 where b.id = wl.bestandswijziging 
 and   falsepositive = false
-and tekstvooraf is null;  
+and tekstvooraf is null
+and b.uitgesloten = false;  
 
 
 -- queries: filechanges with multi-core or removed

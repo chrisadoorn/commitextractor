@@ -66,3 +66,8 @@ where b.tekstvooraf is null
 and idcommit not in ( select distinct idcommit
                       from bestandswijziging b2
                       where b2.tekstvooraf is not null);  
+                     
+                     
+select count(*) from wijziging_lineage wl; -- 2.512.590 alles
+select count(*) from bestandswijziging b;  -- 2.349.006 alles
+select count(distinct wl.bestandswijziging) from wijziging_lineage wl where vooraf_leeg = true and achteraf_leeg = true; -- 140.676 verplaatste bestanden = 6%

@@ -1,7 +1,7 @@
 import os
 
 # zet hier de naam van het schema
-new_schema='prod'
+new_schema = 'prod'
 
 scriptdir = os.path.dirname(__file__)
 
@@ -35,9 +35,10 @@ file_names = ['10_create_table_selectie.sql'
     , '54_create_table_java_parse_result.sql'
     , '55_create_view_compare_analysis.sql'
     , '61_create_view_wijziging_lineage.sql'
-    , '62_create_table_auteur_tellingen.sql'
-    , '63_vulscript_auteur_tellingen.sql'
-    , '64_create_view_commit_volgorde.sql'
+    , '62_create_view_suspicious_commit.sql'
+    , '63_create_table_auteur_tellingen.sql'
+    , '64_vulscript_auteur_tellingen.sql'
+    , '65_create_view_commit_volgorde.sql'
               ]
 
 os.makedirs(run_dir)
@@ -66,4 +67,3 @@ for sql_file in file_names:
     org.close()
 
 full.close()
-

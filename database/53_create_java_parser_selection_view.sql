@@ -10,7 +10,13 @@ where   b.idcommit = c.id
 and     c.idproject = p.id
 and     bz.zoekterm = jz.zoekterm
 and     bz.idbestandswijziging = b.id
-and     bz.falsepositive = false
+and     ( bz.falsepositive = false
+		 -- omdat de diff analyzer niet om kan gaan als er een punt(.) of een ad (@) teken in het keyword voorkomt 
+         -- wordt zolang dit niet is opgelost, hier gefixt door deze or op te nemen. 
+         or bz.zoekterm in (select zoekterm
+                    from java_zoekterm jz
+                    where zoekterm like '%.%' or zoekterm like '@%')
+        )
 order by bw_id;
 
 -- Permissions
