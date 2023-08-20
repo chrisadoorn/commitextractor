@@ -2,8 +2,9 @@ import logging
 import os
 import uuid
 from datetime import datetime
-from src.utils import sanitychecker, configurator
+
 from src.text_search import parallelizer
+from src.utils import sanitychecker
 
 
 #####################################
@@ -51,6 +52,8 @@ def start_with_checks():
 #####################################
 #         start of code             #
 #####################################
+# Deze module doorloopt de tabel verwerk_project waar status='verwerkt' en processtap='identificatie'
+# Resultaten worden opgeslagen in de tabel bestandswijziging_zoekterm
 if __name__ == '__main__':
     # initialiseer logging
     instance_uuid = str(uuid.uuid4())
