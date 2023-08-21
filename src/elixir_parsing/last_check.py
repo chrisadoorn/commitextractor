@@ -3,14 +3,13 @@ import os
 from collections import deque
 from datetime import datetime
 
+from colorama import Fore
+from colorama import init as colorama_init
 from peewee import *
 
 from src.utils import configurator
 from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
-from colorama import init as colorama_init
-from colorama import Fore
-from colorama import Style
 
 colorama_init()
 
@@ -150,9 +149,6 @@ def parsed_to_lexeme_list(elixir_tokens):
             number_open_curly_braces -= 1
         if number_open_curly_braces == 0:
             if new_part_start:
-                # print(temp_part)
-                if '["\\"1\\""]}, {:"' in temp_part:
-                    print("test")
                 xxx = split_lexeme(temp_part)
                 # print(xxx)
                 lexemes_list.append(xxx)
@@ -160,9 +156,6 @@ def parsed_to_lexeme_list(elixir_tokens):
             temp_part = ''
     return lexemes_list
 
-
-# {:identifier, {1, 1, ~c"defmodule"}, :defmodule}
-# {:., {1, 16, nil}}
 
 def split_lexeme(lexeme):
     if lexeme[0:2] != '{:':
@@ -264,7 +257,6 @@ def read_next(line_list):
 def analyze(process_identifier):
     oude_processtap = ' '
     nieuwe_processtap = 'last_check'
-
     try:
         db_postgresql.open_connection()
         db_postgresql.registreer_processor(process_identifier)
