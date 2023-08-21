@@ -15,8 +15,10 @@ CREATE TABLE IF NOT EXISTS compare_project_history
  )
 TABLESPACE pg_default;
 
+grant select on compare_project_history to appl;
+
 -- herbeginnen
-truncate table compare_project_history
+truncate table compare_project_history;
 
 -- insert totalen 
 insert into compare_project_history(idproject, count_commit, avg_commit, laatste_commit, eerste_commit_datum, laatste_commit_datum)  
@@ -47,7 +49,7 @@ set (count_mc_commit, avg_mc_commit, eerste_mc_commit, laatste_mc_commit, eerste
 -- hoe hoger, des te meer commits aan het begin van het project
 -- negatief? Dan is multi-core later toegevoegd  
 -- Lijkt een kandidaat voor een bell curve grafiek.                 	
-select idproject, count_commit,  ((avg_commit - avg_mc_commit)  / count_commit) * 100 as percentueel_verschil
+select idproject, count_commit, count_mc_commit, avg_commit, avg_mc_commit, ((avg_commit - avg_mc_commit)  / count_commit) * 100 as percentueel_verschil
 from compare_project_history where count_mc_commit > 0;
 
 -- Java cijfers:  

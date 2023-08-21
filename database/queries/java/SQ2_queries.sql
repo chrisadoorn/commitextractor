@@ -72,3 +72,16 @@ and jpr.achteraf_nieuw_usage = true
 and jpr.is_in_namespace = true
 group by wl.auteur
 order by verschillende_zoektermen desc;
+
+-- gebruik keyword Thread by year:
+select count(commitdatumtijd), cast(date_part('year',commitdatumtijd) as int)
+   from commitinfo c
+       ,wijziging_lineage wl2 
+   where c.id = wl2.commitid 
+   -- and wl2.zoekterm in('Thread', 'Runnable')
+   and wl2.zoekterm in ('VarHandle')
+   and wl2.falsepositive = false
+   group by cast(date_part('year',commitdatumtijd) as int) 
+   order by cast(date_part('year',commitdatumtijd) as int) asc;
+
+
