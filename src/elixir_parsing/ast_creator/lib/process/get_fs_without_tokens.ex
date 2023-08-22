@@ -1,12 +1,12 @@
-defmodule AstCreator.GetFileChanges do
+defmodule AstCreator.GetFileChangesWithoutTokens do
   use GenServer
 
   def get_ids() do
     query =
       """
       select bw.id from v11.bestandswijziging bw
-      left join v11.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
-      where a.id is null  order by bw.id asc;
+      join v11.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
+      where a.tekstachteraf_tokens is null and a.tekstvooraf_tokens is null order by bw.id asc;
       """
 
     Ecto.Adapters.SQL.query(AstCreator.Repo, query, [])

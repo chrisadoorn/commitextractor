@@ -54,9 +54,7 @@ def analyze_by_project(projectname, project_id):
                 continue
 
             # haal zoektermen uit de lijst
-            zoektermlijst = []
-            for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw) in bwz_lijst:
-                zoektermlijst.append(zoekterm)
+            zoektermlijst = list(map(lambda x: x[2], bwz_lijst))
 
             # haal de diff op
             (difftekst,) = BestandsWijziging.select(BestandsWijziging.difftext).where(
@@ -77,14 +75,13 @@ def analyze_by_project(projectname, project_id):
             # sla gevonden resultaten op per zoekterm in bestandswijziging
             # dit overschrijft eerdere versies, dus als de
             for (bwz_id, idbestandswijziging, zoekterm, falsepositive, afkeurreden, aantalgevonden_oud, aantalgevonden_nieuw) in bwz_lijst:
-                zoekterm = zoekterm
                 regelnrs_new = []
-                for (regelnr, line, keywords) in new_lines:
+                for (regelnr, _, keywords) in new_lines:
                     count = keywords.count(zoekterm)
                     for i in range(count):
                         regelnrs_new.append(regelnr)
                 regelnrs_old = []
-                for (regelnr, line, keywords) in removed_lines:
+                for (regelnr, _, keywords) in removed_lines:
                     count = keywords.count(zoekterm)
                     for i in range(count):
                         regelnrs_old.append(regelnr)
@@ -94,6 +91,8 @@ def analyze_by_project(projectname, project_id):
                 bestandswijziging_zoekterm.idbestandswijziging = idbestandswijziging
                 bestandswijziging_zoekterm.zoekterm = zoekterm
                 bestandswijziging_zoekterm.falsepositive = (len(regelnrs_old) == 0 and len(regelnrs_new) == 0)
+                if bestandswijziging_zoekterm.falsepositive:
+                    bestandswijziging_zoekterm.afkeurreden = 'diff_analyzer'
                 bestandswijziging_zoekterm.aantalgevonden_oud = len(regelnrs_old)
                 bestandswijziging_zoekterm.aantalgevonden_nieuw = len(regelnrs_new)
                 bestandswijziging_zoekterm.save()

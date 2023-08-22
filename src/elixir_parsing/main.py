@@ -2,8 +2,9 @@ import logging
 import os
 import uuid
 from datetime import datetime
+from multiprocessing import freeze_support
 
-from src.text_search import parallelizer
+from src.elixir_parsing.parallelizer import start_elixir_last_check_analysis_processen
 from src.utils import sanitychecker
 
 
@@ -15,8 +16,8 @@ from src.utils import sanitychecker
 def start_processing():
     try:
         # connect to database
-        parallelizer.start_text_search()
-
+        # db_postgresql.open_connection()
+        start_elixir_last_check_analysis_processen()
     except Exception as e:
         # stop processing
         logging.info(
@@ -38,7 +39,7 @@ def start_with_checks():
     try:
 
         # check if environment is configured properly
-        sane = sanitychecker.check_dependencies('text_search')
+        sane = sanitychecker.check_dependencies('diff_analyzer')
         if not sane:
             logging.info('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
             raise Exception('Er zijn fouten geconstateerd tijdens de controle. Het programma wordt afgebroken.')
@@ -46,26 +47,26 @@ def start_with_checks():
         start_processing()
 
     finally:
-        logging.info('Stopping module zoekterm_vinden')
+        logging.info('Stopping application commitextractor')
 
 
 #####################################
 #         start of code             #
 #####################################
-# Deze module doorloopt de tabel verwerk_project waar status='verwerkt' en processtap='identificatie'
-# Resultaten worden opgeslagen in de tabel bestandswijziging_zoekterm
 if __name__ == '__main__':
     # initialiseer logging
     instance_uuid = str(uuid.uuid4())
     # initialiseer logging
     dt = datetime.now()
     filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                             '../..', 'log', 'main.zoekterm_vinden.' + dt.strftime('%y%m%d-%H%M%S')
-                                             + '.' + instance_uuid + '.log'))
+                                             '../..', 'log', 'diff_analyzer.' + dt.strftime('%y%m%d-%H%M%S') + '.' + instance_uuid + '.log'))
     logging.basicConfig(filename=filename,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         level=logging.INFO, encoding='utf-8')
 
-    logging.info('Starting module zoekterm_vinden with procesid ' + instance_uuid)
+    logging.info('Starting elixir last_check  with procesid ' + instance_uuid)
+
+    # freeze_support om de processen parallel te kunnen laten werken.
+    freeze_support()
 
     start_with_checks()

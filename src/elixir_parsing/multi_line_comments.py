@@ -22,7 +22,8 @@ def check_op_multiline_comments():
                                     host='localhost', port=params_for_db.get('port'))
 
     bestands_wijziging_sql_dist = "select distinct idbestandswijziging from {sch}.bestandswijziging_zoekterm bw_zt " \
-          "where bw_zt.falsepositive = false order by bw_zt.idbestandswijziging asc;".format(sch=schema)
+                                  "where bw_zt.falsepositive = false order by bw_zt.idbestandswijziging asc;".format(
+        sch=schema)
 
     selecteer_teksten_sql = "select tekstvooraf, tekstachteraf from {sch}.bestandswijziging bw where id = {id};"
 
@@ -30,14 +31,17 @@ def check_op_multiline_comments():
 
     bestandswijziging_zoekterm_cursor = connection.execute_sql(bestands_wijziging_sql_dist)
 
-    ml_comments = []
     for (idbestandswijziging,) in bestandswijziging_zoekterm_cursor.fetchall():  # per bestandswijziging
-        bestandswijziging_cursor = connection.execute_sql(selecteer_teksten_sql.format(sch=schema, id=idbestandswijziging))
+        ml_comments = []
+        bestandswijziging_cursor = connection.execute_sql(
+            selecteer_teksten_sql.format(sch=schema, id=idbestandswijziging))
         (tekstvooraf, tekstachteraf) = bestandswijziging_cursor.fetchone()  # haal de tekst voor en na de wijziging op
-        ml_comments_min =findMultiLineComments(tekstvooraf)  # lijst met multi-line comments voor de wijziging
-        ml_comments_plus =findMultiLineComments(tekstachteraf)  # lijst met multi-line comments na de wijziging
-        regelnummers_cursor = connection.execute_sql(selecteer_zoekterm_regelnummers.format(sch=schema, id=idbestandswijziging))
-        for (id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in regelnummers_cursor.fetchall():  # zoektermen met regelnummers
+        ml_comments_min = findMultiLineComments(tekstvooraf)  # lijst met multi-line comments voor de wijziging
+        ml_comments_plus = findMultiLineComments(tekstachteraf)  # lijst met multi-line comments na de wijziging
+        regelnummers_cursor = connection.execute_sql(
+            selecteer_zoekterm_regelnummers.format(sch=schema, id=idbestandswijziging))
+        for (id, idbestandswijziging, zoekterm, regelnummer,
+             regelsoort) in regelnummers_cursor.fetchall():  # zoektermen met regelnummers
             r = (id, idbestandswijziging, zoekterm, regelnummer, regelsoort)
             if regelsoort == 'oud':
                 for (start, end) in ml_comments_min:
@@ -55,18 +59,37 @@ def check_op_multiline_comments():
         for (id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in ml_comments:
             if regelsoort == 'oud':
                 substract_sql_min = "UPDATE {sch}.bestandswijziging_zoekterm set aantalgevonden_oud = aantalgevonden_oud -1 " \
-                            "WHERE idbestandswijziging={idbestandswijziging} and zoekterm='{zoekterm}' " \
-                            .format(sch=schema, idbestandswijziging=idbestandswijziging, zoekterm=zoekterm)
+                                    "WHERE idbestandswijziging={idbestandswijziging} and zoekterm='{zoekterm}' ".format(
+                    sch=schema, idbestandswijziging=idbestandswijziging, zoekterm=zoekterm)
                 connection.execute_sql(substract_sql_min)
             elif regelsoort == 'nieuw':
                 substract_sql_plus = "UPDATE {sch}.bestandswijziging_zoekterm set aantalgevonden_nieuw = aantalgevonden_nieuw -1 " \
-                            "WHERE idbestandswijziging={idbestandswijziging} and zoekterm='{zoekterm}' " \
-                            .format(sch=schema, idbestandswijziging=idbestandswijziging, zoekterm=zoekterm)
+                                     "WHERE idbestandswijziging={idbestandswijziging} and zoekterm='{zoekterm}' ".format(
+                    sch=schema, idbestandswijziging=idbestandswijziging, zoekterm=zoekterm)
                 connection.execute_sql(substract_sql_plus)
-        ml_comments = []
+            delete_sql = "DELETE FROM {sch}.bestandswijziging_zoekterm_regelnummer " \
+                         "WHERE idbestandswijziging={idbestandswijziging} and regelnummer={regelnummer} " \
+                         "and regelsoort='{regelsoort}' ".format(sch=schema, idbestandswijziging=idbestandswijziging,
+                                                                 regelnummer=regelnummer, regelsoort=regelsoort)
+            connection.execute_sql(delete_sql)
+
+
 
 
 def findMultiLineComments(tekst):
+    # in elixir is dit niet mogelijk:
+    # """ comment """
+    # of  """ comment
+    # of
+    # comment """
+    # tekst
+    # """  expression
+    # alleen dit"
+    # a = """      \\de tekst voor """ is al beoordeeld
+    # comment
+    # bla bla
+    # """ evt code    \\ e tekst na """ is al beoordeeld
+    # Deze methode vindt teksten te die tussen """ en """ liggen
     if tekst is None:
         return []
     regels = tekst.split('\n')
