@@ -6,13 +6,13 @@
 select distinct(idproject)
 from test.commitinfo ci
 
---aantal MC-projecten --> 209 stuks
+--aantal MC-projecten --> 518 stuks
 select count(distinct(idproject))
 from test.bestandswijziging_zoekterm bz,
      test.bestandswijziging b,
 	 test.commitinfo ci
 where b.idcommit = ci.id
-	  and bz.id = b.id
+	  and bz.idbestandswijziging = b.id
 	  and bz.falsepositive = 'False'
 
 --number of MC-file changes
@@ -20,31 +20,11 @@ select count(id)
 from test.bestandswijziging_zoekterm
 where falsepositive = 'False'
 
---primitives and counts
-select zoekterm, count(idbestandswijziging) as freq
-from test.bestandswijziging_zoekterm
-group by zoekterm
-order by freq desc
-
---per project # aantal verschillende zoektermen + frequentie ervan
-select idproject, b.zoekterm, count(bz.id)
-from test.bestandswijziging_zoekterm bz,
-     test.bestandswijziging_zoekterm b,
-	 test.commitinfo ci
-where bz.idbestandswijziging = b.id
-     and b.id = ci.id
-group by idproject, b.zoekterm
-order by idproject asc
-
---per project en per auteur # aantal verschillende zoektermen + frequentie ervan
-select idproject, author_id, b.zoekterm, count(bz.id)
-from test.bestandswijziging_zoekterm bz,
-     test.bestandswijziging b,
-	 test.commitinfo ci
-where bz.idbestandswijziging = b.id
-     and b.id = ci.id
-group by idproject, author_id, b.zoekterm
-order by idproject asc
+--tellingen tabel SQ1
+select count(unieke_mc_auteur), sum(filechanges), sum(mcfilechanges)
+from test.sq1_table
+--where unieke_mc_auteur = 1
+where unieke_auteur > 900000000
 
 --extra tabel voor SQ1
 SET SCHEMA 'test';
@@ -78,7 +58,7 @@ from test.bestandswijziging_zoekterm bz,
      test.bestandswijziging b,
 	 test.commitinfo ci
 where b.idcommit = ci.id
-	  and bz.id = b.id
+	  and bz.idbestandswijziging = b.id
 	  and bz.falsepositive = 'False');
 
 -- aantal bestandswijzigingen per MC-auteur
@@ -90,10 +70,13 @@ from (
 		 test.bestandswijziging b,
 		 test.commitinfo ci
 	where b.idcommit = ci.id
-		  and bz.id = b.id
+		  and bz.idbestandswijziging = b.id
 		  and bz.falsepositive = 'False'
 	group by author_id
 ) AS sub
 where sq1.unieke_auteur = sub.author_id;
+
+
+
 
 

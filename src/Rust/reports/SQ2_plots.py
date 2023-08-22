@@ -1,6 +1,5 @@
-#SQ.1 How is the usage of multi-core programming primitives distributed among programmers?
+#SQ.2 What is the correlation between multi-core programming primitives and the percentage of programmers using them?
 
-# a histogram that visualizes how many programmers fall within each MC-frequency count range
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,21 +12,22 @@ def create_histogram():
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host=params_for_db.get('host'), port=params_for_db.get('port'))
 
-    #auteurs en hun count van zoektermen
-    sql = " select ci.author_id, count(bz.id) " \
+    #zoektermen en count van auteurs
+    sql = " select bz.zoekterm, count(author_id) " \
           " from test.bestandswijziging_zoekterm bz, " \
           " test.bestandswijziging_zoekterm b, " \
           " test.commitinfo ci " \
           " where bz.idbestandswijziging = b.id " \
           " and b.id = ci.id " \
-          " group by author_id".format(sch=pg_db_schema)
+          " and bz.falsepositive = 'False'"\
+          " group by bz.zoekterm".format(sch=pg_db_schema)
 
 
     cursor = connection.execute_sql(sql)
 
     frequency_counts = []
 
-    for (auteur, frequencyCount) in cursor.fetchall():
+    for (zoekterm, frequencyCount) in cursor.fetchall():
         frequency_counts.append(frequencyCount)
 
     # Define the bins/ranges for the histogram
@@ -39,7 +39,7 @@ def create_histogram():
     # Add labels and title
     plt.xlabel('Frequency Count')
     plt.ylabel('Number of Programmers')
-    plt.title('Distribution of Programmers by Multicore Code Usage Frequency')
+    plt.title('Distribution of Programmers by Multicore Code Primitive')
 
     # Show the plot
     plt.show()
@@ -48,7 +48,7 @@ def create_histogram():
 #generating a scatter plot with a trendline  representing the relationship between the number of unique authors in a project
 #and the percentage of multi-core authors in the same project
 #Set y-axis limits to prevent the trendline from going negative
-def create_scatter_plot_percentage():
+def create_scatter_plot():
     params_for_db = configurator.get_database_configuration()
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host=params_for_db.get('host'), port=params_for_db.get('port'))
@@ -90,4 +90,4 @@ def create_scatter_plot_percentage():
 
 if __name__ == '__main__':
     create_histogram()
-    #create_diagram_percentage()
+    create_scatter_plot()
