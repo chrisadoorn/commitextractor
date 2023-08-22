@@ -1,5 +1,7 @@
 #SQ.1 How is the usage of multi-core programming primitives distributed among programmers?
 
+# table ==> SQ1.sql
+
 #number of authors and file changes
 """select count(distinct(ci.author_id)), count(b.id)
 from test.bestandswijziging b,
