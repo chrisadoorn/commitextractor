@@ -1,3 +1,22 @@
+set schema 'v11';
+
+CREATE OR REPLACE TEMPORARY VIEW wijziging_lineage
+AS SELECT bz.zoekterm as zoekterm
+        ,b.id as bestandswijziging
+        ,c.author_id as auteur
+        ,p.naam as project
+        ,c.id as commitid
+        ,p.id as projectid
+        ,bz.id AS bestandswijzingzoekterm_id
+        ,bz.falsepositive as falsepositive
+        ,case when b.tekstvooraf is null then true else false end as vooraf_leeg
+        ,case when b.tekstachteraf is null then true else false end as achteraf_leeg
+   from bestandswijziging_zoekterm bz
+            right outer join bestandswijziging b on bz.idbestandswijziging = b.id
+            join commitinfo c on b.idcommit = c.id
+            join project p on c.idproject = p.id;
+
+
 CREATE TEMPORARY TABLE IF NOT EXISTS auteur_tellingen
 (
     auteur           integer           NOT NULL,
@@ -114,3 +133,4 @@ where projectid = 0;
 select * from SQ1_compare order by projectnaam;
 select * from auteur_tellingen;
 
+select * FROM wijziging_lineage

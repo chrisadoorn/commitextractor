@@ -601,3 +601,9 @@ where pr.id = ci.idproject
 
 delete from v11.project
 where aantal_commits = 0
+```
+count(distinct ci.id)
+
+COUNT(a.id) filter (where disposition = 'Completed Survey') as CompletedSurvey,
+
+```
