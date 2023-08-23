@@ -8,44 +8,6 @@ from peewee import *
 from src.models.selection_models import pg_db_schema
 from src.utils import configurator
 
-def create_histogram():
-    params_for_db = configurator.get_database_configuration()
-    connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
-                                    host=params_for_db.get('host'), port=params_for_db.get('port'))
-
-    #auteurs en hun count van zoektermen
-    sql = " select ci.author_id, count(bz.id) " \
-          " from test.bestandswijziging_zoekterm bz, " \
-          " test.bestandswijziging b, " \
-          " test.commitinfo ci " \
-          " where bz.idbestandswijziging = b.id " \
-          " and b.idcommit = ci.id " \
-          " and bz.falsepositive = 'False'"\
-          " group by author_id".format(sch=pg_db_schema)
-
-
-    cursor = connection.execute_sql(sql)
-
-    frequency_counts = []
-
-    for (auteur, frequencyCount) in cursor.fetchall():
-        frequency_counts.append(frequencyCount)
-
-    # Define the bins/ranges for the histogram
-    bins = [0, 10, 20, 30, 40, 50, 100]
-
-    # Create the histogram
-    plt.hist(frequency_counts, bins=bins, edgecolor='black', alpha=0.7)
-
-    # Add labels and title
-    plt.xlabel('Frequency Count')
-    plt.ylabel('Number of Programmers')
-    plt.title('Distribution of Programmers by Multicore Code Usage Frequency')
-
-    # Show the plot
-    plt.show()
-
-
 #generating a scatter plot with a trendline  representing the relationship between the number of unique authors in a project
 #and the percentage of multi-core authors in the same project
 #Set y-axis limits to prevent the trendline from going negative
@@ -90,5 +52,4 @@ def create_scatter_plot():
     plt.show()
 
 if __name__ == '__main__':
-    create_histogram()
-    #create_scatter_plot()
+    create_scatter_plot()
