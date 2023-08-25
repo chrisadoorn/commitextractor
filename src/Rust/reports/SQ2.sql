@@ -28,7 +28,7 @@ from test.bestandswijziging_zoekterm bz,
 where b.idcommit = ci.id
 	  and bz.idbestandswijziging = b.id
      and bz.falsepositive = 'False'
-     and bz.zoekterm in ('thread::Builder::new','thread::spawn')
+     and bz.zoekterm in ('.await')
 
 --threads
 select count(distinct(author_id)), count(bz.id)

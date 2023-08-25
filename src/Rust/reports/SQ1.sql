@@ -3,10 +3,10 @@
 --SQL statements voor het beantwoorden van SQ1
 
 --aantal projecten --> 882 stuks
-select distinct(idproject)
+select count(distinct(idproject))
 from test.commitinfo ci
 
---aantal MC-projecten --> 518 stuks
+--aantal MC-projecten --> 573 stuks
 select count(distinct(idproject))
 from test.bestandswijziging_zoekterm bz,
      test.bestandswijziging b,

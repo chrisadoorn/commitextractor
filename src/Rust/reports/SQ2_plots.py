@@ -36,6 +36,15 @@ def create_histogram():
     # Create the histogram
     plt.hist(frequency_counts, bins=bins, edgecolor='black', alpha=0.7)
 
+    # Calculate the mean frequency count
+    mean_frequency = np.mean(frequency_counts)
+
+    # Draw a vertical line at the mean frequency count
+    plt.axvline(x=mean_frequency, color='red', linestyle='dashed', linewidth=2, label='Mean Frequency')
+
+    # Label the mean line with its value
+    plt.text(mean_frequency + 1, plt.ylim()[1] * 0.9, f'Mean: {mean_frequency:.2f}', color='red')
+
     # Add labels and title
     plt.xlabel('Frequency Count')
     plt.ylabel('Number of Programmers')
