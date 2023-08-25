@@ -22,7 +22,7 @@ For instance, in the metadata the number of forks is noted. However, somebody mi
 Each project references a selection, which indicates why the project is selected.
 
 #### Commitinfo
-The commitinfo table contains the metadat about git commits. 
+The commitinfo table contains the metadata about git commits. 
 When, by whom, comments, are all stored. 
 Commitinfo relates to project.
 
@@ -30,8 +30,21 @@ Commitinfo relates to project.
 The bestandswijziging table contains information about filechanges. It contains the name of the file, the diff, the text after the change.
 Bestandswijziging relates to commitinfo. 
 
-
 ### tables containing the analysis
+
+#### Zoekterm
+The table zoekterm contains the keywords that you are looking for.
+The content depends on the language under study.
+Each keyword is associated with the extension of the file you are looking in. 
+
+#### Bestandswijziging_zoekterm
+This table shows which keywords are found in which file. Records are inserted by the text search module.
+In the next analysis steps the _falsepositive_ flag can be updated, as well as an reason filled in _afkeurreden_.
+Bestandswijziging_zoekterm relates both to Bestandswijziging and Zoekterm.
+
+#### Bestandswijziging_zoekterm_regelnummer
+This table stores the line numbers where the keyword has been found.
+Bestandswijziging_zoekterm_regelnummer relates to Bestandswijziging_zoekterm.
 
 ### tables to control and monitor the process
 This is the technical part of the database.
