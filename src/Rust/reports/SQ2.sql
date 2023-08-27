@@ -18,6 +18,20 @@ where b.idcommit = ci.id
      and bz.falsepositive = 'False'
 group by bz.zoekterm
 
+--per auteur verschillende zoektermen count
+ SET SCHEMA 'test';
+CREATE OR REPLACE VIEW auteur_verschillendeZoektermen
+AS SELECT
+     author_id, count(distinct(bz.zoekterm)) as freq1
+    from test.bestandswijziging_zoekterm bz,
+         test.bestandswijziging b,
+         test.commitinfo ci
+    where b.idcommit = ci.id
+          and bz.idbestandswijziging = b.id
+         and bz.falsepositive = 'False'
+    group by author_id
+
+
 --per bib # aantal verschillende programmeurs en totale frequentie
 
 --async/await
