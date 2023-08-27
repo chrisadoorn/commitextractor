@@ -59,5 +59,5 @@ def create_plot():
     plt.grid(True)
     plt.show()
 if __name__ == '__main__':
-    create_diagram_usage_by_year()
-    #create_plot()
+    #create_diagram_usage_by_year()
+    create_plot()
