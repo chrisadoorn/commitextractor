@@ -6,7 +6,7 @@
 select count(distinct(idproject))
 from test.commitinfo ci
 
---aantal MC-projecten --> 573 stuks
+--aantal MC-projecten --> 541 stuks
 select count(distinct(idproject))
 from test.bestandswijziging_zoekterm bz,
      test.bestandswijziging b,
@@ -77,6 +77,74 @@ from (
 where sq1.unieke_auteur = sub.author_id;
 
 
+--2e extra tabel voor SQ1--programmeurs en hun projecten + aanduiding of zij hier MC hebben geinjecteerd
+SET SCHEMA 'test';
+CREATE TABLE IF NOT EXISTS auteur_verschillendeProjecten
+(
+    auteur integer not null,
+    idproject integer default 0,
+    MCfileproject integer default 0
+)
+TABLESPACE pg_default;
 
+GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE auteur_verschillendeProjecten TO appl;
 
+-- gooi eerst alles weer leeg.
+truncate table auteur_verschillendeProjecten;
 
+-- unieke auteurs en projecten waaraan deze hebben meegewerkt
+insert into auteur_verschillendeProjecten(auteur, idproject)
+select distinct(author_id), idproject
+from test.bestandswijziging b,
+	 test.commitinfo ci
+where b.idcommit = ci.id
+group by author_id, idproject;
+
+-- vlaggen van projecten als MC als de auteur er een MC aan heeft toegevoegd
+update auteur_verschillendeProjecten as sq2
+set MCfileproject = 1
+from (
+	select ci.author_id, ci.idproject
+	from test.bestandswijziging_zoekterm bz,
+    	 test.bestandswijziging b,
+	     test.commitinfo ci
+	where b.idcommit = ci.id
+	  and bz.idbestandswijziging = b.id
+	  and bz.falsepositive = 'False'
+) as sub
+where sq2.auteur = sub.author_id
+  and sq2.idproject = sub.idproject
+
+--514 auteurs hebben in verschillende projecten gewerkt (4337 niet in meerdere, dus count <2)
+select count(distinct(auteur))
+from test.auteur_verschillendeProjecten
+where auteur in (select subq.auteur
+				from test.auteur_verschillendeProjecten subq
+				group by  subq.auteur
+				having count(distinct subq.idproject) > 1
+				order by subq.auteur desc)
+
+-- 230 multi-project auteurs hebben hebben in minstens 1 project mc geprogrameerd, 1156 MC-programmeurs slechts in 1 project (dus bij count <2)
+select count(distinct(auteur))
+from test.auteur_verschillendeProjecten
+where mcfileproject = 1
+  and auteur in (select subq.auteur
+				from test.auteur_verschillendeProjecten subq
+				group by  subq.auteur
+				having count(distinct subq.idproject) > 1
+				order by subq.auteur desc)
+
+--MC auteurs en hun projecten
+select auteur, idproject, mcfileproject
+from test.auteur_verschillendeProjecten
+where auteur in (select subq.auteur
+				from test.auteur_verschillendeProjecten subq
+				where mcfileproject = 1)
+order by auteur, idproject
+
+-- 63 auteurs hebben in meer dan 1 project mc gedaan
+select distinct(auteur), count(idproject) as freq
+from test.auteur_verschillendeProjecten
+where mcfileproject = 1
+group by auteur
+order by freq desc
