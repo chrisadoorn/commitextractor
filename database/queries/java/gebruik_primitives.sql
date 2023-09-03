@@ -13,6 +13,14 @@ and uitgesloten = false
 group by zoekterm
 order by aantal desc;
 
+-- zoektermen geordend op actueel voorkomen: 113
+select zoekterm, count(zoekterm) as aantal_gebruik, (count(zoekterm)/79972.0) * 100 as perc_zoekterm, count(distinct auteur) as aantal_programmers, (count(distinct auteur) /3079.0) *100 as perc_users 
+from wijziging_lineage wl 
+where falsepositive = false
+and uitgesloten = false
+group by zoekterm
+order by aantal_programmers desc;
+
 
 -- zoektermen die niet gevonden zijn: 3 stuks: io.reactivex.rxjava2, io.projectreacto en AsyncBoxView.ChildState
 select * 
@@ -52,7 +60,7 @@ from ( select wl.auteur as auteur, count(wl.auteur)as aantal_gebruik ,count(dist
 		and   wl.uitgesloten = false
 		group by wl.auteur) as sq
 group by sq.verschillende_zoektermen
-order by sq.verschillende_zoektermen desc;
+order by sq.verschillende_zoektermen asc;
 
 
 -- welke zoektermen worden gebruikt door auteurs die maar 1 zoekterm gebruiken?
@@ -66,7 +74,7 @@ from wijziging_lineage wl
 where wl.falsepositive = false 
 and   wl.uitgesloten = false
 group by wl.auteur
-having count(distinct zoekterm)> 9
+-- having count(distinct zoekterm)> 9
 order by verschillende_zoektermen desc; -- 418
 
 -- 1 tot 3 zoektermen gebruikt
@@ -74,10 +82,32 @@ select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as
 from wijziging_lineage wl 
 where wl.falsepositive = false 
 and   wl.uitgesloten = false
+and wl.auteur not in (select distinct(i.auteur) 
+                      from wijziging_lineage i
+                      where i.zoekterm in ('Thread','Runnable','synchronized','volatile'))
 group by wl.auteur
-having count(distinct zoekterm) between 1 and 1
+-- having count(distinct zoekterm) < 3
 order by verschillende_zoektermen desc; -- 1939 tussen 1 en 3
 
+-- hoeveel programmeurs gebruiken x zoekwoorden?
+select sq.verschillende_zoektermen, count(sq.verschillende_zoektermen)
+from (select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+		from wijziging_lineage wl 
+		where wl.falsepositive = false 
+		and   wl.uitgesloten = false
+		group by wl.auteur) as sq
+group by sq.verschillende_zoektermen
+order by sq.verschillende_zoektermen asc;
 
-
-
+-- hoeveel programmeurs gebruiken x zoekwoorden, maar gebruiken geen van de 4 meest populaire keywords? 
+select sq.verschillende_zoektermen, count(sq.verschillende_zoektermen)
+from (select wl.auteur, count(wl.auteur)as aantal_gebruik ,count(distinct zoekterm) as verschillende_zoektermen
+		from wijziging_lineage wl 
+		where wl.falsepositive = false 
+		and   wl.uitgesloten = false
+		and wl.auteur not in (select distinct(i.auteur) 
+                     		 from wijziging_lineage i
+                      		where i.zoekterm in ('Thread','Runnable','synchronized','volatile'))
+group by wl.auteur) as sq
+group by sq.verschillende_zoektermen
+order by sq.verschillende_zoektermen asc;

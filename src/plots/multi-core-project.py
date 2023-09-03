@@ -1,8 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from peewee import *
-import scipy.stats as stats
-import math
 
 from src.models.selection_models import pg_db_schema
 from src.utils import configurator
