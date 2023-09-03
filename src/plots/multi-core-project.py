@@ -47,7 +47,7 @@ def create_diagram_mc_usage_projects():
     # plt.plot(ypoints, p(ypoints), "r--")
     #
     fig, ax = plt.subplots()
-    plt.title("Multi-core usage in Projects")
+    plt.title("Multicore usage in Projects")
     plt.xlabel("Median time of usage within the project")
     plt.ylabel("Number of projects")
     # histogram

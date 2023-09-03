@@ -35,9 +35,9 @@ def create_diagram_percentage():
     xpoints = np.array(auteurs)
     ypoints = np.array(comparatios)
 
-    plt.title("Distibution of multi-core programmers by Project")
+    plt.title("Distibution of multicore programmers by Project")
     plt.xlabel("Authors in Project")
-    plt.ylabel("Percentage Multi-core Authors in Project")
+    plt.ylabel("Percentage Multicore Authors in Project")
     plt.xscale('log')
 
     # scatter: toon datapunten
