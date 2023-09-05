@@ -1,20 +1,17 @@
+#SQ.1 How is the usage of multi-core programming primitives distributed among programmers?
+
+# a histogram that visualizes how many programmers fall within each MC-frequency count range
+
 import matplotlib.pyplot as plt
 import numpy as np
 from peewee import *
-
 from src.models.selection_models import pg_db_schema
 from src.utils import configurator
 
-
-def objective_straight_line(x1, a1, b1):
-    return a1 * x1 + b1
-
-
-def objective_quadratic(x1, a1, b1):
-    return a1 * x1 * x1 + b1
-
-
-def create_diagram_percentage():
+#generating a scatter plot with a trendline  representing the relationship between the number of unique authors in a project
+#and the percentage of multi-core authors in the same project
+#Set y-axis limits to prevent the trendline from going negative
+def create_scatter_plot():
     params_for_db = configurator.get_database_configuration()
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host=params_for_db.get('host'), port=params_for_db.get('port'))
@@ -35,13 +32,16 @@ def create_diagram_percentage():
     xpoints = np.array(auteurs)
     ypoints = np.array(comparatios)
 
-    plt.title("Distibution of multicore programmers by Project")
+    plt.title("Distibution of multi-core programmers by Project")
     plt.xlabel("Authors in Project")
-    plt.ylabel("Percentage Multicore Authors in Project")
+    plt.ylabel("Percentage Multi-core Authors in Project")
     plt.xscale('log')
 
+    # Set y-axis limits to prevent the trendline from going negative
+    plt.ylim(0, max(ypoints) + 5)  # You can adjust the upper limit as needed
+
     # scatter: toon datapunten
-    plt.scatter(xpoints,ypoints)
+    plt.scatter(xpoints, ypoints)
     # bereken trendline
     z = np.polyfit(xpoints, ypoints, 1)
     p = np.poly1d(z)
@@ -51,6 +51,5 @@ def create_diagram_percentage():
     # toon figuur
     plt.show()
 
-
 if __name__ == '__main__':
-    create_diagram_percentage()
+    create_scatter_plot()

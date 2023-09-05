@@ -128,7 +128,7 @@ def __initialize() -> None:
     loglevel = configurator.get_module_configurationitem(module='load_keywords', entry='loglevel')
 
     log_filename = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                                 '../../../../../../..', '..', 'log',
+                                                 '../../..', '..', 'log',
                                                  'load_keywords.' + dt.strftime('%y%m%d-%H%M%S') + '.log'))
 
     logging.basicConfig(filename=log_filename,

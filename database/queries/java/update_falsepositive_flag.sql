@@ -88,6 +88,19 @@ where id in(select id
 			and is_verwijderd = false 
 		    and is_in_namespace = false) ;
 
+		   
+-- update geen wijziging
+update bestandswijziging_zoekterm 
+set falsepositive = true 
+   ,afkeurreden = 'geen_wijziging'
+where id in(select id
+			from java_parse_result 
+			where is_gebruik_gewijzigd = false
+			and is_verwijderd = false 
+		    and is_in_namespace = false) 
+and bz.falsepositive = FALSE; 		   
+		   
+		   
 
 -- reset uitgesloten reden
 update bestandswijziging 

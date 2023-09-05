@@ -44,23 +44,23 @@ def create_diagram_usage_by_year():
 
     # stacked bars
     fig, ax = plt.subplots()
-    ax.bar(jaren, mc_commits, label="Multi-core")
+    ax.bar(jaren, mc_commits, label="Multicore")
     ax.bar(jaren, all_commits, bottom=mc_commits, label="Other")
-    ax.set_ylabel("Number of file changes")
+    ax.set_ylabel("Number of file changes (in thousands)")
     ax.legend(loc='upper left', ncols=2)
     # format numbers to show dots
     current_values = plt.gca().get_yticks()
     locale.setlocale(locale.LC_ALL, '')
-    plt.gca().set_yticklabels(["{:n}".format(int(x)) for x in current_values])
+    plt.gca().set_yticklabels(["{:n}".format(int(x/1000)) for x in current_values])
 
     # second axis with a line
     ax2 = ax.twinx()
     ax2.plot(jaren, averages)
-    ax2.set_ylabel('percentage multi-core of all file changes')
+    ax2.set_ylabel('percentage multicore of all file changes')
     ax2.set_ylim(0, 100)
-    ax2.legend(['percentage multi-core'], loc="upper right")
+    ax2.legend(['percentage multicore'], loc="upper right")
 
-    plt.title("Multi-core usage throughout the years")
+    plt.title("Multicore usage throughout the years")
     plt.xlabel("years")
 
     plt.show()

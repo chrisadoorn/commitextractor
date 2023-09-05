@@ -71,10 +71,10 @@ Update table project bestandswijziging_zoekterm with false_positives
 **********************************Make reports********************************************************************************************************
 
 Step 6:
-Run reports database/queries/rust/ReportQueries.sql
-SQ1:
-SQ2:
-SQ3:
+Run reports src/Rust/reports
+SQ1.sql & SQ1_plots.py
+SQ2.sql & SQ2_plots.py
+SQ3.sql & SQ3_plots.py
 
 
 

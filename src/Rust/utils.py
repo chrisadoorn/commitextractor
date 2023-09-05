@@ -4,7 +4,7 @@ import re
 ##########################PARSER#############################################################
 #takes a text and removes single and multiline comments and literals
 def parseText(source_code : str) -> str:
-    #reduce wrong string-eliminations because of lifetime anntotations
+    #reduce wrong string-eliminations because of lifetime annatotations
     source_code = re.sub(r'<[^>]*>', '', source_code)
     # Define parsers for strings and comments
     commentparser = cppStyleComment
