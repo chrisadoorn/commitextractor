@@ -236,11 +236,6 @@ class ReadDiffElixir(_ReadDiff):
                 if c == '#':  # start of comment
                     break
 
-                # if c == '~':  # start of sigil
-                #     if self.sigil(c, line_list) is None:
-                #     break
-                #  continue
-
                 if c == '"' or c == "'":  # start of double quote literal, filter
                     self.__quote_literal(line_list, c)
                     continue
@@ -254,7 +249,8 @@ class ReadDiffElixir(_ReadDiff):
                         instances_found.append(w)
             return instances_found
 
-        def __quote_literal(self, line_list: deque, type_of_quote) -> str | None:
+        @staticmethod
+        def __quote_literal(line_list: deque, type_of_quote) -> str | None:
             temp_text = ''
             c = ''
             while line_list:
@@ -275,25 +271,6 @@ class ReadDiffElixir(_ReadDiff):
                     pop_z = z.pop()
                     line_list.appendleft(pop_z)
             return c
-
-        def sigil(self, c, line_list: deque) -> str | None:
-            next_c = line_list.popleft() if line_list else ''
-            if next_c == '':
-                return self.stop()
-            if next_c not in list(string.ascii_lowercase) + list(string.ascii_uppercase):
-                line_list.appendleft(next_c)  # put back the character,so it can be popped again in the next iteration
-                return c
-            double_next_c = line_list.popleft() if line_list else ''
-            if double_next_c == '' or double_next_c not in list("/|\"'([{<"):
-                line_list.appendleft(double_next_c)  # put back the character for the next iteration
-                line_list.appendleft(next_c)  # put back the character for the next iteration
-                return c
-            while line_list:
-                triple_next_c = line_list.popleft() if line_list else ''
-                if triple_next_c == '':
-                    return self.stop()
-                if double_next_c == '(' and triple_next_c == ')' or double_next_c == '{' and triple_next_c == '}':
-                    return double_next_c
 
 
 class ReadDiffRust(_ReadDiff):

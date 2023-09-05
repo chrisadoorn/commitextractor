@@ -12,8 +12,9 @@ PROCESSTAP = 'extractie'
 STATUS_MISLUKT = 'mislukt'
 STATUS_VERWERKT = 'verwerkt'
 
-# configurtion options
+# configuration options
 extensions = configurator.get_extensions()
+filter_bot = configurator.get_filter_bot()
 files = configurator.get_files()
 save_code_before = configurator.get_module_configurationitem_boolean(module='repo_extractor', entry='save_before')
 
@@ -43,6 +44,7 @@ def __extract_repository(process_identifier: str, projectlocation: str, project_
                         If this is a local or network drive, the project will not be downloaded, but processed in place.
     :param project_id: The database id of the project
     """
+    global filter_bot
     connection = __get_connection_from_pool(process_identifier)
 
     start = datetime.now()
@@ -51,7 +53,8 @@ def __extract_repository(process_identifier: str, projectlocation: str, project_
     full_repository = Repository(projectlocation)
     for commit in full_repository.traverse_commits():
         try:
-
+            if filter_bot and "[bot]" in commit.author.name or "[bot]" in commit.author.email:
+                continue
             remark = __opkuizen_speciale_tekens(commit.msg, False)
             sql = INSERT_COMMITS_SQL.format(schema=schema, idproject=project_id, commitdatumtijd=commit.committer_date,
                                             hashvalue=commit.hash, username=hashing.make_hash(commit.author.name),

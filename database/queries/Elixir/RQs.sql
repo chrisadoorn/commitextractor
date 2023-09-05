@@ -200,3 +200,56 @@ SELECT date_trunc('month', commitdatumtijd) AS txn_month, count(*), count(*) fil
 FROM v11."Result_20_commits_date"
 GROUP BY txn_month order by txn_month ;
 
+
+
+---
+--experimenten
+
+select * from bw_met_zoektermen_met_term;
+
+
+-- count number of primitives used by mc programmars
+select xxx.cnt, count(xxx.cnt) as c , round(100*count(xxx.cnt)/3547.0,1)as perc, round(100 * 1.96 * sqrt( count(xxx.cnt)/3547.0  * (1 - count(xxx.cnt)/3547.0) / 3547),1)  from
+(select count(distinct bwzt.zoekterm) as cnt from commitinfo ci
+left join bestandswijziging bw on ci.id = bw.idcommit
+left join bw_met_zoektermen_met_term bwzt on bw.id = bwzt.idbestandswijziging
+group by ci.author_id) as xxx
+where xxx.cnt > 0
+group by xxx.cnt;
+
+
+-- number of file changes
+
+set schema 'v11';
+CREATE TEMPORARY TABLE IF NOT EXISTS authors
+(
+    id           integer           NOT NULL,
+    is_mc        boolean           NOT NULL
+);
+
+truncate table authors;
+
+insert into authors(id, is_mc)
+select xxx.author_id as id, case when xxx.is_mc > 0 then true else false end as is_mc from
+(select ci.author_id,count(bwz.zoekterm) filter(where bwz.falsepositive = false and bwz.aantalgevonden_nieuw > bwz.aantalgevonden_oud ) as is_mc from commitinfo ci
+join v11.bestandswijziging bw on ci.id = bw.idcommit
+left join v11.bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+group by ci.author_id
+order by ci.author_id) as xxx;
+
+
+select a.id, a.is_mc, count(b.id), count(b.id) filter ( where a.is_mc = true ), count(b.id) filter ( where a.is_mc = false ) from authors as a
+join commitinfo ci on a.id = ci.author_id
+join v11.bestandswijziging b on ci.id = b.idcommit
+group by a.id,a.is_mc
+
+
+select p.id, p.naam, count(*) from project p
+join commitinfo ci on p.id = ci.idproject
+join bestandswijziging bw on ci.id = bw.idcommit
+join bestandswijziging_zoekterm bwz on bw.id = bwz.idbestandswijziging
+where bwz.falsepositive = false and bwz.aantalgevonden_nieuw > bwz.aantalgevonden_oud
+group by p.id
+
+
+3
