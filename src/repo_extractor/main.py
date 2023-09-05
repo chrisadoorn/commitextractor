@@ -70,4 +70,6 @@ if __name__ == '__main__':
     # freeze_support om de processen parallel te kunnen laten werken.
     freeze_support()
 
-    start_with_checks()
+    z = configurator.get_filter_bot()
+    print(z)
+    # start_with_checks()

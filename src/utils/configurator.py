@@ -17,17 +17,23 @@ PERSONAL_ACCESS_TOKEN = 'personal_access_token'
 LIST_FILES = 'list_files'
 
 # INI_FILE contains the default location of the configuration
-INI_FILE = \
-    os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '../..', 'var', 'commitextractor.ini'))
+INI_FILE = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'var', 'commitextractor.ini'))
 
 inifile = INI_FILE
 
-INI_FILE2 = \
-    os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                  '../..', 'var', 'analysis.ini'))
+INI_FILE2 = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'var', 'analysis.ini'))
 
 inifile2 = INI_FILE2
+
+
+class ConfigOptionItemNotFoundException(Exception):
+    message = "Option {0} not found in the {1} module"
+
+    def __init__(self, entry, module):
+        self.entry = entry
+        self.module = module
+        self.message.format(entry, module)
+        super().__init__(self.message)
 
 
 # get_number_of_processes returns the number of processes for which the application is configured
@@ -53,6 +59,14 @@ def get_database_configuration():
 
 def get_extensions():
     return get_module_configurationitem(EXTRACTOR, 'list_extensions').replace(' ', '').split(',')
+
+
+def get_filter_bot():
+    try:
+        x = get_module_configurationitem(EXTRACTOR, 'filter_bot')
+        return x.strip().lower() == 'true'
+    except ConfigOptionItemNotFoundException:
+        return False
 
 
 def get_keywords():
@@ -100,11 +114,9 @@ def get_module_configurationitem(module: str, entry: str) -> str:
 
     # get section
     if config.has_option(module, entry):
-        value = config[module][entry]
+        return config[module][entry]
     else:
-        raise Exception('Option {0} not found in the {1} module'.format(entry, module))
-
-    return value
+        raise ConfigOptionItemNotFoundException(entry, module)
 
 
 def get_module_configurationitem_boolean(module: str, entry: str) -> bool:
