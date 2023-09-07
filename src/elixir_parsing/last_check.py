@@ -153,9 +153,8 @@ def parsed_to_lexeme_list(elixir_tokens) -> list[tuple[int, str, str]]:
             number_open_curly_braces -= 1
         if number_open_curly_braces == 0:
             if new_part_start:
-                xxx = split_lexeme(temp_part)
-                # print(xxx)
-                lexemes_list.append(xxx)
+                split = split_lexeme(temp_part)
+                lexemes_list.append(split)
             new_part_start = False
             temp_part = ''
     return lexemes_list
@@ -220,6 +219,7 @@ def get_second_part(chars):
     open_quote = False
     escaped = False
     number_open_curly_braces = 0
+    second_part = ''
     while chars:
         char = read_next(chars)
         if char == ' ':
