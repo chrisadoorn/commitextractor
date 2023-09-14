@@ -25,8 +25,8 @@ terminals = ['identifier', 'kw_identifier', 'kw_identifier_safe', 'kw_identifier
              'list_heredoc', 'comp_op', 'at_op', 'unary_op', 'and_op', 'or_op', 'arrow_op', 'match_op', 'in_op',
              'in_match_op', 'type_op', 'dual_op', 'mult_op', 'power_op', 'concat_op', 'range_op', 'xor_op', 'pipe_op',
              'stab_op', 'when_op', 'capture_int', 'capture_op', 'assoc_op', 'rel_op', 'ternary_op', 'dot_call_op',
-             'true', 'false', 'nil', 'do', 'eol', '";"', '","', '.', '"("', '")"', '"["', '"]"', '"{"', '"}"', '""<<""',
-             '"">>""', '%{}', '%', 'int', 'flt', 'char']
+             'true', 'false', 'nil', 'do', 'eol', '";"', '","', '.', '"("', '")"', '"["', '"]"', '"{"', '"}"', '"<<"',
+             '">>"', '%{}', '%', 'int', 'flt', 'char']
 
 
 terminals_list_specification = [
@@ -87,8 +87,8 @@ terminals_list_specification = [
     (':"]"', 2, 'un-nested'),
     (':"{"', 2, 'un-nested'),
     (':"}"', 2, 'un-nested'),
-    (':""<<""', 2, 'un-nested'),
-    (':"">>""', 2, 'un-nested'),
+    (':"<<"', 2, 'un-nested'),
+    (':">>"', 2, 'un-nested'),
     (':%{}', 2, 'un-nested'),
     (':%', 2, 'un-nested'),
     (':int', 3, 'un-nested'),
@@ -101,7 +101,7 @@ select bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens from {sch}.bestandswi
      join {sch}.commitinfo ci on bw.idcommit = ci.id
      join {sch}.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
      join {sch}.bestandswijziging_zoekterm zt on bw.id = zt.idbestandswijziging
-     where ci.idproject = {project_id} and zt.falsepositive = false
+     where ci.idproject = {project_id}
      group by bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens, bw.tekstvooraf, bw.tekstachteraf, zt.idbestandswijziging  order by bw.id asc;
 """
 
