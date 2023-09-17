@@ -18,24 +18,92 @@ filename = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', 
 params_for_db = configurator.get_database_configuration()
 schema = get_database_configuration().get('schema')
 connection = None
-
+# https://github.com/elixir-lang/elixir/blob/0d139c15df7f72ac2180fa9646f12b149b244786/lib/elixir/src/elixir_parser.yrl#L553
 terminals = ['identifier', 'kw_identifier', 'kw_identifier_safe', 'kw_identifier_unsafe', 'bracket_identifier',
              'paren_identifier', 'do_identifier', 'block_identifier', 'op_identifier', 'fn', 'end', 'alias', 'atom',
              'atom_quoted', 'atom_safe', 'atom_unsafe', 'bin_string', 'list_string', 'sigil', 'bin_heredoc',
              'list_heredoc', 'comp_op', 'at_op', 'unary_op', 'and_op', 'or_op', 'arrow_op', 'match_op', 'in_op',
              'in_match_op', 'type_op', 'dual_op', 'mult_op', 'power_op', 'concat_op', 'range_op', 'xor_op', 'pipe_op',
              'stab_op', 'when_op', 'capture_int', 'capture_op', 'assoc_op', 'rel_op', 'ternary_op', 'dot_call_op',
-             'true', 'false', 'nil', 'do', 'eol', '";"', '","', '"."', '"("', '")"', '"["', '"]"', '"{"', '"}"', '"<<"',
-             '">>"', '%{}', '%', 'int', 'flt', 'char', '.']
+             'true', 'false', 'nil', 'do', 'eol', '";"', '","', '.', '"("', '")"', '"["', '"]"', '"{"', '"}"', '"<<"',
+             '">>"', '%{}', '%', 'int', 'flt', 'char']
+
+
+terminals_list_specification = [
+    (':identifier', 3, 'un-nested'),
+    (':kw_identifier', 3, 'un-nested'),
+    (':kw_identifier_unsafe', 3, 'nested'),    # tussen [] 
+    (':bracket_identifier', 2, 'un-nested'),
+    (':paren_identifier', 3, 'un-nested'),
+    (':do_identifier', 3, 'un-nested'),
+    (':block_identifier', 3, 'un-nested'),
+    (':op_identifier', 3, 'un-nested'),
+    (':fn', 2, 'un-nested'),
+    (':end', 2, 'un-nested'),
+    (':alias', 3, 'un-nested'),
+    (':atom', 2, 'un-nested'),
+    (':atom_quoted', 3, 'un-nested'),
+    (':atom_unsafe', 3, 'nested'),
+    (':bin_string', 3, 'un-nested'),
+    (':list_string', 3, 'un-nested'),
+    (':sigil', 7, 'un-nested'),
+    (':bin_heredoc', 4, 'un-nested'),
+    (':list_heredoc', 4, 'un-nested'),
+    (':comp_op', 3, 'un-nested'),
+    (':at_op', 3, 'un-nested'),
+    (':unary_op', 3, 'un-nested'),
+    (':and_op', 3, 'un-nested'),
+    (':or_op', 3, 'un-nested'),
+    (':arrow_op', 3, 'un-nested'),
+    (':match_op', 3, 'un-nested'),
+    (':in_op', 3, 'un-nested'),
+    (':in_match_op', 3, 'un-nested'),
+    (':type_op', 3, 'un-nested'),
+    (':dual_op', 3, 'un-nested'),
+    (':mult_op', 3, 'un-nested'),
+    (':power_op', 3, 'un-nested'),
+    (':concat_op', 3, 'un-nested'),
+    (':range_op', 3, 'un-nested'),
+    (':xor_op', 3, 'un-nested'),
+    (':pipe_op', 3, 'un-nested'),
+    (':stab_op', 3, 'un-nested'),
+    (':when_op', 3, 'un-nested'),
+    (':capture_int', 3, 'un-nested'),
+    (':capture_op', 3, 'un-nested'),
+    (':assoc_op', 3, 'un-nested'),
+    (':rel_op', 3, 'un-nested'),
+    (':ternary_op', 3, 'un-nested'),
+    (':dot_call_op', 3, 'un-nested'),
+    ('true', 2, 'un-nested'),
+    ('false', 2, 'un-nested'),
+    (':do', 2, 'un-nested'),
+    (':eol', 2, 'un-nested'),
+    (':";"', 2, 'un-nested'),
+    (':","', 2, 'un-nested'),
+    (':.', 2, 'un-nested'),
+    (':"("', 2, 'un-nested'),
+    (':")"', 2, 'un-nested'),
+    (':"["', 2, 'un-nested'),
+    (':"]"', 2, 'un-nested'),
+    (':"{"', 2, 'un-nested'),
+    (':"}"', 2, 'un-nested'),
+    (':"<<"', 2, 'un-nested'),
+    (':">>"', 2, 'un-nested'),
+    (':%{}', 2, 'un-nested'),
+    (':%', 2, 'un-nested'),
+    (':int', 3, 'un-nested'),
+    (':flt', 3, 'un-nested'),
+    (':char', 3, 'un-nested')]
+
 
 bestands_wijziging_sql = """
-     select bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens from {sch}.bestandswijziging bw
-         join {sch}.commitinfo ci on bw.idcommit = ci.id
-         join {sch}.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
-         join {sch}.bestandswijziging_zoekterm zt on bw.id = zt.idbestandswijziging
-         where ci.idproject = {project_id} and zt.falsepositive = false
-         group by bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens, bw.tekstvooraf, bw.tekstachteraf, zt.idbestandswijziging  order by bw.id asc;
-    """
+select bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens from {sch}.bestandswijziging bw
+     join {sch}.commitinfo ci on bw.idcommit = ci.id
+     join {sch}.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
+     join {sch}.bestandswijziging_zoekterm zt on bw.id = zt.idbestandswijziging
+     where ci.idproject = {project_id}
+     group by bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens, bw.tekstvooraf, bw.tekstachteraf, zt.idbestandswijziging  order by bw.id asc;
+"""
 
 
 def initialize():
@@ -55,25 +123,54 @@ def analyze_by_project(projectname, project_id):
         zoekterm_regelnummers_new, zoekterm_regelnummers_old = get_bestandswijziging_zoekterm_regelnummer(bw_id)
         print(f"{Fore.BLUE}bestandswijziging_id: " + str(bw_id))
         if tekstvooraf_tokens is not None:
-            parsed_lexeme_list = parsed_to_lexeme_list(tekstvooraf_tokens)
+            lexeme_list = parse_to_lexeme_list(tekstvooraf_tokens)
+            parsed_lexeme_list = []
+            counter = 0
+            for le in lexeme_list:
+                parsed_lexeme_list.append((counter, split_lexeme(le)))
+                counter += 1
             get_data_withline_numbers(parsed_lexeme_list, zoekterm_regelnummers_old)
         if tekstachteraf_tokens is not None:
-            parsed_lexeme_list = parsed_to_lexeme_list(tekstachteraf_tokens)
+            lexeme_list = parse_to_lexeme_list(tekstachteraf_tokens)
+            parsed_lexeme_list = []
+            counter = 0
+            for le in lexeme_list:
+                parsed_lexeme_list.append((counter, split_lexeme(le)))
+                counter += 1
             get_data_withline_numbers(parsed_lexeme_list, zoekterm_regelnummers_new)
 
 
+
+
 def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
+    """
+
+    :param parsed_to_lexeme_list:  list[tuple[int, tuple[int, int, str, str]]
+    :param zoektermenlijst:  list[tuple[int, int, str,int,str]]
+    :return:
+    """
     for bzr_id, idbestandswijziging, zoekterm, regelnummer, regelsoort in zoektermenlijst:
         zoekterm_oke = False
         if zoekterm[0].isupper():  # if first letter is uppercase, then it is a module name
-            filtered_list = list(filter(lambda x: x[0] == regelnummer and x[1] == ":alias" and x[2] == ":" + zoekterm,
+            filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][2] == ":alias" and x[1][3] == ":" + zoekterm,
                                         parsed_to_lexeme_list))
+            for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:   # could be more than 1 zoekterm on a line
+                if parsed_to_lexeme_list[list_nr+1][1][2] == ":.":
+                    zoekterm_oke = True
+                    break
+                else:
+                    filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][1] < col_nr and x[1][2] == ":identifier" and x[1][3] == ":use",
+                                            parsed_to_lexeme_list))
+                    if len(filtered_list) > 0:
+                        zoekterm_oke = True
+                        break
+
         else:  # if first letter not uppercase, then it is a function name
             filtered_list = list(filter(
-                lambda x: x[0] == regelnummer and (x[1] in [":paren_identifier", ":do_identifier", ":identifier"]) and
-                          x[2] == ":" + zoekterm, parsed_to_lexeme_list))
+                lambda x: x[1][0] == regelnummer and (x[1][2] in [":paren_identifier", ":do_identifier", ":identifier"]) and
+                          x[1][3] == ":" + zoekterm, parsed_to_lexeme_list))
 
-        if len(filtered_list) > 0:
+        if zoekterm_oke is False and len(filtered_list) > 0:
             zoekterm_oke = True
 
         if zoekterm_oke:
@@ -89,16 +186,16 @@ def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
 
 def update_bestandswijziging_zoekterm_regelnummer(bzr_id, is_valid):
     update_zoekterm_regelnummer_sql = """
-    update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid = {is_valid}  where id = {id}
-    """.format(sch=schema, id=bzr_id, is_valid=is_valid)
+update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid_2 = {is_valid}  where id = {id}
+""".format(sch=schema, id=bzr_id, is_valid=is_valid)
     get_connection().execute_sql(update_zoekterm_regelnummer_sql)
 
 
 def get_bestandswijziging_zoekterm_regelnummer(idbestandswijziging):
     selecteer_zoekterm_regelnummers = """
-    select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from 
-    {sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id}
-    """.format(sch=schema, id=idbestandswijziging)
+select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from 
+{sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id}
+""".format(sch=schema, id=idbestandswijziging)
     regelnummers_cursor = get_connection().execute_sql(selecteer_zoekterm_regelnummers)
     zoekterm_regelnummers_new, zoekterm_regelnummers_old = [], []
     for (bzr_id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in regelnummers_cursor.fetchall():
@@ -118,7 +215,7 @@ def get_connection():
     return connection
 
 
-def parsed_to_lexeme_list(elixir_tokens) -> list[tuple[int, str, str]]:
+def parse_to_lexeme_list(elixir_tokens) -> list[str]:
     """
     The input is a string containing a list of token_string.
     The first and last character of the string are [ and ].
@@ -153,14 +250,13 @@ def parsed_to_lexeme_list(elixir_tokens) -> list[tuple[int, str, str]]:
             number_open_curly_braces -= 1
         if number_open_curly_braces == 0:
             if new_part_start:
-                split = split_lexeme(temp_part)
-                lexemes_list.append(split)
+                lexemes_list.append(temp_part)
             new_part_start = False
             temp_part = ''
     return lexemes_list
 
 
-def split_lexeme(token_string) -> tuple[int, str, str]:
+def split_lexeme(token_string) -> tuple[int, int, str, str]:
     """
     A token string is a string containing 3 parts.
     First part is the token name, this must be in the terminals list.
@@ -178,16 +274,17 @@ def split_lexeme(token_string) -> tuple[int, str, str]:
     The identifier, the line number and the attribute value.
     """
     if token_string[0:2] != '{:':  # must start with {:, otherwise it is not a token
-        return -1, '', ''
+        return  -1, -1, '', ''
     chars = deque(token_string)
     chars.popleft()  # remove first {
     chars.pop()  # remove last }
     first_part = get_first_part(chars)
-    line_number = get_second_part(chars)
-    if line_number < 0:
-        return -1, first_part, 'no third part'
+    output = list(filter(lambda x: x[0] == first_part, terminals_list_specification))[0]
+    line_number = get_line_column_nrs(chars)
+    if output[1] < 3:
+        return line_number[0], line_number[1], first_part, ''
     the_rest = get_third_part(chars)
-    return line_number, first_part, the_rest
+    return line_number[0], line_number[1], first_part, the_rest
 
 
 def get_first_part(chars):
@@ -214,7 +311,7 @@ def get_first_part(chars):
     return first_part
 
 
-def get_second_part(chars):
+def get_line_column_nrs(chars):
     temp_part = ''
     open_quote = False
     escaped = False
@@ -235,11 +332,12 @@ def get_second_part(chars):
             second_part = temp_part
             break
     try:
-        z = second_part.split(',')[0].split('{')[1]
-        return int(z)
+        line_nr = second_part.split(',')[0].split('{')[1]
+        column_nr = second_part.split(',')[1].strip()
+        return int(line_nr), int(column_nr)
     except IndexError:
         print(f"{Fore.CYAN}index error")
-        return -1
+        return -1, -1
 
 
 def handle_quotes(char, escaped, open_quote):

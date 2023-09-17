@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from peewee import *
-from scipy.optimize import curve_fit
 from scipy.special import expit
 
 from src.models.selection_models import pg_db_schema
@@ -31,9 +30,9 @@ def objective_quadratic_2(x1, a1, b1, c1, d1):
 
 def create_diagram2():
     sql = """
-        SELECT date_trunc('month', commitdatumtijd) AS txn_month, count(*), count(*) filter(where count = 0)
-        ,count(*) filter(where count > 0), count(*) filter(where count > 0)/count(*)::float*100 as perc
-        FROM {sch}."Result_20_commits_date"
+        SELECT date_trunc('month', commitdatumtijd) AS txn_month, count(*), count(*) filter(where mc_filechanges_count = 0)
+        ,count(*) filter(where mc_filechanges_count > 0), count(*) filter(where mc_filechanges_count > 0)/count(*)::float*100 as perc
+        FROM {sch}.commit_mc_filechanges_count
         GROUP BY txn_month order by txn_month ;
         """.format(sch=pg_db_schema)
 
@@ -100,16 +99,16 @@ def create_diagram2():
             if average > 0:
                 y_line.append(average)
         if average > 0:
-            plt.plot(chunk, y_line, '--', color='r', linewidth=1)
+            plt.plot(chunk, y_line, '--', color='midnightblue', linewidth=2)
             i += 12
 
     plt.show()
 
 
 def create_diagram_projects_commits_authors():
-    sql = "SELECT id, aantal_commits, naam, total_p, nr_no_mc, nr_mc, perc_mc " \
+    sql = "SELECT project_id, number_of_commits, project_name, total_projects, nr_no_mc, nr_mc, perc_mc " \
           "FROM {sch}.projects_commits_authors " \
-          "order by aantal_commits ; ".format(sch=pg_db_schema)
+          "order by number_of_commits ; ".format(sch=pg_db_schema)
     params_for_db = configurator.get_database_configuration()
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host='localhost', port=params_for_db.get('port'))
@@ -163,9 +162,9 @@ def chunks(lst, n):
 
 
 def create_diagram_projects_nr_authors():
-    sql = "SELECT id, aantal_commits, naam, total_p, nr_no_mc, nr_mc, perc_mc " \
+    sql = "SELECT  project_id, number_of_commits, project_name, total_projects, nr_no_mc, nr_mc, perc_mc " \
           "FROM {sch}.projects_commits_authors " \
-          "order by total_p ; ".format(sch=pg_db_schema)
+          "order by total_projects ; ".format(sch=pg_db_schema)
     params_for_db = configurator.get_database_configuration()
     connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
                                     host='localhost', port=params_for_db.get('port'))
@@ -210,6 +209,33 @@ def create_diagram_projects_nr_authors():
     plt.show()
 
 
+def create_diagram_primitives_cumulative():
+    ys = [33.1, 16.4, 11.6, 9.2, 7.7, 5.7, 5.5, 3.6, 3.4, 1.9, 0.9, 0.7, 0.3, 0.0]
+    xs = list(range(1, 15))
+    sumyx = []
+    sum = 0
+    for y in ys:
+        sum += y
+        sumyx.append(sum)
+    fig, ax1 = plt.subplots(layout='constrained')
+    ax1.bar(xs, sumyx, color='b', width=0.9)
+    ax1.set_xticks(xs)
+    ax1.set_xticklabels(xs)
+    ax1.set_xlabel('number of primitives used')
+    ax1.set_ylabel('percentage of multicore programmers')
+    plt.show()
+
+def create_diagram_years():
+    xs = list(range(2012, 2024))
+    ys = [29.3, 37.6, 35.1, 33.6, 30.2, 29.7, 28.3, 27.3, 28.5, 24.8, 25.3, 24.1]
+    fig, ax1 = plt.subplots(layout='constrained')
+    ax1.bar(xs, ys, color='b', width=0.9)
+    ax1.set_xticks(xs)
+    ax1.set_xticklabels(xs)
+    ax1.set_xlabel('years')
+    ax1.set_ylabel('percentage of multicore programmers')
+    plt.show()
+
 def create_month_list(start_year, start_month, end_year, end_month):
     month_list = []
     for year in range(start_year, end_year + 1):
@@ -224,8 +250,44 @@ def create_month_list(start_year, start_month, end_year, end_month):
                 month_list.append(str(year) + '-' + ('0' if month < 10 else '') + str(month))
     return month_list
 
+def create_diagram_firstcommits():
+    sql = """
+        SELECT month_date , first_commit_count
+        FROM {sch}.month_count_first_commit
+        """.format(sch=pg_db_schema)
+
+    params_for_db = configurator.get_database_configuration()
+    connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
+                                    host='localhost', port=params_for_db.get('port'))
+    cursor = connection.execute_sql(sql)
+
+    line_data_1 = []
+
+    for (date, counter) in cursor.fetchall():
+        year = date.strftime("%Y")
+        month = date.strftime("%m")
+        line_data_1.append((year + '-' + month, counter))
+
+    line_data_1 = dict(line_data_1)
+    x_ax_labels = []
+    line1_y_values = []
+    months = create_month_list(2012, 1, 2023, 6)
+    i = 0
+    for m in months:
+        l1data = line_data_1.get(m)
+        x_ax_labels.append(m)  # alle x as labels
+        line1_y_values.append(l1data)
+        i += 1
+
+    fig, ax1 = plt.subplots(layout='constrained')
+    ax1.scatter(x_ax_labels, line1_y_values, color='b')
+    ax1.set_xticks(np.arange(0, len(x_ax_labels), 12))
+    ax1.set_xticklabels(x_ax_labels[::12], rotation=45)
+    ax1.set_xlabel('Months')
+    ax1.set_ylabel('First commits', color='b')
+    plt.show()
 
 if __name__ == '__main__':
-    create_diagram_projects_commits_authors()
-    create_diagram_projects_nr_authors()
-    create_diagram2()
+    # create_diagram_projects_commits_authors()
+    # create_diagram_projects_nr_authors()
+    create_diagram_firstcommits()
