@@ -125,29 +125,52 @@ def analyze_by_project(projectname, project_id):
         if tekstvooraf_tokens is not None:
             lexeme_list = parse_to_lexeme_list(tekstvooraf_tokens)
             parsed_lexeme_list = []
+            counter = 0
             for le in lexeme_list:
-                parsed_lexeme_list.append(split_lexeme(le))
+                parsed_lexeme_list.append((counter, split_lexeme(le)))
+                counter += 1
             get_data_withline_numbers(parsed_lexeme_list, zoekterm_regelnummers_old)
         if tekstachteraf_tokens is not None:
             lexeme_list = parse_to_lexeme_list(tekstachteraf_tokens)
             parsed_lexeme_list = []
+            counter = 0
             for le in lexeme_list:
-                parsed_lexeme_list.append(split_lexeme(le))
+                parsed_lexeme_list.append((counter, split_lexeme(le)))
+                counter += 1
             get_data_withline_numbers(parsed_lexeme_list, zoekterm_regelnummers_new)
 
 
+
+
 def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
+    """
+
+    :param parsed_to_lexeme_list:  list[tuple[int, tuple[int, int, str, str]]
+    :param zoektermenlijst:  list[tuple[int, int, str,int,str]]
+    :return:
+    """
     for bzr_id, idbestandswijziging, zoekterm, regelnummer, regelsoort in zoektermenlijst:
         zoekterm_oke = False
         if zoekterm[0].isupper():  # if first letter is uppercase, then it is a module name
-            filtered_list = list(filter(lambda x: x[0] == regelnummer and x[1] == ":alias" and x[2] == ":" + zoekterm,
+            filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][2] == ":alias" and x[1][3] == ":" + zoekterm,
                                         parsed_to_lexeme_list))
+            for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:   # could be more than 1 zoekterm on a line
+                if parsed_to_lexeme_list[list_nr+1][1][2] == ":.":
+                    zoekterm_oke = True
+                    break
+                else:
+                    filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][1] < col_nr and x[1][2] == ":identifier" and x[1][3] == ":use",
+                                            parsed_to_lexeme_list))
+                    if len(filtered_list) > 0:
+                        zoekterm_oke = True
+                        break
+
         else:  # if first letter not uppercase, then it is a function name
             filtered_list = list(filter(
-                lambda x: x[0] == regelnummer and (x[1] in [":paren_identifier", ":do_identifier", ":identifier"]) and
-                          x[2] == ":" + zoekterm, parsed_to_lexeme_list))
+                lambda x: x[1][0] == regelnummer and (x[1][2] in [":paren_identifier", ":do_identifier", ":identifier"]) and
+                          x[1][3] == ":" + zoekterm, parsed_to_lexeme_list))
 
-        if len(filtered_list) > 0:
+        if zoekterm_oke is False and len(filtered_list) > 0:
             zoekterm_oke = True
 
         if zoekterm_oke:
@@ -163,7 +186,7 @@ def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
 
 def update_bestandswijziging_zoekterm_regelnummer(bzr_id, is_valid):
     update_zoekterm_regelnummer_sql = """
-update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid = {is_valid}  where id = {id}
+update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid_2 = {is_valid}  where id = {id}
 """.format(sch=schema, id=bzr_id, is_valid=is_valid)
     get_connection().execute_sql(update_zoekterm_regelnummer_sql)
 
@@ -192,7 +215,7 @@ def get_connection():
     return connection
 
 
-def parse_to_lexeme_list(elixir_tokens) -> list[tuple[int, str, str]]:
+def parse_to_lexeme_list(elixir_tokens) -> list[str]:
     """
     The input is a string containing a list of token_string.
     The first and last character of the string are [ and ].
@@ -233,7 +256,7 @@ def parse_to_lexeme_list(elixir_tokens) -> list[tuple[int, str, str]]:
     return lexemes_list
 
 
-def split_lexeme(token_string) -> tuple[int, str, str]:
+def split_lexeme(token_string) -> tuple[int, int, str, str]:
     """
     A token string is a string containing 3 parts.
     First part is the token name, this must be in the terminals list.
@@ -251,17 +274,17 @@ def split_lexeme(token_string) -> tuple[int, str, str]:
     The identifier, the line number and the attribute value.
     """
     if token_string[0:2] != '{:':  # must start with {:, otherwise it is not a token
-        return -1, '', ''
+        return  -1, -1, '', ''
     chars = deque(token_string)
     chars.popleft()  # remove first {
     chars.pop()  # remove last }
     first_part = get_first_part(chars)
     output = list(filter(lambda x: x[0] == first_part, terminals_list_specification))[0]
-    line_number = get_second_part(chars)
+    line_number = get_line_column_nrs(chars)
     if output[1] < 3:
-        return -1, first_part, 'no third part'
+        return line_number[0], line_number[1], first_part, ''
     the_rest = get_third_part(chars)
-    return line_number, first_part, the_rest
+    return line_number[0], line_number[1], first_part, the_rest
 
 
 def get_first_part(chars):
@@ -288,7 +311,7 @@ def get_first_part(chars):
     return first_part
 
 
-def get_second_part(chars):
+def get_line_column_nrs(chars):
     temp_part = ''
     open_quote = False
     escaped = False
@@ -309,11 +332,12 @@ def get_second_part(chars):
             second_part = temp_part
             break
     try:
-        z = second_part.split(',')[0].split('{')[1]
-        return int(z)
+        line_nr = second_part.split(',')[0].split('{')[1]
+        column_nr = second_part.split(',')[1].strip()
+        return int(line_nr), int(column_nr)
     except IndexError:
         print(f"{Fore.CYAN}index error")
-        return -1
+        return -1, -1
 
 
 def handle_quotes(char, escaped, open_quote):

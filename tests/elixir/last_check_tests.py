@@ -61,8 +61,8 @@ class Test(unittest.TestCase):
         '{:"]", {19, 5, 1}}',
         '{:"{", {89, 29, nil}}',
         '{:"}", {89, 34, nil}}',
-        '{:""<<"", {14, 23, nil}}',
-        '{:"">>"", {4, 36, nil}}',
+        '{:"<<", {14, 23, nil}}',
+        '{:">>", {4, 36, nil}}',
         '{:%{}, {41, 5, nil}}',
         '{:%, {30, 12, nil}}',
         '{:int, {101, 19, 1}, ~c"1"}',
@@ -70,25 +70,31 @@ class Test(unittest.TestCase):
         '{:char, {282, 22, ~c""?[""}, 91}']
 
     def test_split_lexeme(self):
+        # fn 2 part tuple
+        token_string = '{:fn, {126, 26, nil}}'
+        a, b, c, d = last_check.split_lexeme(token_string)
+        unittest.TestCase.assertEqual(self, a, 126)
+        unittest.TestCase.assertEqual(self, b, 26)
+        unittest.TestCase.assertEqual(self, c, ":fn")
+        unittest.TestCase.assertEqual(self, d, "")
+
         token_string = '{:identifier, {1, 1, ~c"defmodule"}, :defmodule}'
-        a, b, c = last_check.split_lexeme(token_string)
+        a, b, c, d = last_check.split_lexeme(token_string)
         unittest.TestCase.assertEqual(self, a, 1)
-        unittest.TestCase.assertEqual(self, b, ":identifier")
-        unittest.TestCase.assertEqual(self, c, ":defmodule")
+        unittest.TestCase.assertEqual(self, b, 1)
+        unittest.TestCase.assertEqual(self, c, ":identifier")
+        unittest.TestCase.assertEqual(self, d, ":defmodule")
 
         # heredoc 3 part tuple
 
         token_string = '{:bin_heredoc, {48, 8, nil}, 2, ["Asks for confirmation to the user.\nIt allows the user to answer or respond with the following options:\n  - Yes, yes, YES, Y, y\n  - No, no, NO, N, n\n\nIn case that the answer is none of the above, it will prompt again until we do.\n\n## Examples\n\nTo ask whether the user wants to delete a file or not:\n\n  ExPrompt.confirm(\"Are you sure you want to delete this file?\n\'")\n"]}'
-        a, b, c = last_check.split_lexeme(token_string)
+        a, b, c, d = last_check.split_lexeme(token_string)
         unittest.TestCase.assertEqual(self, a, 48)
-        unittest.TestCase.assertEqual(self, b, ":bin_heredoc")
-        unittest.TestCase.assertEqual(self, c,
+        unittest.TestCase.assertEqual(self, b, 8)
+        unittest.TestCase.assertEqual(self, c, ":bin_heredoc")
+        unittest.TestCase.assertEqual(self, d,
                                       '2, ["Asks for confirmation to the user.\nIt allows the user to answer or respond with the following options:\n  - Yes, yes, YES, Y, y\n  - No, no, NO, N, n\n\nIn case that the answer is none of the above, it will prompt again until we do.\n\n## Examples\n\nTo ask whether the user wants to delete a file or not:\n\n  ExPrompt.confirm(\"Are you sure you want to delete this file?\n\'")\n"]')
-        # fn 2 part tuple
-        token_string = '{:fn, {126, 26, nil}}'
-        a, b, c = last_check.split_lexeme(token_string)
-        unittest.TestCase.assertEqual(self, a, 126)
-        unittest.TestCase.assertEqual(self, b, ":fn")
+
 
     def test_read_diff(self):
         text = self.read_file(filepath='token_array.txt')
@@ -98,7 +104,7 @@ class Test(unittest.TestCase):
 
     def test_split_lexeme2(self):
         for i in range(len(self.token_list)):
-            a, b, c = last_check.split_lexeme(self.token_list[i])
+            a, b, c, d = last_check.split_lexeme(self.token_list[i])
 
 
     @staticmethod

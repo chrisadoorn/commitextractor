@@ -8,7 +8,7 @@ truncate table bw_met_zoektermen;
 
 insert into bw_met_zoektermen(idbestandswijziging)
 select distinct idbestandswijziging from bestandswijziging_zoekterm
-where falsepositive = false and aantalgevonden_nieuw > bestandswijziging_zoekterm.aantalgevonden_oud;
+where aantalgevonden_nieuw > bestandswijziging_zoekterm.aantalgevonden_oud;
 
 
 CREATE TEMPORARY TABLE IF NOT EXISTS periods
