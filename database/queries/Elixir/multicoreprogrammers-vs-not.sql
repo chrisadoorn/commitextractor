@@ -8,7 +8,7 @@ truncate table bw_met_zoektermen;
 
 insert into bw_met_zoektermen(idbestandswijziging)
 select distinct idbestandswijziging from bestandswijziging_zoekterm
-where  aantalgevonden_nieuw > bestandswijziging_zoekterm.aantalgevonden_oud;
+where  aantalgevonden_nieuw > bestandswijziging_zoekterm.aantalgevonden_oud and zoekterm != 'GenServer';
 
 
 select
