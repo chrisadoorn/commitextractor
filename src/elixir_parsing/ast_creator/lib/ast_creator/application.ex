@@ -6,10 +6,10 @@ defmodule AstCreator.Application do
   use Application
 
   @impl true
-  def start(_type, _args) do
+  def start(_type, _args) do # call back functin used by Application
     children = [
       AstCreator.Repo,
-      AstCreator.System
+      AstCreator.System  # change System to System2 to create ASTs
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

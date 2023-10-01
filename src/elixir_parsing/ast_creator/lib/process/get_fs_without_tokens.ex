@@ -1,6 +1,18 @@
 defmodule AstCreator.GetFileChangesWithoutTokens do
   use GenServer
 
+  @moduledoc """
+    This module will run as a single proces,
+    it will get all ids from bestandswijziging and puts this in a queue.
+    Client processes may pop a value from this list
+    This ensures all ids are processed and no ids are double processed.
+    This module should be used after GetFileChanges
+  """
+
+  @doc """
+    This method will deliver all bestandswijziging ids with a joined abstract_syntax_trees
+    and no tekstachteraf_tokens or tekstvooraf_tokens
+  """
   def get_ids() do
     query =
       """
