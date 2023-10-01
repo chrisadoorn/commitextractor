@@ -9,31 +9,35 @@ from requests.exceptions import ConnectTimeout
 from src.models.extracted_data_models import pg_db_schema, CommitInfo, pg_database
 from src.utils import configurator
 
-GITHUB_API = 'https://api.github.com/repos/{}/commits/{}'
+RATE_LIMIT_RESET = 'X-RateLimit-Reset'
+X_RATE_LIMIT_REMAINING = 'X-RateLimit-Remaining'
+GITHUB_API = configurator.GITHUB_API
+GITHUB_API_HEADERS = configurator.get_github_api_headers()
+NO_AUTHOR_FOUND_START_ID = configurator.NO_AUTHOR_FOUND_START_ID
 
-bearer_token = configurator.get_github_personal_access_token()
+GET_COMMIT_INFO_SQL = """
+    SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam 
+        FROM {schema}.commitinfo AS ci 
+        JOIN {schema}.project AS pr ON ci.idproject = pr.id 
+    WHERE ci.idproject = {projectid} AND ci.author_id is null ORDER BY ci.username, ci.emailaddress;
+    """
 
-HEADERS = {"Accept": "application/vnd.github.text-match+json", "Content-Type": "text/plain;charset=UTF-8",
-           "timeout": str(10), "Authorization": "Bearer {}".format(bearer_token)}
-
-NO_AUTHOR_FOUND_START_ID = 900000000
-
-current_ratelimit_remaining = 60
 reset_date_time = datetime.now() + timedelta(hours=1)
+current_ratelimit_remaining = configurator.GITHUB_RATELIMIT_BASIC
 
 
 class ApiCommitRequester:
     @staticmethod
     def get_github_commit_info(project, commit_sha) -> (json, dict[str, str]):
         """
-        Get the commit info for a commit from GitHub.
+        Get the commit info for a commit from GitHub API.
         :param project: unique name of the project
-        :param commit_sha: sha of the commit
+        :param commit_sha: sha (hashvalue) of the commit
         :return: json with the commit info and the headers of the response
         """
         githubapi = GITHUB_API.format(project, commit_sha)
         try:
-            response = requests.get(githubapi, headers=HEADERS, timeout=(10, 20))
+            response = requests.get(githubapi, headers=GITHUB_API_HEADERS, timeout=(10, 20))
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
             logging.exception(err)
@@ -47,6 +51,10 @@ class ApiCommitRequester:
 
 
 class Extractor:
+    """
+    Class for extraction of received data from GitHub API.
+    """
+
     @staticmethod
     def get_and_set_ratelimit_remaining(headers: dict[str, str]) -> None:
         """
@@ -55,8 +63,8 @@ class Extractor:
         """
         global current_ratelimit_remaining
         global reset_date_time
-        current_ratelimit_remaining = int(headers.get('X-RateLimit-Remaining'))
-        reset_date_time = datetime.fromtimestamp(float(headers.get('X-RateLimit-Reset')))
+        current_ratelimit_remaining = int(headers.get(X_RATE_LIMIT_REMAINING))
+        reset_date_time = datetime.fromtimestamp(float(headers.get(RATE_LIMIT_RESET)))
 
     @staticmethod
     def get_content(json_: json) -> tuple[tuple[str, str, int], str]:
@@ -124,11 +132,13 @@ def __get_author_data_one_commit(project_name, sha) -> tuple[tuple[str, str, int
     return data
 
 
-def __update_commit_info(commit_info_id, author_id) -> None:
+def __update_commit_info(commit_info_id, author_id, action_type="UPDATE") -> None:
     """
     Update the commitInfo record.
     """
     to_update_commit_info = CommitInfo().select().where(CommitInfo.id == commit_info_id).get()
+    logging.info(
+        "[" + action_type + "] ci: " + str(commit_info_id) + ", un:" + to_update_commit_info.username + ", ea:" + to_update_commit_info.emailaddress)
     to_update_commit_info.author_id = author_id
     to_update_commit_info.save()
 
@@ -138,64 +148,62 @@ def fetch_authors_by_project(projectid) -> None:
     Fetch the authors for the commits in the commitInfo table.
     If the commit info is already present in the commitInfo table, it is not fetched again.
     :param projectid:
-    :param limit:
     :return:
     """
-
     schema = pg_db_schema
-
-    sql = """
-    SELECT ci.id, ci.idproject, ci.emailaddress, ci.username, ci.hashvalue, pr.naam 
-        FROM {schema}.commitinfo AS ci 
-        JOIN {schema}.project AS pr ON ci.idproject = pr.id 
-    WHERE ci.idproject = {projectid} AND ci.author_id is null ORDER BY ci.username, ci.emailaddress;
-    """.format(schema=schema, projectid=projectid)
-
+    sql = GET_COMMIT_INFO_SQL.format(schema=schema, projectid=projectid)
     cursor = pg_database.execute_sql(sql)
     counter = 1
     temp_author_id = -1
-    temp_emailaddress = ""
+    temp_email_address = ""
     temp_username = ""
 
     for (commit_info_id, id_project, email_address_hashed, username_hashed, sha, project_name) in cursor.fetchall():
         logging.info("Processing " + str(counter))
 
-        # Kijk of er een commitinfo bestaat binnen hetzelfde project met dezelfde username en emailaddress
-        # zo ja: gebruik de author_id van die commitinfo
-        # dit voorkomt onnodige requests naar github.
+        # Requests to GitHub are limited to so unneeded requests have to be avoided,
+        # so check to see info is already present in the commitInfo table.
 
-        if temp_emailaddress == email_address_hashed and temp_username == username_hashed and temp_author_id >= 0:
+        if temp_email_address == email_address_hashed and temp_username == username_hashed and temp_author_id >= 0:
+            # author_id is already known, no request to GitHub needed, this uses the fact
+            # that the cursor is sorted on username and email-address
             author_id = temp_author_id
         else:
-            temp_emailaddress = email_address_hashed
+            temp_email_address = email_address_hashed
             temp_username = username_hashed
-            existing_commit_info = CommitInfo().select().where(CommitInfo.idproject == id_project,
-                                                               CommitInfo.username == username_hashed,
-                                                               CommitInfo.emailaddress == email_address_hashed,
-                                                               CommitInfo.author_id.is_null(False)).get_or_none()
-            if existing_commit_info is not None:
-                author_id = existing_commit_info.author_id
-            else:
-                author_id = -1
+            author_id = try_find_existing_author_id(email_address_hashed, id_project, username_hashed)
 
-        if author_id >= 0:
-            logging.info("[update] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
-            __update_commit_info(commit_info_id, author_id)
-        else:
-            logging.info("[New] " + project_name + ", un:" + username_hashed + ", ea:" + email_address_hashed)
-            (commit_sha, author_login, author_id), error = __get_author_data_one_commit(project_name, sha)
-            if author_id < 0:
-                existing_commit_info = CommitInfo().select().where(CommitInfo.emailaddress == email_address_hashed,
-                                                                   CommitInfo.author_id >= NO_AUTHOR_FOUND_START_ID).get_or_none()
-                if existing_commit_info is not None:
-                    author_id = existing_commit_info.author_id
-                else:
-                    author_id = (NO_AUTHOR_FOUND_START_ID + commit_info_id)
-                logging.info("No author found in GitHub, new author id created:" + str(author_id))
-            __update_commit_info(commit_info_id, author_id)
+        action_type = "UPDATE"
+        if author_id < 0:
+            author_id = determine_author_id(commit_info_id, email_address_hashed, project_name, sha)
+            action_type = "INSERT"
+
+        __update_commit_info(commit_info_id, author_id, action_type)
+
         temp_author_id = author_id
         counter += 1
 
 
-if __name__ == '__main__':
-    fetch_authors_by_project(5)
+def determine_author_id(commit_info_id, email_address_hashed, project_name, sha):
+    (commit_sha, author_login, author_id), error = __get_author_data_one_commit(project_name, sha)
+    if author_id < 0:
+        existing_commit_info = CommitInfo().select().where(CommitInfo.emailaddress == email_address_hashed,
+                                                           CommitInfo.author_id >= NO_AUTHOR_FOUND_START_ID).get_or_none()
+        if existing_commit_info is not None:
+            author_id = existing_commit_info.author_id
+        else:
+            author_id = (NO_AUTHOR_FOUND_START_ID + commit_info_id)
+        logging.info("No author found in GitHub, new author id created:" + str(author_id))
+    return author_id
+
+
+def try_find_existing_author_id(email_address_hashed, id_project, username_hashed):
+    existing_commit_info = CommitInfo().select().where(CommitInfo.idproject == id_project,
+                                                       CommitInfo.username == username_hashed,
+                                                       CommitInfo.emailaddress == email_address_hashed,
+                                                       CommitInfo.author_id.is_null(False)).get_or_none()
+    if existing_commit_info is not None:
+        author_id = existing_commit_info.author_id  # author_id is already known, no request to GitHub needed
+    else:
+        author_id = -1  # author_id is not known, request to GitHub needed
+    return author_id
