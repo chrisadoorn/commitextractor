@@ -11,6 +11,15 @@ from src.utils import configurator
 from src.utils import db_postgresql
 from src.utils.configurator import get_database_configuration
 
+SELECT_BESTANDSWIJZIGING_ZOEKTERM_REGELNUMMER = """
+select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from 
+{sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id}
+"""
+
+UPDATE_BESTANDSWIJZIGING_ZOEKTERM_REGELNUMMER = """
+update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid_3 = {is_valid}  where id = {id}
+"""
+
 colorama_init()
 
 dt = datetime.now()
@@ -18,8 +27,9 @@ filename = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', 
 params_for_db = configurator.get_database_configuration()
 schema = get_database_configuration().get('schema')
 connection = None
-# https://github.com/elixir-lang/elixir/blob/0d139c15df7f72ac2180fa9646f12b149b244786/lib/elixir/src/elixir_parser.yrl#L553
-terminals = ['identifier', 'kw_identifier', 'kw_identifier_safe', 'kw_identifier_unsafe', 'bracket_identifier',
+
+
+TERMINALS = ['identifier', 'kw_identifier', 'kw_identifier_safe', 'kw_identifier_unsafe', 'bracket_identifier',
              'paren_identifier', 'do_identifier', 'block_identifier', 'op_identifier', 'fn', 'end', 'alias', 'atom',
              'atom_quoted', 'atom_safe', 'atom_unsafe', 'bin_string', 'list_string', 'sigil', 'bin_heredoc',
              'list_heredoc', 'comp_op', 'at_op', 'unary_op', 'and_op', 'or_op', 'arrow_op', 'match_op', 'in_op',
@@ -29,74 +39,29 @@ terminals = ['identifier', 'kw_identifier', 'kw_identifier_safe', 'kw_identifier
              '">>"', '%{}', '%', 'int', 'flt', 'char']
 
 
-terminals_list_specification = [
-    (':identifier', 3, 'un-nested'),
-    (':kw_identifier', 3, 'un-nested'),
-    (':kw_identifier_unsafe', 3, 'nested'),    # tussen [] 
-    (':bracket_identifier', 2, 'un-nested'),
-    (':paren_identifier', 3, 'un-nested'),
-    (':do_identifier', 3, 'un-nested'),
-    (':block_identifier', 3, 'un-nested'),
-    (':op_identifier', 3, 'un-nested'),
-    (':fn', 2, 'un-nested'),
-    (':end', 2, 'un-nested'),
-    (':alias', 3, 'un-nested'),
-    (':atom', 2, 'un-nested'),
-    (':atom_quoted', 3, 'un-nested'),
-    (':atom_unsafe', 3, 'nested'),
-    (':bin_string', 3, 'un-nested'),
-    (':list_string', 3, 'un-nested'),
-    (':sigil', 7, 'un-nested'),
-    (':bin_heredoc', 4, 'un-nested'),
-    (':list_heredoc', 4, 'un-nested'),
-    (':comp_op', 3, 'un-nested'),
-    (':at_op', 3, 'un-nested'),
-    (':unary_op', 3, 'un-nested'),
-    (':and_op', 3, 'un-nested'),
-    (':or_op', 3, 'un-nested'),
-    (':arrow_op', 3, 'un-nested'),
-    (':match_op', 3, 'un-nested'),
-    (':in_op', 3, 'un-nested'),
-    (':in_match_op', 3, 'un-nested'),
-    (':type_op', 3, 'un-nested'),
-    (':dual_op', 3, 'un-nested'),
-    (':mult_op', 3, 'un-nested'),
-    (':power_op', 3, 'un-nested'),
-    (':concat_op', 3, 'un-nested'),
-    (':range_op', 3, 'un-nested'),
-    (':xor_op', 3, 'un-nested'),
-    (':pipe_op', 3, 'un-nested'),
-    (':stab_op', 3, 'un-nested'),
-    (':when_op', 3, 'un-nested'),
-    (':capture_int', 3, 'un-nested'),
-    (':capture_op', 3, 'un-nested'),
-    (':assoc_op', 3, 'un-nested'),
-    (':rel_op', 3, 'un-nested'),
-    (':ternary_op', 3, 'un-nested'),
-    (':dot_call_op', 3, 'un-nested'),
-    ('true', 2, 'un-nested'),
-    ('false', 2, 'un-nested'),
-    (':do', 2, 'un-nested'),
-    (':eol', 2, 'un-nested'),
-    (':";"', 2, 'un-nested'),
-    (':","', 2, 'un-nested'),
-    (':.', 2, 'un-nested'),
-    (':"("', 2, 'un-nested'),
-    (':")"', 2, 'un-nested'),
-    (':"["', 2, 'un-nested'),
-    (':"]"', 2, 'un-nested'),
-    (':"{"', 2, 'un-nested'),
-    (':"}"', 2, 'un-nested'),
-    (':"<<"', 2, 'un-nested'),
-    (':">>"', 2, 'un-nested'),
-    (':%{}', 2, 'un-nested'),
-    (':%', 2, 'un-nested'),
-    (':int', 3, 'un-nested'),
-    (':flt', 3, 'un-nested'),
-    (':char', 3, 'un-nested')]
+TERMINALS_LIST_SPECIFICATION = [(':identifier', 3, 'un-nested'), (':kw_identifier', 3, 'un-nested'),
+    (':kw_identifier_unsafe', 3, 'nested'), (':bracket_identifier', 2, 'un-nested'),
+    (':paren_identifier', 3, 'un-nested'), (':do_identifier', 3, 'un-nested'), (':block_identifier', 3, 'un-nested'),
+    (':op_identifier', 3, 'un-nested'), (':fn', 2, 'un-nested'), (':end', 2, 'un-nested'), (':alias', 3, 'un-nested'),
+    (':atom', 2, 'un-nested'), (':atom_quoted', 3, 'un-nested'), (':atom_unsafe', 3, 'nested'),
+    (':bin_string', 3, 'un-nested'), (':list_string', 3, 'un-nested'), (':sigil', 7, 'un-nested'),
+    (':bin_heredoc', 4, 'un-nested'), (':list_heredoc', 4, 'un-nested'), (':comp_op', 3, 'un-nested'),
+    (':at_op', 3, 'un-nested'), (':unary_op', 3, 'un-nested'), (':and_op', 3, 'un-nested'), (':or_op', 3, 'un-nested'),
+    (':arrow_op', 3, 'un-nested'), (':match_op', 3, 'un-nested'), (':in_op', 3, 'un-nested'),
+    (':in_match_op', 3, 'un-nested'), (':type_op', 3, 'un-nested'), (':dual_op', 3, 'un-nested'),
+    (':mult_op', 3, 'un-nested'), (':power_op', 3, 'un-nested'), (':concat_op', 3, 'un-nested'),
+    (':range_op', 3, 'un-nested'), (':xor_op', 3, 'un-nested'), (':pipe_op', 3, 'un-nested'),
+    (':stab_op', 3, 'un-nested'), (':when_op', 3, 'un-nested'), (':capture_int', 3, 'un-nested'),
+    (':capture_op', 3, 'un-nested'), (':assoc_op', 3, 'un-nested'), (':rel_op', 3, 'un-nested'),
+    (':ternary_op', 3, 'un-nested'), (':dot_call_op', 3, 'un-nested'), ('true', 2, 'un-nested'),
+    ('false', 2, 'un-nested'), (':do', 2, 'un-nested'), (':eol', 2, 'un-nested'), (':";"', 2, 'un-nested'),
+    (':","', 2, 'un-nested'), (':.', 2, 'un-nested'), (':"("', 2, 'un-nested'), (':")"', 2, 'un-nested'),
+    (':"["', 2, 'un-nested'), (':"]"', 2, 'un-nested'), (':"{"', 2, 'un-nested'), (':"}"', 2, 'un-nested'),
+    (':"<<"', 2, 'un-nested'), (':">>"', 2, 'un-nested'), (':%{}', 2, 'un-nested'), (':%', 2, 'un-nested'),
+    (':int', 3, 'un-nested'), (':flt', 3, 'un-nested'), (':char', 3, 'un-nested')]
 
 
-bestands_wijziging_sql = """
+BESTANDS_WIJZIGING_SQL = """
 select bw.id, a.tekstvooraf_tokens, a.tekstachteraf_tokens from {sch}.bestandswijziging bw
      join {sch}.commitinfo ci on bw.idcommit = ci.id
      join {sch}.abstract_syntax_trees a on bw.id = a.bestandswijziging_id
@@ -115,31 +80,27 @@ def analyze_by_project(projectname, project_id):
     print(f"{Fore.BLUE}processing:" + projectname)
     print(f"{Fore.BLUE}project_id:" + str(project_id))
     bestandswijziging_cursor = get_connection().execute_sql(
-        bestands_wijziging_sql.format(sch=schema, project_id=project_id))
+        BESTANDS_WIJZIGING_SQL.format(sch=schema, project_id=project_id))
     z = bestandswijziging_cursor.fetchall()
-    # haal tekstvooraf_tokens en tekstachteraf_tokens per bestandswijziging / voor een project
-    # doorloop deze lijst
     for (bw_id, tekstvooraf_tokens, tekstachteraf_tokens) in z:  # per bestandswijziging
         zoekterm_regelnummers_new, zoekterm_regelnummers_old = get_bestandswijziging_zoekterm_regelnummer(bw_id)
         print(f"{Fore.BLUE}bestandswijziging_id: " + str(bw_id))
         if tekstvooraf_tokens is not None:
-            lexeme_list = parse_to_lexeme_list(tekstvooraf_tokens)
-            parsed_lexeme_list = []
-            counter = 0
-            for le in lexeme_list:
-                parsed_lexeme_list.append((counter, split_lexeme(le)))
-                counter += 1
+            parsed_lexeme_list = parse_lexeme_list(tekstvooraf_tokens)
             get_data_withline_numbers(parsed_lexeme_list, zoekterm_regelnummers_old)
         if tekstachteraf_tokens is not None:
-            lexeme_list = parse_to_lexeme_list(tekstachteraf_tokens)
-            parsed_lexeme_list = []
-            counter = 0
-            for le in lexeme_list:
-                parsed_lexeme_list.append((counter, split_lexeme(le)))
-                counter += 1
+            parsed_lexeme_list = parse_lexeme_list(tekstachteraf_tokens)
             get_data_withline_numbers(parsed_lexeme_list, zoekterm_regelnummers_new)
 
 
+def parse_lexeme_list(tekst_tokens):
+    lexeme_list = parse_to_lexeme_list(tekst_tokens)
+    parsed_lexeme_list = []
+    counter = 0
+    for le in lexeme_list:
+        parsed_lexeme_list.append((counter, split_lexeme(le)))
+        counter += 1
+    return parsed_lexeme_list
 
 
 def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
@@ -150,60 +111,60 @@ def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
     :return:
     """
     for bzr_id, idbestandswijziging, zoekterm, regelnummer, regelsoort in zoektermenlijst:
-        zoekterm_oke = False
-        if zoekterm[0].isupper():  # if first letter is uppercase, then it is a module name
-            filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][2] == ":alias" and x[1][3] == ":" + zoekterm,
-                                        parsed_to_lexeme_list))
-
-            for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:   # could be more than 1 zoekterm on a line
-                if parsed_to_lexeme_list[list_nr-1][1][2] == ":.":   #  if the previous token is a dot, then it is a function name
-                    continue
-                elif parsed_to_lexeme_list[list_nr+1][1][2] == ":.":
-                    zoekterm_oke = True
-                    break
-                else:
-                    list_with_use = list(filter(lambda x: x[1][0] == regelnummer and x[1][1] < col_nr and x[1][2] == ":identifier" and x[1][3] == ":use",
-                                            parsed_to_lexeme_list))
-                    if len(list_with_use) > 0:
-                        zoekterm_oke = True
-                        break
+        # if first letter is uppercase, then it is a module name
+        if zoekterm[0].isupper():
+            zoekterm_oke = zoekterm_oke_module_type(zoekterm, parsed_to_lexeme_list, regelnummer)
         else:  # if first letter not uppercase, then it is a function name
-            filtered_list = list(filter(
-                lambda x: x[1][0] == regelnummer and (x[1][2] in [":paren_identifier", ":do_identifier", ":identifier"]) and
-                          x[1][3] == ":" + zoekterm, parsed_to_lexeme_list))
-            for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:
-                if parsed_to_lexeme_list[list_nr-1][1][3] == ":def" or parsed_to_lexeme_list[list_nr-1][1][3] == ":defp":
-                    break
-                if parsed_to_lexeme_list[list_nr-2][1][3] == ":Kernel" and parsed_to_lexeme_list[list_nr-1][1][2] == ":.":   #  if the previous token is a dot, then it is a function name
-                    zoekterm_oke = True
-                    break
-                elif parsed_to_lexeme_list[list_nr-1][1][2] != ":.":
-                    zoekterm_oke = True
-                    break
+            zoekterm_oke = zoekterm_oke_function_type(zoekterm, parsed_to_lexeme_list, regelnummer)
+        update_bestandswijziging_zoekterm_regelnummer(bzr_id, zoekterm_oke)
 
-        if zoekterm_oke:
-            print(f"{Fore.GREEN}zoekterm gevonden:" + zoekterm + ", regelnummer:" + str(
-                regelnummer) + ", regelsoort:" + regelsoort)
-            update_bestandswijziging_zoekterm_regelnummer(bzr_id, True)
+
+def zoekterm_oke_function_type(zoekterm, parsed_to_lexeme_list, regelnummer):
+    zoekterm_oke = False
+    filtered_list = list(filter(
+        lambda x: x[1][0] == regelnummer and (x[1][2] in [":paren_identifier", ":do_identifier", ":identifier"]) and
+                  x[1][3] == ":" + zoekterm, parsed_to_lexeme_list))
+    for (list_nr, (_, _, _, _)) in filtered_list:
+        if parsed_to_lexeme_list[list_nr - 1][1][3] == ":def" or parsed_to_lexeme_list[list_nr - 1][1][3] == ":defp":
+            break
+        if parsed_to_lexeme_list[list_nr - 2][1][3] == ":Kernel" and parsed_to_lexeme_list[list_nr - 1][1][
+            2] == ":.":  # if the previous token is a dot, then it is a function name
+            zoekterm_oke = True
+            break
+        elif parsed_to_lexeme_list[list_nr - 1][1][2] != ":.":
+            zoekterm_oke = True
+            break
+    return zoekterm_oke
+
+
+def zoekterm_oke_module_type(zoekterm, parsed_to_lexeme_list, regelnummer):
+    filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][2] == ":alias" and x[1][3] == ":" + zoekterm,
+                                parsed_to_lexeme_list))
+    zoekterm_oke = False
+    for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:  # could be more than 1 zoekterm on a line
+        if parsed_to_lexeme_list[list_nr - 1][1][2] == ":.":  # if the previous token is a dot, then it is a function name
+            continue
+        elif parsed_to_lexeme_list[list_nr + 1][1][2] == ":.":
+            zoekterm_oke = True
+            break
         else:
-            print(f"{Fore.RED}" + str(parsed_to_lexeme_list))
-            print(f"{Fore.RED}niet gevonden: " + zoekterm + ", regelnummer:" + str(
-                regelnummer) + ", regelsoort:" + regelsoort)
-            update_bestandswijziging_zoekterm_regelnummer(bzr_id, False)
+            list_with_use = list(filter(
+                lambda x: x[1][0] == regelnummer and x[1][1] < col_nr and x[1][2] == ":identifier" and x[1][
+                    3] == ":use", parsed_to_lexeme_list))
+            if len(list_with_use) > 0:
+                zoekterm_oke = True
+                break
+    return zoekterm_oke
 
 
 def update_bestandswijziging_zoekterm_regelnummer(bzr_id, is_valid):
-    update_zoekterm_regelnummer_sql = """
-update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid_3 = {is_valid}  where id = {id}
-""".format(sch=schema, id=bzr_id, is_valid=is_valid)
+    update_zoekterm_regelnummer_sql = UPDATE_BESTANDSWIJZIGING_ZOEKTERM_REGELNUMMER.format(sch=schema, id=bzr_id, is_valid=is_valid)
     get_connection().execute_sql(update_zoekterm_regelnummer_sql)
 
 
 def get_bestandswijziging_zoekterm_regelnummer(idbestandswijziging):
-    selecteer_zoekterm_regelnummers = """
-select id, idbestandswijziging, zoekterm, regelnummer, regelsoort from 
-{sch}.bestandswijziging_zoekterm_regelnummer bzr where idbestandswijziging = {id}
-""".format(sch=schema, id=idbestandswijziging)
+    selecteer_zoekterm_regelnummers = (SELECT_BESTANDSWIJZIGING_ZOEKTERM_REGELNUMMER
+                                       .format(sch=schema, id=idbestandswijziging))
     regelnummers_cursor = get_connection().execute_sql(selecteer_zoekterm_regelnummers)
     zoekterm_regelnummers_new, zoekterm_regelnummers_old = [], []
     for (bzr_id, idbestandswijziging, zoekterm, regelnummer, regelsoort) in regelnummers_cursor.fetchall():
@@ -287,7 +248,7 @@ def split_lexeme(token_string) -> tuple[int, int, str, str]:
     chars.popleft()  # remove first {
     chars.pop()  # remove last }
     first_part = get_first_part(chars)
-    output = list(filter(lambda x: x[0] == first_part, terminals_list_specification))[0]
+    output = list(filter(lambda x: x[0] == first_part, TERMINALS_LIST_SPECIFICATION))[0]
     line_number = get_line_column_nrs(chars)
     if output[1] < 3:
         return line_number[0], line_number[1], first_part, ''
@@ -312,7 +273,7 @@ def get_first_part(chars):
             temp_for_check = first_part
             if temp_for_check[0] == ':':
                 temp_for_check = temp_for_check[1:]
-            if temp_for_check not in terminals:
+            if temp_for_check not in TERMINALS:
                 logging.error('First part is no a terminal. {lexeme}  '.format(lexeme=temp_for_check))
                 raise Exception('First part is no a terminal. {lexeme}  '.format(lexeme=temp_for_check))
             break
