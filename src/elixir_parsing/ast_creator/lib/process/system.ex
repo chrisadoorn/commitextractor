@@ -3,7 +3,7 @@ defmodule AstCreator.System do
   @nr_processes 30
   def start_link(_) do
     IO.puts("starting system")
-    Supervisor.start_link(__MODULE__, nil)
+    Supervisor.start_link(__MODULE__, nil) # start callback function init(_)
   end
 
   def init(_) do
