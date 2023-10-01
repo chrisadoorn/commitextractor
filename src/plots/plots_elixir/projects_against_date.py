@@ -210,7 +210,8 @@ def create_diagram_projects_nr_authors():
 
 
 def create_diagram_primitives_cumulative():
-    ys = [33.1, 16.4, 11.6, 9.2, 7.7, 5.7, 5.5, 3.6, 3.4, 1.9, 0.9, 0.7, 0.3, 0.0]
+    ys = [33.7, 15.6, 12.1, 9.6, 7.8, 6.1, 4.9, 3.3, 3.3, 1.8, 1, 0.6, 0.2, 0]
+
     xs = list(range(1, 15))
     sumyx = []
     sum = 0
@@ -225,9 +226,12 @@ def create_diagram_primitives_cumulative():
     ax1.set_ylabel('percentage of multicore programmers')
     plt.show()
 
+
 def create_diagram_years():
     xs = list(range(2012, 2024))
-    ys = [29.3, 37.6, 35.1, 33.6, 30.2, 29.7, 28.3, 27.3, 28.5, 24.8, 25.3, 24.1]
+
+    ys = [22, 33, 31.9, 30.6, 27.7, 27.8, 26.1, 25.4, 26, 22.8, 23, 21.9]
+
     fig, ax1 = plt.subplots(layout='constrained')
     ax1.bar(xs, ys, color='b', width=0.9)
     ax1.set_xticks(xs)
@@ -235,6 +239,7 @@ def create_diagram_years():
     ax1.set_xlabel('years')
     ax1.set_ylabel('percentage of multicore programmers')
     plt.show()
+
 
 def create_month_list(start_year, start_month, end_year, end_month):
     month_list = []
@@ -249,6 +254,7 @@ def create_month_list(start_year, start_month, end_year, end_month):
             for month in range(1, 13):
                 month_list.append(str(year) + '-' + ('0' if month < 10 else '') + str(month))
     return month_list
+
 
 def create_diagram_firstcommits():
     sql = """
@@ -287,7 +293,48 @@ def create_diagram_firstcommits():
     ax1.set_ylabel('First commits', color='b')
     plt.show()
 
+
+def create_diagram_first_last_commits():
+    sql = """
+        SELECT date_trunc('month', max) as txn_monthmin, count(*)
+        FROM {sch}.first_last_commits
+        GROUP BY txn_monthmin order by txn_monthmin
+        """.format(sch=pg_db_schema)
+
+    params_for_db = configurator.get_database_configuration()
+    connection = PostgresqlDatabase('multicore', user=params_for_db.get('user'), password=params_for_db.get('password'),
+                                    host='localhost', port=params_for_db.get('port'))
+    cursor = connection.execute_sql(sql)
+
+    line_data_1 = []
+
+    for (date, counter) in cursor.fetchall():
+        year = date.strftime("%Y")
+        month = date.strftime("%m")
+        line_data_1.append((year + '-' + month, counter))
+
+    line_data_1 = dict(line_data_1)
+    x_ax_labels = []
+    line1_y_values = []
+    months = create_month_list(2012, 1, 2023, 6)
+    i = 0
+    for m in months:
+        l1data = line_data_1.get(m)
+        x_ax_labels.append(m)  # alle x as labels
+        line1_y_values.append(l1data)
+        i += 1
+
+    fig, ax1 = plt.subplots(layout='constrained')
+    ax1.scatter(x_ax_labels, line1_y_values, color='r')
+    ax1.set_xticks(np.arange(0, len(x_ax_labels), 12))
+    ax1.set_xticklabels(x_ax_labels[::12], rotation=45)
+    ax1.set_xlabel('Months')
+    ax1.set_ylabel('Last commits of projects count', color='r')
+    plt.show()
+
+
 if __name__ == '__main__':
     # create_diagram_projects_commits_authors()
     # create_diagram_projects_nr_authors()
-    create_diagram_firstcommits()
+    #create_diagram_primitives_cumulative()
+    create_diagram_first_last_commits()

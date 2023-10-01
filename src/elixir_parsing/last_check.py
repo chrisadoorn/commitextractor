@@ -154,24 +154,32 @@ def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
         if zoekterm[0].isupper():  # if first letter is uppercase, then it is a module name
             filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][2] == ":alias" and x[1][3] == ":" + zoekterm,
                                         parsed_to_lexeme_list))
+
             for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:   # could be more than 1 zoekterm on a line
-                if parsed_to_lexeme_list[list_nr+1][1][2] == ":.":
+                if parsed_to_lexeme_list[list_nr-1][1][2] == ":.":   #  if the previous token is a dot, then it is a function name
+                    continue
+                elif parsed_to_lexeme_list[list_nr+1][1][2] == ":.":
                     zoekterm_oke = True
                     break
                 else:
-                    filtered_list = list(filter(lambda x: x[1][0] == regelnummer and x[1][1] < col_nr and x[1][2] == ":identifier" and x[1][3] == ":use",
+                    list_with_use = list(filter(lambda x: x[1][0] == regelnummer and x[1][1] < col_nr and x[1][2] == ":identifier" and x[1][3] == ":use",
                                             parsed_to_lexeme_list))
-                    if len(filtered_list) > 0:
+                    if len(list_with_use) > 0:
                         zoekterm_oke = True
                         break
-
         else:  # if first letter not uppercase, then it is a function name
             filtered_list = list(filter(
                 lambda x: x[1][0] == regelnummer and (x[1][2] in [":paren_identifier", ":do_identifier", ":identifier"]) and
                           x[1][3] == ":" + zoekterm, parsed_to_lexeme_list))
-
-        if zoekterm_oke is False and len(filtered_list) > 0:
-            zoekterm_oke = True
+            for (list_nr, (ln_nr, col_nr, type, term)) in filtered_list:
+                if parsed_to_lexeme_list[list_nr-1][1][3] == ":def" or parsed_to_lexeme_list[list_nr-1][1][3] == ":defp":
+                    break
+                if parsed_to_lexeme_list[list_nr-2][1][3] == ":Kernel" and parsed_to_lexeme_list[list_nr-1][1][2] == ":.":   #  if the previous token is a dot, then it is a function name
+                    zoekterm_oke = True
+                    break
+                elif parsed_to_lexeme_list[list_nr-1][1][2] != ":.":
+                    zoekterm_oke = True
+                    break
 
         if zoekterm_oke:
             print(f"{Fore.GREEN}zoekterm gevonden:" + zoekterm + ", regelnummer:" + str(
@@ -186,7 +194,7 @@ def get_data_withline_numbers(parsed_to_lexeme_list, zoektermenlijst):
 
 def update_bestandswijziging_zoekterm_regelnummer(bzr_id, is_valid):
     update_zoekterm_regelnummer_sql = """
-update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid_2 = {is_valid}  where id = {id}
+update {sch}.bestandswijziging_zoekterm_regelnummer set is_valid_3 = {is_valid}  where id = {id}
 """.format(sch=schema, id=bzr_id, is_valid=is_valid)
     get_connection().execute_sql(update_zoekterm_regelnummer_sql)
 

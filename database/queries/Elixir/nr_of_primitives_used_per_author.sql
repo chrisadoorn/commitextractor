@@ -9,7 +9,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS bw_met_zoektermen_met_term
 
 truncate table bw_met_zoektermen_met_term;
 insert into bw_met_zoektermen_met_term(idbestandswijziging, zoekterm)
-select idbestandswijziging, zoekterm  from bestandswijziging_zoekterm where falsepositive = false and aantalgevonden_nieuw > bestandswijziging_zoekterm.aantalgevonden_oud;
+select idbestandswijziging, zoekterm  from bestandswijziging_zoekterm where aantalgevonden_nieuw > bestandswijziging_zoekterm.aantalgevonden_oud;
 
 
 CREATE TEMPORARY TABLE IF NOT EXISTS authors

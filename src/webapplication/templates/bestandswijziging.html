@@ -1,0 +1,70 @@
+{% extends "master.html" %}
+
+{% block content %}
+
+<div class="content" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: stretch; margin: 5px">
+    <div style="margin: 5px">
+        <div><b>difftext</b></div>
+        {% if difftext %}
+        <div class="box">
+            <pre>{{ difftext }}</pre>
+        </div>
+        <div>
+            <b>simple search</b><br>
+            <pre>{{ difftext_simple_search }}</pre>
+        </div>
+
+
+            <div>
+                <b>old lines</b><br>
+                {{ diff_ol }}
+
+            </div>
+            <div>
+                <b>new lines</b><br>
+                {{ diff_nl }}
+            </div>
+        <div>
+            <b>keywords</b><br>
+            {% for kw in keywords %}
+            <div>{{kw}}</div>
+            {% endfor %}
+        </div>
+
+
+        {% endif %}
+
+    </div>
+
+
+
+    <div style="margin: 5px">
+        {% if tekstvooraf %}
+        <div class="box">
+            <pre>{{ tekstvooraf }}</pre>
+        </div>
+        {% else %}
+        <div>
+            <pre>nieuw bestand</pre>
+        </div>
+        {% endif %}
+    </div>
+    <div style="margin: 5px">
+        {% if tekstachteraf %}
+        <div class="box">
+            <pre>{{ tekstachteraf }}</pre>
+        </div>
+        {% else %}
+        <div>
+            <pre>file verwijderd of verplaatst</pre>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<div class="content" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: stretch; margin: 5px">
+
+
+</div>
+{% endblock %}

@@ -15,6 +15,9 @@ RUN_PARALLEL = 'run_parallel'
 GITHUB = 'github'
 PERSONAL_ACCESS_TOKEN = 'personal_access_token'
 LIST_FILES = 'list_files'
+GITHUB_API = 'https://api.github.com/repos/{}/commits/{}'
+GITHUB_RATELIMIT_BASIC = 60
+NO_AUTHOR_FOUND_START_ID = 900000000
 
 # INI_FILE contains the default location of the configuration
 INI_FILE = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..', 'var', 'commitextractor.ini'))
@@ -97,8 +100,11 @@ def get_ghsearch_importfile():
     return get_module_configurationitem(module=LOAD_GHSEARCH, entry='importfile')
 
 
-def get_github_personal_access_token():
-    return get_module_configurationitem(GITHUB, PERSONAL_ACCESS_TOKEN)
+def get_github_api_headers():
+    bearer_token = get_module_configurationitem(GITHUB, PERSONAL_ACCESS_TOKEN)
+    return {"Accept": "application/vnd.github.text-match+json", "Content-Type": "text/plain;charset=UTF-8",
+     "timeout": "10", "Authorization": "Bearer {}".format(bearer_token)}
+
 
 
 # set_inifile makes the ini_file dynamic.

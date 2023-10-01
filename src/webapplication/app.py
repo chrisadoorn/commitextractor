@@ -76,6 +76,39 @@ def form_commits_for_projects(select_id):
         print(e)
 
 
+@app.route("/showgithub/bestandswijziging/<bw_wijziging>")
+def bestandswijziging(bw_wijziging):
+    try:
+        sql = " select bw.idcommit, bw.difftext, bw.tekstvooraf, bw.tekstachteraf, bw_z_r.zoekterm, bw_z_r.regelnummer, bw_z_r.regelsoort, bw_z_r.is_valid_3 from {sch}.bestandswijziging as bw " \
+              " left join {sch}.bestandswijziging_zoekterm_regelnummer bw_z_r on bw.id = bw_z_r.idbestandswijziging " \
+              " where  bw.id = {id} order by bw_z_r.regelnummer".format(sch=pg_db_schema,id=bw_wijziging)
+        cursor = pg_db.execute_sql(sql)
+
+        difftext_first = ''
+        tekstvooraf_first = ''
+        tekstachteraf_first = ''
+        diff_ol = ''
+        diff_nl = ''
+        is_first = True
+        keywords: list[str] = []
+        difftext_simple_search = ''
+        for (idcommit, difftext, tekstvooraf, tekstachteraf, zoekterm, regelnummer, regelsoort, is_valid) in cursor.fetchall():
+            if is_first:
+                difftext_first = difftext
+                difftext_simple_search = simple_search(difftext)
+                nl, ol = readDiff.check_diff_text(difftext, zoektermen)
+                diff_ol = create_string(ol)
+                diff_nl = create_string(nl)
+                tekstvooraf_first = add_line_numbers(tekstvooraf)
+                tekstachteraf_first = add_line_numbers(tekstachteraf)
+                is_first = False
+
+            keywords.append("{rn} {zt} {rs} {v}".format(zt=zoekterm, rn=regelnummer, rs= regelsoort, v=is_valid))
+        return render_template("bestandswijziging.html", difftext_simple_search=difftext_simple_search, diff_ol=diff_ol, diff_nl=diff_nl,difftext=difftext_first, tekstvooraf=tekstvooraf_first, tekstachteraf=tekstachteraf_first, keywords=keywords)
+    except Exception as e:
+        print(e)
+
+
 @app.route("/showgithub/<select_id>/change/<false_positive>/")
 def form_changes_for_projects(select_id, false_positive):
     try:
